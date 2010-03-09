@@ -1,0 +1,14 @@
+{
+  "version": 0.2,
+  "author": "Josip Lisec",
+  "description": "Package manager for Io modeled after Rip.",
+  "readme": null,
+  "category": "Utility",
+
+  "dependencies": {
+    "headers":  [],
+    "protos":   [],
+    "packages": ["git://github.com/stevedekorte/io.git"]
+  },
+  "protos": ["Eerie"]
+}

@@ -1,0 +1,6 @@
+#!/usr/bin/env io
+Eerie
+(System args size == 3) ifTrue(
+  Eerie Package with(System args at(1), System args at(2)) install)
+
+#Eerie Package with("Ike", "git://github.com/defunkt/ike.git") install
