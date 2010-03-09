@@ -1,0 +1,47 @@
+h1. Eerie, package manager for Io
+
+Eerie is an attempt to create feature-full package manager for Io, due to lack of working and usable package managers.
+Eerie is modelled after "Rip":http://hellorip.com which means that there is no central repository of packages, and environments as a 
+tool for switching between different versions.
+
+h2. How to install
+
+<code><pre>
+$ git clone git://github.com/josip/Eerie.git
+$ cd Eerie
+$ io setup.io
+# Close current terminal session and start a new one or reload your profile
+$ . ~/.bash_profile
+</pre></code>
+
+Eerie currently ships with a simple <code>eerie</code> command which can do all sorts exciting of things!
+
+<code>$ eerie Generys git://github.com/josip/generys.git</code>
+
+That will, for example, install the Generys package! How exciting!
+
+
+h2. Features
+
+h3. Currently implemented
+
+  * Working package manager
+  * Converting local files and folders into packages
+  * Installing from Git repositories
+  * Addons with .c files are being compiled and loaded properly
+  * All installations are local to the current user, there is no "global mode"
+
+h3. Missing basic features (will be implemented soon)
+
+  * Command-line tool
+  * Installing specific version of a package
+  * Documentation
+  * Tests
+  * Support for other version-control-software
+
+h3. Planned features
+
+  * Ability to locally patch packages, _a la_ "BSD Ports":http://www.freebsd.org/ports/index.html ("see also":http://networking.ringofsaturn.com/Unix/createportpatch.php)
+  * Run tests
+  * Generate documentation
+  * Optional central repository (or repositiores, like "Ruby Gems":http://rubygems.org/)
