@@ -6,13 +6,13 @@ tool for switching between different versions.
 
 h2. How to install
 
-<code><pre>
+<pre><code>
 $ git clone git://github.com/josip/Eerie.git
 $ cd Eerie
 $ io setup.io
 # Close current terminal session and start a new one or reload your profile
 $ . ~/.bash_profile
-</pre></code>
+</code></pre>
 
 Eerie currently ships with a simple <code>eerie</code> command which can do all sorts exciting of things!
 
@@ -41,7 +41,7 @@ h3. Missing basic features (will be implemented soon)
 
 h3. Planned features
 
-  * Ability to locally patch packages, _a la_ "BSD Ports":http://www.freebsd.org/ports/index.html ("see also":http://networking.ringofsaturn.com/Unix/createportpatch.php)
+  * Ability to locally patch packages, _à la_ "BSD Ports":http://www.freebsd.org/ports/index.html ("see also":http://networking.ringofsaturn.com/Unix/createportpatch.php)
   * Run tests
   * Generate documentation
-  * Optional central repository (or repositiores, like "Ruby Gems":http://rubygems.org/)
+  * Optional central repository (or repositories, like "Ruby Gems":http://rubygems.org/)
