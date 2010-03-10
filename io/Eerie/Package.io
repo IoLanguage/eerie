@@ -41,6 +41,14 @@ Package := Object clone do(
   withConfig := method(config,
     self clone setConfig(config))
 
+  guessName := method(_uri,
+    f := File with(_uri)
+    f exists ifTrue(
+      return(f baseName makeFirstCharacterUppercase))
+
+    _uri containsSeq("://") ifTrue(
+      return(_uri split("/") last split(".") first makeFirstCharacterUppercase)))
+
   setInstaller := method(inst,
     self installer = inst
     self config atPut("installer", inst type)
@@ -65,8 +73,7 @@ Package := Object clone do(
     self downloader download
     
     self loadMetadata
-    self dependencies ?isEmpty ifFalse(
-       self installDependencies)
+    self installDependencies
 
     self setInstaller(Eerie PackageInstaller detect(self path))
     self installer install
@@ -77,7 +84,9 @@ Package := Object clone do(
     self runHook("after" .. event))
 
   installDependencies := method(
-    Eerie log("Installing depenendencies"))
+    deps := self dependencies("packages")
+    deps foreach(_uri,
+      self with(self guessName(_uri), _uri) install))
 
   update := method(
     self runHook("beforeUpdateDownload")
@@ -115,8 +124,8 @@ Package := Object clone do(
     p := self config at("meta") ?at("protos")
     if(p isNil, list(), p))
 
-  dependencies := method(
-    d := self config at("meta") ?at("dependencies")
+  dependencies := method(category,
+    d := self config at("meta") ?at("dependencies") ?at(category)
     if(d isNil, list(), d))
 
   asJson := method(

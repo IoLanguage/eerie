@@ -5,9 +5,9 @@ FileInstaller := Eerie PackageInstaller clone do(
     f exists and(f isRegularFile))
 
   install := method(
-    File with((self path) .. "/package.json") create openForUpdating write(Map with(
+    self fileNamed("package.json") remove create openForUpdating write(Map with(
       "author", User name,
       "dependencies", list(),
-      "protos", list(Directory with(self path) filesWithExtension("io") first baseName makeFirstCharacterUppercase)
+      "protos", list(self root filesWithExtension("io") first baseName makeFirstCharacterUppercase)
       ) asJson) close)
 )

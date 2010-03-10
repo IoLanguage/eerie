@@ -8,7 +8,7 @@
   "dependencies": {
     "headers":  [],
     "protos":   [],
-    "packages": ["git://github.com/stevedekorte/io.git"]
+    "packages": ["git://github.com/josip/Kano.git"]
   },
   "protos": ["Eerie"]
 }

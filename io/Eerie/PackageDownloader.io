@@ -27,4 +27,4 @@ PackageDownloader := Object clone do(
 PackageDownloader instances := Object clone
 PackageDownloader instances doRelativeFile("PackageDownloader/File.io")
 PackageDownloader instances doRelativeFile("PackageDownloader/Directory.io")
-PackageDownloader instances doRelativeFile("PackageDownloader/Git.io")
+PackageDownloader instances doRelativeFile("PackageDownloader/Vcs.io")

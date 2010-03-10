@@ -1,8 +1,8 @@
 h1. Eerie, package manager for Io
 
 Eerie is an attempt to create feature-full package manager for Io, due to lack of working and usable package managers.
-Eerie is modelled after "Rip":http://hellorip.com which means that there is no central repository of packages, and environments as a 
-tool for switching between different versions.
+Eerie is modelled after "Rip":http://hellorip.com which means that there is no central repository of packages, and that environments
+are used as a tool for switching between different versions.
 
 h2. How to install
 

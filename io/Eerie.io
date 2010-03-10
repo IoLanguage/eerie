@@ -6,16 +6,20 @@ Eerie := Object clone do(
   config              ::= nil
   envs                := List clone
 
-  sh := method(cmd,
+  sh := method(cmd, logFailure,
     self log(cmd, "console")
     cmdOut := System runCommand(cmd)
-    if(cmdOut exitStatus != 0,
-      self log("Last command exited with the following error:", "error")
-      self log(cmdOut stdout, "output")
-      self log(cmdOut stderr, "output")
-      System exit(1))
 
-    true)
+    if(cmdOut exitStatus != 0,
+      if(logFailure == false,
+        false
+      ,
+        self log("Last command exited with the following error:", "error")
+        self log(cmdOut stdout, "output")
+        self log(cmdOut stderr, "output")
+        System exit(1))
+    ,
+      true))
 
   _logMods := Map with(
     "info",     " - ",

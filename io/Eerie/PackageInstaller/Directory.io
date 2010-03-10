@@ -5,17 +5,16 @@ DirectoryInstaller := Eerie PackageInstaller clone do(
     dir exists and(dir filesWithExtension("io") isEmpty not) and(packageJson exists not))
 
   install := method(
-    root := Directory with(self path)
-    ioDir := root directoryNamed("io") create
-    
+    ioDir := self dirNamed("io") create
+
     protosList := list()
-    root filesWithExtension("io") foreach(ioFile,
+    self root filesWithExtension("io") map(ioFile,
       ioFile baseName at(0) isUppercase ifTrue(
         protoList append(ioFile baseName)))
 
     Eerie sh("mv #{self path}/*.io #{ioDir path}" interpolate)
 
-    File with((self path) .. "/package.json") create openForUpdating write(Map with(
+    self fileNamed("package.json") remove create openForUpdating write(Map with(
       "author", User name,
       "dependencies", list(),
       "protos", protosList
