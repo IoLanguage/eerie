@@ -1,6 +1,107 @@
 #!/usr/bin/env io
 Eerie
-(System args size == 3) ifTrue(
-  Eerie Package with(System args at(1), System args at(2)) install)
+Kano
 
-#Eerie Package with("Ike", "git://github.com/defunkt/ike.git") install
+Eerie do(
+  _log := getSlot("log")
+  log = method(str, mode,
+    (mode == nil or mode == "info" or mode == "error") ifTrue(
+      self _log(str, mode)))
+)
+
+Namespaces Env := Namespace clone
+Eerie Env describe do(
+  setNamespace(Namespaces Env)
+  setRequiresClone(true)
+
+  createClone = method(args,
+    Eerie Env named(args removeFirst))
+
+  task("create") do(
+    describe("Creates a new environment.")
+    createClone = method(args,
+      self targetObj with(args removeFirst))
+
+    after(r, "Created #{self targetObj name} env." interpolate)
+  )
+
+  task("activate") do(
+    describe("Activates the environment, all binaries and addons in it will be loaded by default.")
+    after(r, "#{Eerie activeEnv name} is now the default env." interpolate)
+  )
+
+  task("remove") do(
+    describe("Removes an environemnt with all its packages.")
+    after(r, "#{self targetObj name} was removed." interpolate)
+  )
+) done
+
+Eerie describe do(
+  setNamespace(Namespaces Env)
+
+  task("active") callsSlot("activeEnv") do(
+    describe("Prints the name of active environment.")
+    after(env, env name)
+  )
+
+  task("list") callsSlot("envs") do(
+    describe("Lists all available environments.")
+    after(envs,
+      envs map(env, if(env isActive, env name .. " *", env name)) select(!= nil) sort)
+    returns(List, Map with("joinWith", "\n"))
+  )
+) done
+
+Namespaces Pkg := Namespace clone
+Eerie Package describe do(
+  setNamespace(Namespaces Pkg)
+  setRequiresClone(true)
+
+  createClone = method(args,
+    Eerie activeEnv packageNamed(args removeFirst))
+
+  task("install") do(
+    describe("Installs a new package.")
+    createClone = method(args,
+      Eerie Package fromUri(args removeFirst))
+
+    after(pkg,
+      "Package #{pkg name} has been installed." interpolate println
+
+      readme := pkg config at("meta") ?at("readme")
+      if(readme isNil,
+        ""
+      ,
+        readmeFile := File with(pkg path .. "/" .. readme)
+        readmeFile exists ifFalse(return(""))
+        
+        "Opening readme file..." println
+        System sleep(2)
+
+        openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
+        openCommand isNil ifTrue(openCommand = "more")
+
+        System system(openCommand .. " " .. readmeFile path)
+        ""))
+  )
+
+  task("update") do(
+    describe("Updates the package and all of its submodules.")
+    after(result, "Package #{self targetObj name} has been updated." interpolate)
+  )
+
+  task("remove") do(
+    describe("Removes the package.")
+    after(result, "Package #{self targetObj name} has been removed." interpolate)
+  )
+
+  task("list") do(
+    describe("Lists all packages installed within current environment")
+    targetObj = Eerie activeEnv
+    callsSlot("packages")
+    after(result, result map(name))
+    returns(List, Map with("joinWih"))
+  )
+) done
+
+Kano clone setUseExternalFile(false) run

@@ -20,14 +20,14 @@ Env := Object clone do(
       "packages", List clone)
     Eerie envs appendIfAbsent(self))
 
-  with := method(_name,
-    self clone setName(_name))
+  with := method(name_,
+    self clone setName(name_))
   
-  named := method(_name,
-    Eerie envs detect(name == _name))
+  named := method(name_,
+    Eerie envs detect(name == name_))
 
-  withConfig := method(_name, _config,
-    self clone setName(_name) setConfig(_config))
+  withConfig := method(name_, config_,
+    self clone setName(name_) setConfig(config_))
 
   create := method(
     root := Directory with((Eerie root) .. "/env/" .. (self name))
@@ -37,16 +37,13 @@ Env := Object clone do(
     root create
     root createSubdirectory("bin")
     root createSubdirectory("addons")
-    root createSubdirectory("protos")
 
     Eerie config at("envs") atPut(self name, self config)
     Eerie saveConfig
-    Eerie log("Created #{self name} env.")
 
     self)
 
   use := method(
-    Eerie log("Using #{self name} env.")
     Eerie activeEnv isNil ifFalse(
       AddonLoader searchPaths remove(Eerie activeEnv path))
 
@@ -78,21 +75,16 @@ Env := Object clone do(
     self packages = self config at("packages") map(pkgConfig,
       Eerie Package withConfig(pkgConfig)))
 
+  packageNamed := method(pkgName,
+    self packages detect(name == pkgName))
+
   registerPackage := method(package,
     self config at("packages") appendIfAbsent(package asJson)
     self packages appendIfAbsent(package)
     Eerie saveConfig
 
-    package providesProtos foreach(providedProto,
-      l := """
-AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/env/#{self name}/addons")
-AddonLoader loadAddonNamed("#{providedProto}")
-""" interpolate
-      File with("#{self path}/protos/#{providedProto}.io" interpolate) create openForUpdating write(l) close)
-
-    Eerie log("Installed package #{package name}.")
     self)
-  
+
   removePackage := method(package,
     "removePackage" println)
 

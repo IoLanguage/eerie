@@ -32,22 +32,27 @@ Package := Object clone do(
       "path", nil,
       "meta", Map clone))
   
-  with := method(_name, _uri,
+  with := method(name_, uri_,
     self clone setConfig(Map with(
-      "name", _name,
-      "uri", _uri,
-      "path", (Eerie activeEnv path) .. "/addons/" .. _name)))
+      "name", name_,
+      "uri",  uri_,
+      "path", (Eerie activeEnv path) .. "/addons/" .. name_)))
 
   withConfig := method(config,
     self clone setConfig(config))
 
-  guessName := method(_uri,
-    f := File with(_uri)
-    f exists ifTrue(
-      return(f baseName makeFirstCharacterUppercase))
+  fromUri := method(path_,
+    self with(self guessName(path_), path_))
 
-    _uri containsSeq("://") ifTrue(
-      return(_uri split("/") last split(".") first makeFirstCharacterUppercase)))
+  guessName := method(uri_,
+    f := File with(uri_)
+    (uri_ exSlice(-1) == "/") ifTrue(
+      uri_ = uri_ exSlice(0, -1))
+
+    if(f exists,
+      # We can't use baseName here because it returns nil for directories
+      f name split(".") first makeFirstCharacterUppercase,
+      uri_ split("/") last split(".") first makeFirstCharacterUppercase))
 
   setInstaller := method(inst,
     self installer = inst
@@ -65,13 +70,13 @@ Package := Object clone do(
         Exception raise("Package #{self name} is already installed." interpolate)))
 
     event := if(isUpdate, "Update", "Install")
-    Eerie log("#{event}ing '#{self name}' from #{self uri}...")
+    #Eerie log("#{event}ing '#{self name}' from #{self uri}...")
     self runHook("before" .. event)
 
     Directory with(self path) createIfAbsent
     self setDownloader(Eerie PackageDownloader detect(self uri, self path))
     self downloader download
-    
+
     self loadMetadata
     self installDependencies
 
@@ -81,12 +86,13 @@ Package := Object clone do(
     self loadMetadata
     Eerie activeEnv registerPackage(self)
 
-    self runHook("after" .. event))
+    self runHook("after" .. event)
+    self)
 
   installDependencies := method(
     deps := self dependencies("packages")
     deps foreach(_uri,
-      self with(self guessName(_uri), _uri) install))
+      self fromUri(_uri) install))
 
   update := method(
     self runHook("beforeUpdateDownload")
@@ -108,7 +114,7 @@ Package := Object clone do(
     true)
 
   runHook := method(hook,
-    f := File with("#{self path}/hooks/#{hook}.io")
+    f := File with("#{self path}/hooks/#{hook}.io" interpolate)
     f exists ifTrue(
       try(
         Thread createThread(f contents))

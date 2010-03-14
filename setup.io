@@ -19,9 +19,10 @@ Object clone do(
 
 # Four Commandments of Eerie
 EERIEDIR="#{eerieDir}"
-IOIMPORT=$IOIMPORT:$EERIEDIR/activeEnv/protos
+#IOIMPORT=$IOIMPORT:$EERIEDIR/activeEnv/protos
 PATH=$PATH:$EERIEDIR/activeEnv/bin
-export EERIEDIR IOIMPORT PATH
+export EERIEDIR PATH
+# That's all folks
 
 """ interpolate
 
@@ -32,17 +33,25 @@ export EERIEDIR IOIMPORT PATH
       f close)
 
     " - Updated bash profile." println
+
+    iorc := File with(homeDir .. "/.iorc")
+    iorc exists ifFalse(iorc create)
+    loaderCode := """AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv/addons")"""
+    iorc openForAppending contents containsSeq("EERIEDIR") ifFalse(
+      iorc appendToContents(loaderCode .. "\n"))
+    iorc close
+    " - Updated iorc file." println
+
     System setEnvironmentVariable("EERIEDIR", eerieDir)
 
     Directory with(eerieDir) create
     Directory with(eerieDir .. "/env") create
 
-    #protosLoader := """AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv/addons")"""
-    #File with(eerieDir .. "/loader.io")   create openForUpdating write(protosLoader) close
     File with(eerieDir .. "/config.json") create openForUpdating write("{\"envs\": {}}") close
 
     Eerie Env with("base") create activate use
     Eerie Package with("Eerie", Directory currentWorkingDirectory) install
-    " -.-" println
-    " - Is there an eerie sound coming out of your basement?" println)
+    " ---- Fin ----" println
+    System sleep(1)
+    " - Oh, wait, is there an eerie sound coming out of your basement?" println)
 ) setup

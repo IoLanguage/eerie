@@ -57,6 +57,6 @@ Eerie clone = Eerie do(
   doRelativeFile("Eerie/PackageDownloader.io")
   doRelativeFile("Eerie/PackageInstaller.io")
   doRelativeFile("Eerie/Env.io")
-  
+
   init
 )
