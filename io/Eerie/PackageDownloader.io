@@ -4,15 +4,15 @@ PackageDownloader := Object clone do(
   //doc PackageDownloader path
   path        ::= nil
 
-  with := method(_uri, _path,
-    self clone setUri(_uri) setPath(_path))
+  with := method(uri_, path_,
+    self clone setUri(uri_) setPath(path_))
 
-  detect := method(_uri, _path,
+  detect := method(uri_, path_,
     self instances foreachSlot(slotName, downloader,
-      downloader canDownload(_uri) ifTrue(
-        return(downloader with(_uri, _path))))
+      downloader canDownload(uri_) ifTrue(
+        return(downloader with(uri_, path_))))
 
-    Exception raise("Don't know how to download package from #{_uri}" interpolate))
+    Exception raise("Don't know how to download package from #{uri_}" interpolate))
 
   canDownload := method(uri, false)
   download    := method(false)
@@ -24,7 +24,8 @@ PackageDownloader := Object clone do(
     root createSubdirectory("hooks"))
 )
 
-PackageDownloader instances := Object clone
-PackageDownloader instances doRelativeFile("PackageDownloader/File.io")
-PackageDownloader instances doRelativeFile("PackageDownloader/Directory.io")
-PackageDownloader instances doRelativeFile("PackageDownloader/Vcs.io")
+PackageDownloader instances := Object clone do(
+  doRelativeFile("PackageDownloader/File.io")
+  doRelativeFile("PackageDownloader/Directory.io")
+  doRelativeFile("PackageDownloader/Vcs.io")
+)

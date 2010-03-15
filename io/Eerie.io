@@ -15,8 +15,8 @@ Eerie := Object clone do(
         false
       ,
         self log("Last command exited with the following error:", "error")
-        self log(cmdOut stdout, "output")
-        self log(cmdOut stderr, "output")
+        self log(cmdOut stdout, "error")
+        self log(cmdOut stderr, "error")
         System exit(1))
     ,
       true))
@@ -37,9 +37,9 @@ Eerie := Object clone do(
     self config at("envs") ?foreach(name, envConfig,
       Eerie Env withConfig(name, envConfig))
 
-    _activeEnv := self config at("activeEnv")
-    _activeEnv isNil ifFalse(
-      self setActiveEnv(Eerie Env named(_activeEnv))
+    activeEnv_ := self config at("activeEnv")
+    activeEnv_ isNil ifFalse(
+      self setActiveEnv(Eerie Env named(activeEnv_))
       self activeEnv use)
     self)
 

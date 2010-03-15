@@ -1,13 +1,21 @@
 FileInstaller := Eerie PackageInstaller clone do(
-  canInstall := method(_path,
-    #dir := Directory with(_path)
-    f := File with(_path)
-    f exists and(f isRegularFile))
+  canInstall := method(path_,
+    f := File with(path_)
+    f exists and f isRegularFile)
 
-  install := method(
+  providesProto := method(
+    self providesProto = self root filesWithExtension("io") first baseName makeFirstCharacterUppercase)
+
+  install := method()
+
+  buildPackageJson := method(
     self fileNamed("package.json") remove create openForUpdating write(Map with(
       "author", User name,
       "dependencies", list(),
-      "protos", list(self root filesWithExtension("io") first baseName makeFirstCharacterUppercase)
+      "protos", list(self providesProto)
       ) asJson) close)
+  
+  extractDataFromPackageJson := method(
+    self fileNamed("depends") remove create openForUpdating write("\n") close
+    self fileNamed("protos")  remove create openForUpdating write(self providesProto .. "\n") close)
 )

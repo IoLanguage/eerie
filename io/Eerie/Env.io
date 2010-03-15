@@ -6,7 +6,7 @@ Env := Object clone do(
   
   name := method(
     self config at("name"))
-    
+
   setName := method(v,
     self config atPut("name", v)
     self)
@@ -22,7 +22,7 @@ Env := Object clone do(
 
   with := method(name_,
     self clone setName(name_))
-  
+
   named := method(name_,
     Eerie envs detect(name == name_))
 
@@ -73,10 +73,13 @@ Env := Object clone do(
 
   packages := method(
     self packages = self config at("packages") map(pkgConfig,
+      (pkgConfig type == "Map") ifFalse(
+        pkgConfig = Yajl parseJson(pkgConfig))
+
       Eerie Package withConfig(pkgConfig)))
 
   packageNamed := method(pkgName,
-    self packages detect(name == pkgName))
+    self packages detect(pkg, pkg name == pkgName))
 
   registerPackage := method(package,
     self config at("packages") appendIfAbsent(package asJson)
@@ -88,6 +91,5 @@ Env := Object clone do(
   removePackage := method(package,
     "removePackage" println)
 
-  asString  := method(self name)
-  asJson    := method(self name asJson)
+  asJson    := method(self config)
 )

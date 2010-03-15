@@ -6,19 +6,15 @@ IoAddonInstaller := Eerie PackageInstaller clone do(
     _pathDir exists and(ioDir exists))
 
   install := method(
-    self loadConfig
-
-    if(self fileNamed("protos") exists,
-      self buildPackageJson,
-      self extractDataFromPackageJson)
-
-    if(self dirNamed("source") exists,
+    sourceDir := self dirNamed("source")
+    if(sourceDir exists and sourceDir files isEmpty not,
       self compile,
-      self root createSubdirectory("source"))
+      sourceDir create)
 
-    if(self dirNamed("bin") exists,
+    binDir := self dirNamed("bin")
+    if(binDir exists and binDir files isEmpty not,
       self copyBinaries,
-      self root createSubdirectory("bin"))
+      binDir create)
 
     true)
 )

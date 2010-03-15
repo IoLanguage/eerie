@@ -1,4 +1,8 @@
 PackageInstaller := Object clone do(
+  compileFlags := if(System platform split first asLowercase == "windows",
+    "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
+    "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
+
   //doc PackageInstaller path Path to at which package is located.
   path  ::= nil
 
@@ -8,6 +12,9 @@ PackageInstaller := Object clone do(
 
   //doc PackageInstaller config Contains contents of a package.json
   config ::= nil
+
+  init := method(
+    self config = Map clone)
 
   //doc PackageInstaller with(path)
   with := method(_path,
@@ -34,8 +41,12 @@ PackageInstaller := Object clone do(
   //doc PackageInstaller dirNamed(name) Returns an Directory relative to root directory.
   dirNamed := method(name,
     self root directoryNamed(name))
-    
+
   loadConfig := method(
+    if(self fileNamed("protos") exists,
+      self buildPackageJson,
+      self extractDataFromPackageJson)
+
     configFile := self fileNamed("package.json")
     configFile exists ifTrue(
       self setConfig(Yajl parseJson(configFile openForReading contents))
@@ -67,21 +78,6 @@ PackageInstaller := Object clone do(
 
       self fileNamed("build.io") create openForUpdating write(buildIo interpolate) close))
 
-  compile := method(
-    builderContext := Object clone
-    builderContext doRelativeFile("AddonBuilder.io")
-    prevPath := Directory currentWorkingDirectory
-    Directory setCurrentWorkingDirectory(self path)
-
-    addon := builderContext doFile((self path) .. "/build.io")
-    addon folder := Directory with(self path)
-    addon build(if(System platform split at(0) asLowercase == "windows",
-      "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
-      "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS"))
-
-    Directory setCurrentWorkingDirectory(prevPath)
-    self)
-
   buildPackageJson := method(
     package := Map with(
       "dependencies", list(),
@@ -89,7 +85,7 @@ PackageInstaller := Object clone do(
 
     providedProtos := self fileNamed("protos")
     protoDeps := self fileNamed("depends")
-    
+
     providedProtos exists ifTrue(
       providedProtos openForReading contents split(" ") foreach(pp, package at("protos") append(pp strip)))
     providedProtos close
@@ -102,10 +98,25 @@ PackageInstaller := Object clone do(
 
     self)
 
+  compile := method(
+    builderContext := Object clone
+    builderContext doRelativeFile("AddonBuilder.io")
+    prevPath := Directory currentWorkingDirectory
+    Directory setCurrentWorkingDirectory(self path)
+
+    addon := builderContext doFile((self path) .. "/build.io")
+    addon folder := Directory with(self path)
+    addon build(self compileFlags)
+
+    Directory setCurrentWorkingDirectory(prevPath)
+    self)
+
   copyBinaries := method(
     Eerie sh("chmod +x #{self path}/bin/*" interpolate)
-    self dirNamed("bin") files foreach(f,
-      Eerie sh("ln -s #{f path} #{Eerie activeEnv path}/bin/#{f name}" interpolate)))
+    self dirNamed("bin") files foreach(original,
+      link := File with(Eerie activeEnv path .. "/bin/" .. original name)
+      link exists ifFalse(
+        Eerie sh("ln -s #{original path} #{link path}" interpolate))))
 )
 
 PackageInstaller instances := Object clone do(

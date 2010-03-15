@@ -1,6 +1,6 @@
 #!/usr/bin/env io
 Eerie
-Kano
+Kano setUseExternalFile(false)
 
 Eerie do(
   _log := getSlot("log")
@@ -27,13 +27,19 @@ Eerie Env describe do(
 
   task("activate") do(
     describe("Activates the environment, all binaries and addons in it will be loaded by default.")
-    after(r, "#{Eerie activeEnv name} is now the default env." interpolate)
+    after(env, "Activated #{env name} env." interpolate)
   )
 
   task("remove") do(
-    describe("Removes an environemnt with all its packages.")
+    describe("Removes an env with all its packages.")
     after(r, "#{self targetObj name} was removed." interpolate)
   )
+  
+  # TODO: Clone envs
+  #task("clone") do(
+  #  describe("Creates a new env with packages of an existing one.")
+  #  callsSlot("cloneAs")
+  #)
 ) done
 
 Eerie describe do(
@@ -90,18 +96,32 @@ Eerie Package describe do(
     after(result, "Package #{self targetObj name} has been updated." interpolate)
   )
 
+  task("updateAll") do(
+    describe("Updates all packages within current env.")
+    setTargetObj(Eerie activeEnv)
+    callsSlot("packages")
+    after(packages, packages foreach(update); "")
+  )
+
   task("remove") do(
     describe("Removes the package.")
     after(result, "Package #{self targetObj name} has been removed." interpolate)
   )
 
   task("list") do(
-    describe("Lists all packages installed within current environment")
-    targetObj = Eerie activeEnv
+    describe("Lists all packages installed within current env.")
+    setTargetObj(Eerie activeEnv)
     callsSlot("packages")
+
     after(result, result map(name))
     returns(List, Map with("joinWih"))
   )
 ) done
 
-Kano clone setUseExternalFile(false) run
+Namespaces Default do(
+  selfUpdate := task(
+    Eerie Env named("_base") use
+    Eerie activeEnv packageNamed("Eerie") update)
+)
+
+Kano run

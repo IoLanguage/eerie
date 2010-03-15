@@ -39,16 +39,24 @@ Package := Object clone do(
       "path", (Eerie activeEnv path) .. "/addons/" .. name_)))
 
   withConfig := method(config,
-    self clone setConfig(config))
+    klone := self clone setConfig(config)
+    klone config at("installer") isNil ifFalse(
+      klone installer = Eerie PackageInstaller instances getSlot(klone config at("installer"))
+      klone installer = klone installer with(klone config at("path")))
+    klone config at("downloader") isNil ifFalse(
+      klone downloader = Eerie PackageDownloader instances getSlot(klone config at("downloader"))
+      klone downloader = klone downloader with(klone config at("uri"), klone config at("path")))
+
+    klone)
 
   fromUri := method(path_,
     self with(self guessName(path_), path_))
 
   guessName := method(uri_,
-    f := File with(uri_)
     (uri_ exSlice(-1) == "/") ifTrue(
       uri_ = uri_ exSlice(0, -1))
-
+    
+    f := File with(uri_)
     if(f exists,
       # We can't use baseName here because it returns nil for directories
       f name split(".") first makeFirstCharacterUppercase,
@@ -70,17 +78,18 @@ Package := Object clone do(
         Exception raise("Package #{self name} is already installed." interpolate)))
 
     event := if(isUpdate, "Update", "Install")
-    #Eerie log("#{event}ing '#{self name}' from #{self uri}...")
     self runHook("before" .. event)
 
-    Directory with(self path) createIfAbsent
-    self setDownloader(Eerie PackageDownloader detect(self uri, self path))
-    self downloader download
-
-    self loadMetadata
-    self installDependencies
+    isUpdate not ifTrue(
+      Directory with(self path) createIfAbsent
+      self setDownloader(Eerie PackageDownloader detect(self uri, self path))
+      self downloader download)
 
     self setInstaller(Eerie PackageInstaller detect(self path))
+    self installer loadConfig
+    self loadMetadata
+
+    self installDependencies
     self installer install
 
     self loadMetadata
@@ -116,10 +125,9 @@ Package := Object clone do(
   runHook := method(hook,
     f := File with("#{self path}/hooks/#{hook}.io" interpolate)
     f exists ifTrue(
-      try(
-        Thread createThread(f contents))
+      try(Thread createThread(f contents))
       f close))
-      
+
   loadMetadata := method(
     meta := File with((self path) .. "/package.json")
     meta exists ifTrue(
@@ -131,9 +139,10 @@ Package := Object clone do(
     if(p isNil, list(), p))
 
   dependencies := method(category,
-    d := self config at("meta") ?at("dependencies") ?at(category)
+    d := self config at("meta") ?at("dependencies")
+    if(category and d and d isEmpty not, d = d at(category))
     if(d isNil, list(), d))
 
   asJson := method(
-    self config asJson)
+    self config)
 )
