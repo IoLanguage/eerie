@@ -129,6 +129,14 @@ h2:first {
   font-size: 0.93em;
 }
 
+h2.work-in-progress {
+  background: yellow;
+  position: fixed;
+  top: 0;
+  margin: 0;
+  padding: 0 10px;
+}
+
 #footer {
   margin-top: 40px;
   font-size: 0.9em;
