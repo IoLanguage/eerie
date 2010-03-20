@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>{{ page.title }}</title>
+    <link rel="stylesheet" href="css/reset.css" type="text/css" media="all" charset="utf-8"/>
+    <link rel="stylesheet" href="css/text.css"  type="text/css" media="all" charset="utf-8"/>
+    <link rel="stylesheet" href="css/main.css"  type="text/css" media="all" charset="utf-8"/>
+  </head>
+  <body>
+    <div id="sidebar">
+      <h1><a href="/">Eerie: Package Manager for Io</a></h1>
+      {% include menu.html %}
+    </div>
+    <div id="content">
+      {{ content }}
+    </div>
+    <div class="clear"></div>
+  </body>
+</html>
