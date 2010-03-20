@@ -1,0 +1,33 @@
+---
+layout: default
+title: Using the Eerie command
+category: usage
+---
+<a name="post-install"></a>
+<h2 style="margin-top:0">Post-install</h2>
+<p>
+  First make sure you have Eerie installed, if not, the check out the <a href="index.html#install">introductory page</a>.
+  To be able to use <code>eerie</code> command you have to either start a new terminal session or simply reload your bash profile:
+</p>
+
+<pre><code>$ . ~/.bash_profile</code></pre>
+
+<p class="note">
+  Not all operating systems sotre bash profile in the same file, OS X keeps it in <code>~/.bash_profile</code>,
+  while some Linux it can be distributons in <code>~/.bashrc</code>, or <code>~/.profile</code> file. Make sure you
+  reload the right one.
+</p>
+
+<p>
+  Now try running <code>eerie</code> command, if it prints nothing it means you successfully installed it! Bravo!
+</p>
+
+<a name="concepts"></a>
+<h2>Concepts</h2>
+<p>
+  Before we dive into <code>eerie</code> command, we should understand how Eerie actually works.
+</p>
+<p>
+  Just like <a href="http://hellorip.com">Rip</a>, <a href="http://pypi.python.org/pypi/virtualenv">virtualenv</a> and <a href="http://jdp.github.com/boid">Boid</a>,
+  Eerie uses the concept of multiple environments which can keep completely different packages (including different versions).
+</p>

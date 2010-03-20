@@ -6,10 +6,9 @@
 }
 
 @font-face {
-  font-family: mplus-1mn-light;
-  src:  local("M+ 1mn Light"),
-        local("Inconsolata"),
-        url("http://mplus-fonts.sourceforge.jp/webfonts/mplus-1mn-light.ttf") format("truetype");
+  font-family: inconsolata;
+  src:  local("Inconsolata"),
+        url("../fonts/inconsolata.otf") format("opentype");
 }
 
 body {
@@ -18,7 +17,7 @@ body {
   margin: 0 auto;
   color: #000;
   background: #fff;
-  padding: 40px 0 80px 0;
+  padding: 40px 0 20px 0;
 }
 
 a {
@@ -29,13 +28,15 @@ a {
 a:hover {
   color: #00f;
   text-decoration: underline;
+  font
 }
 
 pre {
-  font-family: mplus-1mn-light, monospace;
+  font-family: inconsolata, monospace !important;
+  font-weight: normal;
   background: #000;
   color: #fff;
-  margin: 0 -10px 0 -10px;
+  margin: 1.2em -10px 1.2em -10px;
   padding: 2px 0 2px 20px;
 }
 
@@ -64,7 +65,8 @@ p pre {
 }
 
 #sidebar li {
-  margin: 0 0 3px 15px;
+  margin: 0;
+  padding: 0 0 3px 0;
 }
 
 #sidebar li.separator hr {
@@ -74,11 +76,16 @@ p pre {
 
 #menu a {
   color: #000;
-  background: #fff;
+  background: transparent;
   text-decoration: none;
   border: none;
   width: 100%;
   display: block;
+  text-indent: 15px;
+}
+
+#sidebar li.active a {
+  background: #fff url(../images/bullet.png) 6px 35% no-repeat;
 }
 
 #menu a:hover {
@@ -112,4 +119,23 @@ h2:first {
 
 #content p {
   margin: 5px 0 0 10px;
+}
+
+#content p.note {
+  padding: 3px 0 3px 3em;
+  margin-bottom: 1em;
+  border: 1px solid #ddd;
+  border-width: 1px 0;
+  font-size: 0.93em;
+}
+
+#footer {
+  margin-top: 40px;
+  font-size: 0.9em;
+  text-indent: 10px;
+}
+
+#footer hr {
+  width: 30%;
+  margin: 0 0 1em 0;
 }

@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="Eerie site.svg">
+  <defs
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective10" />
+    <filter
+       inkscape:collect="always"
+       id="filter8064"
+       x="-0.36431684"
+       width="1.7286337"
+       y="-0.36823423"
+       height="1.7364685">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.44590863"
+         id="feGaussianBlur8066" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.09"
+     inkscape:cx="451.21622"
+     inkscape:cy="814.56097"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1280"
+     inkscape:window-height="682"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     showguides="false"
+     inkscape:guide-bbox="true"
+     inkscape:showpageshadow="false"
+     showborder="false" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       sodipodi:type="arc"
+       style="fill:#000000;fill-opacity:1.0;fill-rule:nonzero;stroke:none"
+       id="path7229"
+       sodipodi:cx="125.68807"
+       sodipodi:cy="442.27045"
+       sodipodi:rx="9.1743116"
+       sodipodi:ry="9.1743116"
+       d="m 134.86238,442.27045 a 9.1743116,9.1743116 0 1 1 -18.34862,0 9.1743116,9.1743116 0 1 1 18.34862,0 z"
+       transform="matrix(0.15857862,0,0,0.15857862,1.004338,32.956098)"
+       inkscape:export-filename="/Users/josip/Projects/Eerie/images/bullet.png"
+       inkscape:export-xdpi="90.089996"
+       inkscape:export-ydpi="90.089996" />
+    <g
+       id="g7206"
+       transform="translate(-21.274637,-230.25698)">
+      <rect
+         y="343.18787"
+         x="211.92659"
+         height="57.798164"
+         width="555.0459"
+         id="rect7196"
+         style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none" />
+      <text
+         xml:space="preserve"
+         style="font-size:14.86254691999999977px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:'M+ 1mn';-inkscape-font-specification:'M+ 1mn'"
+         x="231.21719"
+         y="362.17383"
+         id="text7198"
+         sodipodi:linespacing="100%"><tspan
+           sodipodi:role="line"
+           id="tspan7200"
+           x="231.21719"
+           y="362.17383">$ git clone git://github.com/josip/Eerie.git</tspan><tspan
+           id="tspan7202"
+           sodipodi:role="line"
+           x="231.21719"
+           y="377.03638">$ cd Eerie</tspan><tspan
+           sodipodi:role="line"
+           x="231.21719"
+           y="391.89893"
+           id="tspan8007">$ io setup.io</tspan></text>
+    </g>
+    <g
+       id="g7231"
+       transform="translate(-1.995081e-6,-4.3158707e-7)"
+       inkscape:export-filename="/Users/josip/Projects/Eerie/images/logo.png"
+       inkscape:export-xdpi="90.089996"
+       inkscape:export-ydpi="90.089996">
+      <g
+         transform="translate(1.7175293e-6,-324.75239)"
+         id="g7995">
+        <text
+           xml:space="preserve"
+           style="font-size:70.05036163px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:semi-expanded;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Edwardian Script ITC;-inkscape-font-specification:Edwardian Script ITC Semi-Expanded"
+           x="12.817417"
+           y="373.85959"
+           id="text7167"
+           sodipodi:linespacing="100%"><tspan
+             sodipodi:role="line"
+             id="tspan7169"
+             x="12.817417"
+             y="373.85959">eerie</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-size:14.86254692px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:OFL Sorts Mill Goudy Medium"
+           x="15.620861"
+           y="393.36649"
+           id="text7171"><tspan
+             style="font-size:14.86299992px"
+             sodipodi:role="line"
+             id="tspan7173"
+             x="15.620861"
+             y="393.36649">Package manager for Io</tspan></text>
+      </g>
+      <g
+         transform="matrix(0.90431962,0,0,1,-0.51369917,-324.75239)"
+         id="g7991">
+        <path
+           style="fill:none;stroke:#9d9d9d;stroke-width:1.05157197px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="m 17.000001,405.86218 162.385329,0"
+           id="path7215" />
+        <path
+           id="path7217"
+           d="m 17.000001,408.86218 162.385329,0"
+           style="fill:none;stroke:#9d9d9d;stroke-width:1.05157197px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      </g>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:OFL Sorts Mill Goudy Medium"
+       x="203.09599"
+       y="72.478561"
+       id="text8001"><tspan
+         sodipodi:role="line"
+         id="tspan8003"
+         x="203.09599"
+         y="72.478561">Is there an eerie noise coming out of your Io code?</tspan><tspan
+         sodipodi:role="line"
+         x="203.09599"
+         y="97.478561"
+         id="tspan8005">Here's how to fix it:</tspan></text>
+    <text
+       id="text7190"
+       y="108.6187"
+       x="26.316277"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         id="tspan7194"
+         y="108.6187"
+         x="26.316277"
+         sodipodi:role="line">Introduction</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:Bitstream Vera Sans"
+       x="26.316277"
+       y="132.2187"
+       id="text7199"><tspan
+         sodipodi:role="line"
+         x="26.316277"
+         y="132.2187"
+         id="tspan7201">Using Eeerie</tspan></text>
+    <text
+       id="text7203"
+       y="227.82861"
+       x="64.764961"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         id="tspan7205"
+         y="227.82861"
+         x="64.764961"
+         sodipodi:role="line">Code</tspan></text>
+    <g
+       id="g7232"
+       transform="translate(-476.14679,0)">
+      <path
+         style="fill:none;stroke:#9d9d9d;stroke-width:0.99999994px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 14.859735,193.26823 146.848235,0"
+         id="path7221" />
+      <rect
+         y="182.65565"
+         x="31.192661"
+         height="20.183487"
+         width="112.84403"
+         id="rect7227"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none" />
+      <text
+         id="text7207"
+         y="198.82817"
+         x="142.55585"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:Bitstream Vera Sans"
+         xml:space="preserve"><tspan
+           id="tspan7209"
+           y="198.82817"
+           x="142.55585"
+           sodipodi:role="line">Documentation</tspan></text>
+    </g>
+    <text
+       id="text7211"
+       y="158.0667"
+       x="26.316277"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         id="tspan7213"
+         y="158.0667"
+         x="26.316277"
+         sodipodi:role="line">Docs for packagers</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:Bitstream Vera Sans"
+       x="26.316277"
+       y="185.0107"
+       id="text8043"><tspan
+         sodipodi:role="line"
+         x="26.316277"
+         y="185.0107"
+         id="tspan8045">API docs</tspan></text>
+    <text
+       id="text8047"
+       y="232.11162"
+       x="203.09599"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:OFL Sorts Mill Goudy Medium"
+       xml:space="preserve"><tspan
+         id="tspan8051"
+         y="232.11162"
+         x="203.09599"
+         sodipodi:role="line">What exactly do I need Eerie for?</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:14.86299992px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:OFL Sorts Mill Goudy Medium"
+       x="211.35287"
+       y="260.552"
+       id="text8055"><tspan
+         sodipodi:role="line"
+         x="211.35287"
+         y="260.552"
+         id="tspan8059">Using external libraries (or addons, if you insist) in Io isn't exactly</tspan><tspan
+         sodipodi:role="line"
+         x="211.35287"
+         y="279.13074"
+         id="tspan8063">fabulous, not to mention if the addons has C code.</tspan><tspan
+         sodipodi:role="line"
+         x="211.35287"
+         y="297.7095"
+         id="tspan8065" /><tspan
+         sodipodi:role="line"
+         x="211.35287"
+         y="316.28824"
+         id="tspan8067">Eerie brings to Io what other languages have enjoyed for a long time:</tspan><tspan
+         sodipodi:role="line"
+         x="211.35287"
+         y="334.867"
+         id="tspan8069">simplicity of using other people's code in your own projects as well as</tspan><tspan
+         sodipodi:role="line"
+         x="211.35287"
+         y="353.44574"
+         id="tspan8071">splitting your own code into smaller parts.</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:OFL Sorts Mill Goudy Medium"
+       x="203.09599"
+       y="407.341"
+       id="text8073"><tspan
+         sodipodi:role="line"
+         x="203.09599"
+         y="407.341"
+         id="tspan8075">Who is working on this?</tspan></text>
+    <text
+       id="text8077"
+       y="435.78137"
+       x="211.35287"
+       style="font-size:14.86299992px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:OFL Sorts Mill Goudy Medium"
+       xml:space="preserve"><tspan
+         id="tspan8089"
+         y="435.78137"
+         x="211.35287"
+         sodipodi:role="line">Eerie is written by Josip Lisec, a student from Faculty of Organisation and</tspan><tspan
+         y="454.36011"
+         x="211.35287"
+         sodipodi:role="line"
+         id="tspan8115">Informatics, University of Zagreb, Croatia.</tspan><tspan
+         y="472.93884"
+         x="211.35287"
+         sodipodi:role="line"
+         id="tspan8117" /><tspan
+         y="491.51764"
+         x="211.35287"
+         sodipodi:role="line"
+         id="tspan8119">Eerie is published under MIT license.</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="307.33945"
+       y="740.43561"
+       id="text8091"><tspan
+         sodipodi:role="line"
+         id="tspan8093"
+         x="307.33945"
+         y="740.43561" /></text>
+    <text
+       id="text8121"
+       y="547.70801"
+       x="203.09599"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:OFL Sorts Mill Goudy Medium"
+       xml:space="preserve"><tspan
+         id="tspan8123"
+         y="547.70801"
+         x="203.09599"
+         sodipodi:role="line">How can I help?</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:14.86299992px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:OFL Sorts Mill Goudy;-inkscape-font-specification:OFL Sorts Mill Goudy Medium"
+       x="211.35287"
+       y="576.14838"
+       id="text8125"><tspan
+         id="tspan8133"
+         sodipodi:role="line"
+         x="211.35287"
+         y="576.14838">Documentation always needs help, that's for sure. If documentation isn't your</tspan><tspan
+         sodipodi:role="line"
+         x="211.35287"
+         y="594.72711"
+         id="tspan8144">thing but squashing bugs, or implementing new features is, feel free to submit</tspan><tspan
+         sodipodi:role="line"
+         x="211.35287"
+         y="613.30585"
+         id="tspan8150">patches and pull requests over at Github.</tspan></text>
+    <path
+       style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       d="m 69.287754,218.88411 -1.641513,2.25612 5.911986,7.39184 5.924815,-7.39184 -1.641513,-2.25612 -8.553775,0 z"
+       id="path7233"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/Users/josip/Projects/Eerie/images/black_diamond.png"
+       inkscape:export-xdpi="90.089996"
+       inkscape:export-ydpi="90.089996" />
+  </g>
+</svg>

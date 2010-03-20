@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="css/reset.css" type="text/css" media="all" charset="utf-8"/>
     <link rel="stylesheet" href="css/text.css"  type="text/css" media="all" charset="utf-8"/>
     <link rel="stylesheet" href="css/main.css"  type="text/css" media="all" charset="utf-8"/>
+    <link rel="icon" type="image/png" href="images/favicon.png" />
   </head>
   <body>
     <div id="sidebar">
@@ -16,6 +17,14 @@
       {{ content }}
     </div>
     <div class="clear"></div>
+    {% include footer.html %}
     {% include analytics.html %}
+    <script type="text/javascript" charset="utf-8">
+      (function () {
+        var menuItem = document.getElementById("category_{{ page.category }}");
+        if(menuItem)
+          menuItem.className = "active";
+      })()
+    </script>
   </body>
 </html>
