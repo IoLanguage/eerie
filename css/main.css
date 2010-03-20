@@ -127,6 +127,7 @@ h2:first {
   border: 1px solid #ddd;
   border-width: 1px 0;
   font-size: 0.93em;
+  background: #f3f3f3;
 }
 
 h2.work-in-progress {
