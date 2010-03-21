@@ -7,8 +7,8 @@ are used as a tool for switching between different versions.
 h2. How to install
 
 <pre><code>
-$ git clone git://github.com/josip/Eerie.git
-$ cd Eerie
+$ git clone git://github.com/josip/eerie.git
+$ cd eerie
 $ io setup.io
 # Close current terminal session and start a new one or reload your profile
 $ . ~/.bash_profile
@@ -16,10 +16,10 @@ $ . ~/.bash_profile
 
 Eerie currently ships with a simple <code>eerie</code> command which can do all sorts exciting of things!
 
-<code>$ eerie Generys git://github.com/josip/generys.git</code>
+<code>$ eerie pkg:install git://github.com/josip/generys.git</code>
 
 That will, for example, install the Generys package! How exciting!
-
+For a complete guide on installing and using Eerie check out its "web site":http://josip.github.com/eerie.
 
 h2. Features
 
@@ -30,14 +30,14 @@ h3. Currently implemented
   * Installing from Git repositories
   * Addons with .c files are being compiled and loaded properly
   * All installations are local to the current user, there is no "global mode"
-
-h3. Missing basic features (will be implemented soon)
-
   * Command-line tool
+  * Support for other VCS (Git, SVN and Mercurial are working)
+
+h3. Missing basic features (should be added soon)
+
   * Installing specific version of a package
   * Documentation
   * Tests
-  * Support for other version-control-software
 
 h3. Planned features
 
@@ -45,3 +45,4 @@ h3. Planned features
   * Run tests
   * Generate documentation
   * Optional central repository (or repositories, like "Ruby Gems":http://rubygems.org/)
+

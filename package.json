@@ -1,14 +1,14 @@
 {
   "version": 0.2,
   "author": "Josip Lisec",
-  "description": "Package manager for Io modeled after Rip.",
+  "description": "Package manager for Io.",
   "readme": "README.textile",
   "category": "Utility",
 
   "dependencies": {
     "headers":  [],
     "protos":   [],
-    "packages": ["git://github.com/josip/Kano.git"]
+    "packages": ["git://github.com/josip/kano.git"]
   },
   "protos": ["Eerie"]
 }
