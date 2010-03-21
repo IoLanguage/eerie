@@ -34,7 +34,7 @@
 
 <p class="note">
   Not all operating systems sotre bash profile in the same file, OS X keeps it in <code>~/.bash_profile</code>,
-  while some Linux it can be distributons in <code>~/.bashrc</code>, or <code>~/.profile</code> file. Make sure you
+  while some Linux it can be distributions in <code>~/.bashrc</code>, or <code>~/.profile</code> file. Make sure you
   reload the right one.
 </p>
 
@@ -48,13 +48,27 @@
   Before we dive into <code>eerie</code> command, we should understand how Eerie actually works.
 </p>
 <p>
-  Just like <a href="http://hellorip.com">Rip</a>, <a href="http://pypi.python.org/pypi/virtualenv">virtualenv</a> and <a href="http://jdp.github.com/boid">Boid</a>,
+  Just like <a href="http://hellorip.com">Rip</a>,
+  <a href="http://pypi.python.org/pypi/virtualenv">virtualenv</a> and <a href="http://jdp.github.com/boid">Boid</a>,
   Eerie uses the concept of multiple environments which can keep completely different packages (including different versions).
   Every application can have its own environment with all required dependencies.
 </p>
 <p class="note">
   To change environment within your application you can use this:<br/>
-  <code>Eerie Env named("superSecretApp") use</code>.
+  <code>Eerie Env named("superSecretApp") use</code>
+</p>
+<p>
+  An active environment is the one which is used by default from Io code and
+  whose executable files you can run from command line.
+  During the install Eerie creates two environments <code>_base</code> and <code>default</code>.
+  The <code>_base</code> environment will be loaded always as it contains Eerie itself (with its dependencies).
+  Installing packages into <code>_base</code> environment should be considered dangerous as it was reported that it eats little children for breakfast.
+</p>
+<p class="note">
+  Due to the fact that Eerie has its own environment, it's the only package which can't have multiple versions installed. 
+</p>
+<p>
+  The other environment created during install, <code>default</code>, on the other hand, can be freely tampered with.
 </p>
 
     </div>
