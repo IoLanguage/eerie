@@ -118,12 +118,12 @@ h2:first {
 }
 
 #content p {
-  margin: 5px 0 0 10px;
+  margin: 5px 0 1.2em 10px;
 }
 
 #content p.note {
   padding: 3px 0 3px 3em;
-  margin-bottom: 1em;
+  margin-bottom: 1.4em;
   border: 1px solid #ddd;
   border-width: 1px 0;
   font-size: 0.93em;
