@@ -6,17 +6,30 @@ Eerie := Object clone do(
   config              ::= nil
   envs                := List clone
 
-  sh := method(cmd, logFailure,
+  sh := method(cmd, logFailure, dir,
     self log(cmd, "console")
+    dir isNil ifFalse(
+      cmd = "cd " .. dir .. " && " .. cmd
+      prevDir := Directory currentWorkingDirectory
+      Directory setCurrentWorkingDirectory(dir))
+
     cmdOut := System runCommand(cmd)
+    stdOut := cmdOut stdout
+    stdErr := cmdOut stderr
+
+    dir isNil ifFalse(
+      Directory setCurrentWorkingDirectory(prevDir))
+
+    System system("rm -f *-stdout")
+    System system("rm -f *-stderr")
 
     if(cmdOut exitStatus != 0,
       if(logFailure == false,
         false
       ,
         self log("Last command exited with the following error:", "error")
-        self log(cmdOut stdout, "error")
-        self log(cmdOut stderr, "error")
+        self log(stdOut, "error")
+        self log(stdErr, "error")
         System exit(1))
     ,
       true))

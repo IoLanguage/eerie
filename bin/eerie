@@ -34,7 +34,7 @@ Eerie Env describe do(
     describe("Removes an env with all its packages.")
     after(r, "#{self targetObj name} was removed." interpolate)
   )
-  
+
   # TODO: Clone envs
   #task("clone") do(
   #  describe("Creates a new env with packages of an existing one.")
@@ -45,15 +45,22 @@ Eerie Env describe do(
 Eerie describe do(
   setNamespace(Namespaces Env)
 
-  task("active") callsSlot("activeEnv") do(
+  task("active") do(
     describe("Prints the name of active environment.")
+    callsSlot("activeEnv")
+
     after(env, env name)
   )
 
-  task("list") callsSlot("envs") do(
+  task("list") do(
     describe("Lists all available environments.")
+    callsSlot("envs")
+
     after(envs,
-      envs map(env, if(env isActive, env name .. " *", env name)) select(!= nil) sort)
+      envs  map(env, if(env isActive, env name .. " *", env name))\
+            select(!= nil)\
+            select(exSlice(0, 1) != "_")\
+            sort)
     returns(List, Map with("joinWith", "\n"))
   )
 ) done
@@ -80,7 +87,7 @@ Eerie Package describe do(
       ,
         readmeFile := File with(pkg path .. "/" .. readme)
         readmeFile exists ifFalse(return(""))
-        
+
         "Opening readme file..." println
         System sleep(2)
 
@@ -100,6 +107,7 @@ Eerie Package describe do(
     describe("Updates all packages within current env.")
     setTargetObj(Eerie activeEnv)
     callsSlot("packages")
+
     after(packages, packages foreach(update); "")
   )
 
@@ -113,8 +121,8 @@ Eerie Package describe do(
     setTargetObj(Eerie activeEnv)
     callsSlot("packages")
 
-    after(result, result map(name))
-    returns(List, Map with("joinWih"))
+    after(pkgs, pkgs map(name))
+    returns(List, Map with("joinWith", "\n"))
   )
 ) done
 
@@ -122,6 +130,11 @@ Namespaces Default do(
   selfUpdate := task(
     Eerie Env named("_base") use
     Eerie activeEnv packageNamed("Eerie") update)
+
+  envs    := Namespaces Env getSlot("list")
+  pkgs    := Namespaces Pkg getSlot("list")
+  install := Namespaces Pkg getSlot("install")
+  remove  := Namespaces Pkg getSlot("remove")
 )
 
 Kano run

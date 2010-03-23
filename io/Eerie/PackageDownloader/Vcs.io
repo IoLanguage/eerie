@@ -6,11 +6,11 @@ VcsDownloader := Eerie PackageDownloader clone do(
   )
 
   vcsCmd := method(args,
-    cdCmd := ""
+    dir := nil
     Directory with(self path) exists ifTrue(
-      cdCmd = "cd " .. self path .. " && ")
+      dir = self path)
 
-    Eerie sh(cdCmd .. "#{self vcs cmd} #{args}" interpolate))
+    Eerie sh("#{self vcs cmd} #{args}" interpolate, true, dir))
 
   runCommands := method(cmds,
     cmds foreach(cmd,

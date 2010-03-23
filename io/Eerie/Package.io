@@ -1,16 +1,16 @@
 Package := Object clone do(
   config ::= nil
-  
+
   name := method(
     self config at("name"))
-  
+
   setName := method(v,
     self config atPut("name", v)
     self)
 
   uri := method(
     self config at("uri"))
-  
+
   setUri := method(v,
     self config atPut("uri", v)
     self)
@@ -31,8 +31,11 @@ Package := Object clone do(
       "uri",  nil,
       "path", nil,
       "meta", Map clone))
-  
+
   with := method(name_, uri_,
+    (uri_ exSlice(-1) == "/") ifTrue(
+      uri_ = uri_ exSlice(0, -1))
+
     self clone setConfig(Map with(
       "name", name_,
       "uri",  uri_,
@@ -55,12 +58,12 @@ Package := Object clone do(
   guessName := method(uri_,
     (uri_ exSlice(-1) == "/") ifTrue(
       uri_ = uri_ exSlice(0, -1))
-    
+
     f := File with(uri_)
+    # We can't use baseName here because it returns nil for directories
     if(f exists,
-      # We can't use baseName here because it returns nil for directories
-      f name split(".") first makeFirstCharacterUppercase,
-      uri_ split("/") last split(".") first makeFirstCharacterUppercase))
+      f name split("."),
+      uri_ split("/") last split(".")) first makeFirstCharacterUppercase)
 
   setInstaller := method(inst,
     self installer = inst
