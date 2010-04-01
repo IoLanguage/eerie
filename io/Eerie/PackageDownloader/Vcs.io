@@ -30,9 +30,7 @@ VcsDownloader := Eerie PackageDownloader clone do(
 
   download := method(
     self vcs := self vcs getSlot(self whichVcs(self uri))
-    self root := Directory with(self path)
 
-    # during
     self root files isEmpty ifTrue(
       self root remove)
     self runCommands(self vcs download))

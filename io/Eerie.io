@@ -1,9 +1,11 @@
 Eerie := Object clone do(
   root                ::= System getEnvironmentVariable("EERIEDIR")
+  tmpDir              ::= root .. "/tmp"
   # activeEnv will be set from Eerie/Env.io
   activeEnv           ::= nil
   configFile          :=  nil
   config              ::= nil
+  configBackup        ::= nil
   envs                := List clone
 
   sh := method(cmd, logFailure, dir,
@@ -46,6 +48,7 @@ Eerie := Object clone do(
   init := method(
     self configFile := File with((self root) .. "/config.json") openForUpdating
     self setConfig(Yajl parseJson(self configFile contents))
+    self setConfigBackup(self configFile contents)
 
     self config at("envs") ?foreach(name, envConfig,
       Eerie Env withConfig(name, envConfig))
@@ -63,6 +66,10 @@ Eerie := Object clone do(
   saveConfig := method(
     self configFile close remove openForUpdating write(self config asJson)
     self)
+
+  revertConfig := method(
+    self configFile close remove openForUpdating write(self configBackup)
+    self setConfig(Yajl parseJson(self configBackup)))
 )
 
 Eerie clone = Eerie do(

@@ -26,6 +26,7 @@ PackageInstaller := Object clone do(
       installer canInstall(_path) ifTrue(
         return(installer with(_path))))
 
+    Eerie revertConfig
     Exception raise("Don't know how to install package at #{_path}" interpolate))
 
   //doc PackageInstaller canInstall(path)

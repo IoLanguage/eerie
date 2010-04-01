@@ -5,20 +5,21 @@ Importer addSearchPath("io/")
 Object clone do(
   setup := method(
     "---- Installing Eerie ----" println
-    homeDir := User homeDirectory path
-    eerieDir := homeDir .. "/.eerie"
+    homePath := User homeDirectory path
+    eeriePath := homePath .. "/.eerie"
+    eerieDir := Directory with(eeriePath)
 
-    Directory with(eerieDir) exists ifTrue(
+    eerieDir exists ifTrue(
       " ! ~/.eerie directory already exists. Aborting installation." println
       System exit(1))
 
     bashFiles := list("bashrc", "profile", "bash_profile") map(f,
-      Path with(homeDir, "/." .. f))
+      Path with(homePath, "/." .. f))
 
     bashScript := """
 
 # Four Commandments of Eerie
-EERIEDIR=#{eerieDir}
+EERIEDIR=#{eeriePath}
 PATH=$PATH:$EERIEDIR/activeEnv/bin:$EERIEDIR/base/bin
 export EERIEDIR PATH
 # That's all folks
@@ -33,7 +34,7 @@ export EERIEDIR PATH
 
     " - Updated bash profile." println
 
-    iorc := File with(homeDir .. "/.iorc")
+    iorc := File with(homePath .. "/.iorc")
     iorc exists ifFalse(iorc create)
     loaderCode := """
 AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
@@ -44,20 +45,19 @@ AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/acti
     iorc close
     " - Updated iorc file." println
 
-    System setEnvironmentVariable("EERIEDIR", eerieDir)
+    System setEnvironmentVariable("EERIEDIR", eeriePath)
 
-    Directory with(eerieDir) create
-    Directory with(eerieDir .. "/env") create
+    eerieDir create
+    eerieDir directoryNamed("env") create
+    eerieDir directoryNamed("tmp") create
 
-    File with(eerieDir .. "/config.json") create openForUpdating write("{\"envs\": {}}") close
+    eerieDir fileNamed("/config.json") create openForUpdating write("{\"envs\": {}}") close
 
     baseEnv := Eerie Env with("_base") create activate use
-    Eerie sh("ln -s #{baseEnv path} #{eerieDir}/base" interpolate)
+    Eerie sh("ln -s #{baseEnv path} #{eeriePath}/base" interpolate)
 
-    eeriePkg := Eerie Package fromUri(Directory currentWorkingDirectory) install
     # This will allow Eerie to update itself.
-    eeriePkg setUri("git://github.com/josip/Eerie.git")
-    eeriePkg setDownloader(Eerie PackageDownloader instances VcsDownloader)
+    Eerie Package fromUri("git://github.com/josip/eerie.git") install
     Eerie saveConfig
 
     Eerie Env with("default") create activate use
