@@ -33,7 +33,7 @@ category: usage
   Just like <a href="http://hellorip.com">Rip</a>,
   <a href="http://pypi.python.org/pypi/virtualenv">virtualenv</a> and <a href="http://jdp.github.com/boid">Boid</a>,
   Eerie uses the concept of multiple environments which can keep completely different packages (including different versions).
-  Every application can have its own environment with all required dependencies.
+  You can for example create a new environment for every application you have together with its dependencies.
 </p>
 <p class="note">
   To change environment within your application you can use this:<br/>
@@ -44,11 +44,51 @@ category: usage
   whose executable files you can run from command line.
   During the install Eerie creates two environments <code>_base</code> and <code>default</code>.
   The <code>_base</code> environment will be loaded always as it contains Eerie itself (with its dependencies).
-  Installing packages into <code>_base</code> environment should be considered dangerous as it was reported that it eats little children for breakfast.
+  Installing packages into <code>_base</code> environment should be considered dangerous as it was reported that it steals muffins.
 </p>
 <p class="note">
-  Due to the fact that Eerie has its own environment, it's the only package which can't have multiple versions installed. 
+  Due to the fact that Eerie has its own environment, it's the only package which can't have multiple versions installed.
+  <small>(Actually you can even do that, but the version installed in <code>_base</code> environment
+    will be always loaded first, unless you edit <code>~/.iorc</code>, of course.)</small>
 </p>
 <p>
   The other environment created during install, <code>default</code>, on the other hand, can be freely tampered with.
 </p>
+<p>
+  Now when we have absorbed basic concepts we shall dive into the actual command itself.
+</p>
+
+<a name="command"></a>
+<h2>Command line tool</h2>
+<p>
+  As we noted before, during the install Eerie made a small change to your bash script - you can now call command-line tools written in Io with ease.
+  Eerie, logically, installs the <code>eerie</code> command with which you can install new packages, manipulate environments and make sandwiches for dinner.
+</p>
+<p>
+  Now let us begin with this simple command:
+</p>
+<pre><code>$ eerie -tasks
+$ ...
+</code></pre>
+<p>
+  As you can see, there's nothing revolutionary going on, it just prints all the commands it knows together with their short descriptions.
+  Now we shall create an environment in which we will develop our next super-cool web-app.
+  To do that, we'll need:
+  <ol>
+    <li>New environment,</li>
+    <li>Super awesome web framework,</li>
+    <li>Io -> HTML transformer,</li>
+    <li>Secret ingredients which will make our web-app even more awesome.</li>
+  </ol>
+</p>
+<pre><code>$ eerie env:create webapp
+...
+$ eerie env:activate webapp
+...
+$ eerie install git://github.com/josip/generys
+...
+$ eerie install gith://github.com/abc/def
+...
+$ generys -i super-secret-app/
+...
+</code></pre>
