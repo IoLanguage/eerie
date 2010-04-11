@@ -9,132 +9,119 @@ Eerie do(
       self _log(str, mode)))
 )
 
-Namespaces Env := Namespace clone
-Eerie Env describe do(
-  setNamespace(Namespaces Env)
-  setRequiresClone(true)
+Namespaces Env := Namespace clone do(
+  create := task(name,
+    """Creates a new environment."""
+    Eerie Env with(name) create
+    "Created #{name} env." interpolate println)
 
-  createClone = method(args,
-    Eerie Env named(args removeFirst))
+  activate := task(name,
+    """Sets environment as default."""
+    Eerie Env named(name) activate
+    "Activated #{name} env." interpolate println)
 
-  task("create") do(
-    describe("Creates a new environment.")
-    createClone = method(args,
-      self targetObj with(args removeFirst))
+  remove := task(name,
+    """Removes an env with all its packages."""
+    Eerie Env named(name) remove
+    "Env #{name} was removed." interpolate println)
 
-    after(r, "Created #{self targetObj name} env." interpolate)
-  )
-
-  task("activate") do(
-    describe("Activates the environment, all binaries and addons in it will be loaded by default.")
-    after(env, "Activated #{env name} env." interpolate)
-  )
-
-  task("remove") do(
-    describe("Removes an env with all its packages.")
-    after(r, "#{self targetObj name} was removed." interpolate)
-  )
-
-  # TODO: Clone envs
-  #task("clone") do(
-  #  describe("Creates a new env with packages of an existing one.")
-  #  callsSlot("cloneAs")
-  #)
-) done
+  active := task(
+    """Prints the name of active env."""
+    Eerie activeEnv name println)
+)
 
 Eerie describe do(
   setNamespace(Namespaces Env)
-
-  task("active") do(
-    describe("Prints the name of active environment.")
-    callsSlot("activeEnv")
-
-    after(env, env name)
-  )
-
   task("list") do(
     describe("Lists all available environments.")
     callsSlot("envs")
 
     after(envs,
-      envs  map(env, if(env isActive, env name .. " *", env name))\
-            select(!= nil)\
-            select(exSlice(0, 1) != "_")\
-            sort)
-    returns(List, Map with("joinWith", "\n"))
+      envs = envs map(env,
+        if(env isActive, env name .. " [A]", env name))
+      envs select(!= nil)\
+        select(exSlice(0, 1) != "_")\
+        sort)
+
+    returns(List, Map with("joinWith", "\n",
+                           "bullet", "*",
+                           "indent", 1))
   )
 ) done
 
-Namespaces Pkg := Namespace clone
-Eerie Package describe do(
-  setNamespace(Namespaces Pkg)
-  setRequiresClone(true)
+Namespaces Pkg := Namespace clone do(
+  install := task(uri,
+    """Installs a new package."""
+    pkg := Eerie Package fromUri(uri)
+    pkg install
+    "Package #{pkg name} has been installed." interpolate println
 
-  createClone = method(args,
-    Eerie activeEnv packageNamed(args removeFirst))
+    readme := pkg config at("meta") ?at("readme")
+    readmeFile := File with(pkg path .. "/" .. readme)
+    readmeFile exists ifTrue(
+      "Opening readme file..." println
+      # Allows user to abort with Control+C
+      System sleep(2)
 
-  task("install") do(
-    describe("Installs a new package.")
-    createClone = method(args,
-      Eerie Package fromUri(args removeFirst))
+      openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
+      openCommand isNil ifTrue(openCommand = "most")
 
-    after(pkg,
-      "Package #{pkg name} has been installed." interpolate println
+      System system(openCommand .. " " .. readmeFile path)))
 
-      readme := pkg config at("meta") ?at("readme")
-      if(readme isNil,
-        ""
-      ,
-        readmeFile := File with(pkg path .. "/" .. readme)
-        readmeFile exists ifFalse(return(""))
+  update := task(name,
+    """Updates the package and all of its dependencies."""
+    Eerie activeEnv packageNamed(name) ?update
+    "Package #{name} has been updated." interpolate println)
 
-        "Opening readme file..." println
-        System sleep(2)
+  updateAll := task(
+    """Updates all packages within current env."""
+    Eerie activeEnv packages foreach(pkg,
+      pkg update ifTrue("#{pkg name} has been updated." interpolate println)))
 
-        openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
-        openCommand isNil ifTrue(openCommand = "more")
+  remove := task(name,
+    """Removes the package."""
+    Eerie activeEnv packageNamed(name) ?remove
+    "Package #{name} has been removed." interpolate println)
 
-        System system(openCommand .. " " .. readmeFile path)
-        ""))
-  )
+  info := task(name,
+    """Shows description of a package."""
+    pkg := Eerie activeEnv packageNamed(name)
+    pkg isNil ifTrue(
+      Exception raise("No such package exists."))
+    
+    meta := pkg config at("meta")
+    maxKeySize := meta keys map(size) max + 2
 
-  task("update") do(
-    describe("Updates the package and all of its submodules.")
-    after(result, "Package #{self targetObj name} has been updated." interpolate)
-  )
+    meta foreach(key, value,
+      value isKindOf(List) ifTrue(value = value join(", "))
+      value isKindOf(Map) ifTrue(value = value asObject slotSummary)
+      key = (key asMutable makeFirstCharacterUppercase .. ":") alignLeft(maxKeySize, " ")
+      (key .. value) println))
 
-  task("updateAll") do(
-    describe("Updates all packages within current env.")
-    setTargetObj(Eerie activeEnv)
-    callsSlot("packages")
-
-    after(packages, packages foreach(update); "")
-  )
-
-  task("remove") do(
-    describe("Removes the package.")
-    after(result, "Package #{self targetObj name} has been removed." interpolate)
-  )
-
-  task("list") do(
-    describe("Lists all packages installed within current env.")
-    setTargetObj(Eerie activeEnv)
-    callsSlot("packages")
-
-    after(pkgs, pkgs map(name))
-    returns(List, Map with("joinWith", "\n"))
-  )
-) done
+  list := task(
+    """Lists all packages installed within current env."""
+    Eerie activeEnv packages foreach(pkg,
+      meta := pkg config at("meta")
+      (pkg name .. " @" .. meta at("version")) println
+      ("  " .. meta at("description")) println))
+)
 
 Namespaces Default do(
   selfUpdate := task(
+    """Updates Eerie and its dependencies."""
     Eerie Env named("_base") use
-    Eerie activeEnv packageNamed("Eerie") update)
+    Eerie usedEnv packageNamed("Eerie") update)
 
   envs    := Namespaces Env getSlot("list")
   pkgs    := Namespaces Pkg getSlot("list")
   install := Namespaces Pkg getSlot("install")
   remove  := Namespaces Pkg getSlot("remove")
+)
+
+Namespaces Options do(
+  v := option(
+    """Shows verbose output"""
+    Eerie log = Eerie getSlot("_log"))
 )
 
 Kano run

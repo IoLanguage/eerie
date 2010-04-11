@@ -1,16 +1,21 @@
 Env := Object clone do(
+  //doc Env config
   config ::= nil
 
+  //doc Env path Absolute path to the current environment directory.
   path := method(
     (Eerie root) .. "/env/" .. (self name))
   
+  //doc Env name
   name := method(
     self config at("name"))
 
+  //doc Env setName(name)
   setName := method(v,
     self config atPut("name", v)
     self)
 
+  //doc Env addonsPath
   addonsPath := method(
     (self path) .. "/addons")
 
@@ -20,15 +25,19 @@ Env := Object clone do(
       "packages", List clone)
     Eerie envs appendIfAbsent(self))
 
+  //doc Env with(name) Creates new [[Env]] with provided name.
   with := method(name_,
     self clone setName(name_))
 
+  //doc Env named(name) Looks for an environment with provided name. Returns that environment if found, <code>nil</code> otherwise.
   named := method(name_,
     Eerie envs detect(name == name_))
 
+  //doc Env withConfig(name, config) Creates new environment with provided name and config map.
   withConfig := method(name_, config_,
     self clone setName(name_) setConfig(config_))
 
+  //doc Env create Creates new environment, if it already exists an exception is thrown.
   create := method(
     root := Directory with((Eerie root) .. "/env/" .. (self name))
     root exists ifTrue(
@@ -43,23 +52,27 @@ Env := Object clone do(
 
     self)
 
+  //doc Env use Sets this environment as default one for current script.
   use := method(
-    Eerie activeEnv isNil ifFalse(
-      AddonLoader searchPaths remove(Eerie activeEnv path))
+    Eerie usedEnv isNil ifFalse(
+      AddonLoader searchPaths remove(Eerie usedEnv path))
 
-    Eerie setActiveEnv(self)
+    Eerie setUsedEnv(self)
     AddonLoader appendSearchPath(self addonsPath)
     self)
 
+  //doc Env activate Sets self as (global) default environment ([[Env use]] is not called).
   activate := method(
-    Eerie updateConfig("activeEnv", self name)
     Directory with((Eerie root) .. "/activeEnv") exists ifTrue(
       Eerie sh("rm #{Eerie root}/activeEnv" interpolate))
+    Eerie updateConfig("activeEnv", self name)
 
     Eerie sh("ln -s #{self path} #{Eerie root}/activeEnv" interpolate)
+    Eerie setActiveEnv(self)
 
     self)
 
+  //doc Env remove Removes the environment.
   remove := method(
     Eerie config at("envs") removeAt(self name)
     Eerie saveConfig
@@ -68,9 +81,15 @@ Env := Object clone do(
     Eerie sh("rm -rf #{self path}" interpolate)
     true)
 
+  //doc Env isActive
   isActive := method(
     Eerie activeEnv == self)
 
+  //doc Env isUsed
+  isUsed := method(
+    Eerie usedEnv == self)
+
+  //doc Env packages Returns list of packages installed within this environment.
   packages := method(
     self packages = self config at("packages") map(pkgConfig,
       (pkgConfig type == "Map") ifFalse(
@@ -78,18 +97,25 @@ Env := Object clone do(
 
       Eerie Package withConfig(pkgConfig)))
 
+  //doc Env packageNamed(name) Returns package with provided name if it exists, <code>nil</code> otherwise.
   packageNamed := method(pkgName,
     self packages detect(pkg, pkg name == pkgName))
 
-  registerPackage := method(package,
+  //doc Env appendPackage(package) Saves package's configuration into own configuration.
+  appendPackage := method(package,
     self config at("packages") appendIfAbsent(package asJson)
     self packages appendIfAbsent(package)
     Eerie saveConfig
 
     self)
 
-  removePackage := method(package,
-    "removePackage" println)
+  removePackage := method(package
+    self config at("packages") removeAt(package name)
+    self packages remove(package)
+    Eerie saveConfig
 
+    self)
+
+  //doc Env asJson Returns configuration.
   asJson    := method(self config)
 )

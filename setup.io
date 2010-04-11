@@ -56,13 +56,14 @@ AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/acti
     baseEnv := Eerie Env with("_base") create activate use
     Eerie sh("ln -s #{baseEnv path} #{eeriePath}/base" interpolate)
 
-    # This will allow Eerie to update itself.
+    # This allows Eerie to perform self-update.
     Eerie Package fromUri("git://github.com/josip/eerie.git") install
+    #Eerie Package fromUri(Directory currentWorkingDirectory) install
     Eerie saveConfig
 
     Eerie Env with("default") create activate use
 
-    " ---- Fin ----" println
+    "---- Fin ----" println
     System sleep(1)
     " - Oh, wait, is there an eerie sound coming out of your basement?" println)
 ) setup

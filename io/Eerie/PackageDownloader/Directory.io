@@ -4,7 +4,8 @@ DirectoryDownloader := Eerie PackageDownloader clone do(
 
   download := method(
     Eerie sh("cp -R #{self uri}/* #{self path}" interpolate)
-    Eerie sh("cp -R #{self uri}/.* #{self path}" interpolate))
+    #Eerie sh("cp -R #{self uri}/.* #{self path}" interpolate)
+    )
 
   update := method(
     # Directory doesen't provide lastDataChange method

@@ -43,6 +43,7 @@ PackageInstaller := Object clone do(
   dirNamed := method(name,
     self root directoryNamed(name))
 
+  //doc PackageInstaller loadConfig Looks for configuration data (in <code>protos</code> and <code>deps</code>) and then loads package.json.
   loadConfig := method(
     if(self fileNamed("protos") exists,
       self buildPackageJson,
@@ -53,6 +54,7 @@ PackageInstaller := Object clone do(
       self setConfig(Yajl parseJson(configFile openForReading contents))
       configFile close))
 
+  //doc PackageInstaller extractDataFromPackageJson
   extractDataFromPackageJson := method(
     providedProtos  := self config at("protos") ?join(" ")
     providedProtos isNil ifTrue(
@@ -65,7 +67,7 @@ PackageInstaller := Object clone do(
 
     self fileNamed("protos")  create openForUpdating write(providedProtos) close
     self fileNamed("depends") create openForUpdating write(protoDeps) close
-    
+
     self fileNamed("build.io") exists ifFalse(
       headerDeps  := deps ?at("headers")
       libDeps     := deps ?at("libs")
@@ -79,6 +81,7 @@ PackageInstaller := Object clone do(
 
       self fileNamed("build.io") create openForUpdating write(buildIo interpolate) close))
 
+  //doc PackageInstaller buildPackageJson
   buildPackageJson := method(
     package := Map with(
       "dependencies", list(),
@@ -99,6 +102,7 @@ PackageInstaller := Object clone do(
 
     self)
 
+  //doc PackageInstaller compile Compiles the package.
   compile := method(
     builderContext := Object clone
     builderContext doRelativeFile("AddonBuilder.io")
@@ -112,16 +116,21 @@ PackageInstaller := Object clone do(
     Directory setCurrentWorkingDirectory(prevPath)
     self)
 
+  //doc PackageInstaller copyBinaries Creates symlinks for files <code>bin</code> directory in active environment's <code>bin</code>.
   copyBinaries := method(
     Eerie sh("chmod +x #{self path}/bin/*" interpolate)
     self dirNamed("bin") files foreach(original,
-      link := File with(Eerie activeEnv path .. "/bin/" .. original name)
+      link := File with(Eerie usedEnv path .. "/bin/" .. original name)
       link exists ifFalse(
         Eerie sh("ln -s #{original path} #{link path}" interpolate))))
 )
 
+//doc PackageInstaller instances
 PackageInstaller instances := Object clone do(
+  //doc PackageInstaller File Installs single files.
   doRelativeFile("PackageInstaller/File.io")
+  //doc PackageInstaller Directory Installs whole directories.
   doRelativeFile("PackageInstaller/Directory.io")
+  //doc PacakgeInstaller IoAddon Installs directories with structure of an Io addon.
   doRelativeFile("PackageInstaller/IoAddon.io")
 )
