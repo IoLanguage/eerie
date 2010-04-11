@@ -110,7 +110,7 @@ Namespaces Default do(
   selfUpdate := task(
     """Updates Eerie and its dependencies."""
     Eerie Env named("_base") use
-    Eerie usedEnv packageNamed("Eerie") update)
+    Eerie usedEnv packages foreach(update))
 
   envs    := Namespaces Env getSlot("list")
   pkgs    := Namespaces Pkg getSlot("list")
@@ -120,7 +120,7 @@ Namespaces Default do(
 
 Namespaces Options do(
   v := option(
-    """Shows verbose output"""
+    """Use verbose output."""
     Eerie log = Eerie getSlot("_log"))
 )
 
