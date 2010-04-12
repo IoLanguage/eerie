@@ -56,7 +56,7 @@ Namespaces Pkg := Namespace clone do(
     pkg install
     "Package #{pkg name} has been installed." interpolate println
 
-    readme := pkg config at("meta") ?at("readme")
+    readme := pkg info at("readme")
     readmeFile := File with(pkg path .. "/" .. readme)
     readmeFile exists ifTrue(
       "Opening readme file..." println
@@ -88,9 +88,8 @@ Namespaces Pkg := Namespace clone do(
     pkg := Eerie activeEnv packageNamed(name)
     pkg isNil ifTrue(
       Exception raise("No such package exists."))
-    
-    meta := pkg config at("meta")
-    maxKeySize := meta keys map(size) max + 2
+
+    maxKeySize := pkg info keys map(size) max + 2
 
     meta foreach(key, value,
       value isKindOf(List) ifTrue(value = value join(", "))
@@ -101,9 +100,42 @@ Namespaces Pkg := Namespace clone do(
   list := task(
     """Lists all packages installed within current env."""
     Eerie activeEnv packages foreach(pkg,
-      meta := pkg config at("meta")
-      (pkg name .. " @" .. meta at("version")) println
-      ("  " .. meta at("description")) println))
+      (pkg name .. " @" .. (pkg info at("version"))) println
+      ("  " .. (pkg info at("description"))) println))
+
+  create := task(name, path,
+    """Creates an empty package structure.
+    If <path> is omitted, new directory will be created in current working directory."""
+    name = name asMutable makeFirstCharacterUppercase
+    path isNil ifTrue(
+      path = Directory currentWorkingDirectory .. "/" .. name)
+
+    root := Directory with(path)
+    root exists ifTrue(
+      Exception raise("Destination directory already exists (#{path})" interpolate))
+
+    root create
+    Eerie PackageDownloader clone setPath(path) createSkeleton
+
+    pkgInfo := """|
+    |{
+    |  "version":      "0.1",
+    |  "description":  "My cool new project.",
+    |  "author":       "#{User name}",
+    |  "protos":       ["#{name}"],
+    |  "dependencies": {
+    |    "libs":     [],
+    |    "headers":  [],
+    |    "protos":   [],
+    |    "packages": []
+    |  }
+    |}""" splitNoEmpties("\n") map(split("|") last) join("\n") strip interpolate
+
+    root fileNamed("package.json") create openForUpdating write(pkgInfo) close
+    root fileNamed("README") create openForUpdating write("=== " .. name .. " ===\nDon't forget to update this doc.\n") close
+    root directoryNamed("io") fileNamed(name .. ".io") create openForUpdating write(name .. " := Object clone do(\n\n)\n") close
+
+    "New package structure has been created in #{root path}." interpolate println)
 )
 
 Namespaces Default do(

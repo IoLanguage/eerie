@@ -6,8 +6,7 @@ are used as a tool for switching between different versions.
 
 h2. How to install
 
-<pre><code>
-$ git clone git://github.com/josip/eerie.git
+<pre><code>$ git clone git://github.com/josip/eerie.git
 $ cd eerie
 $ io setup.io
 # Close current terminal session and start a new one or reload your profile

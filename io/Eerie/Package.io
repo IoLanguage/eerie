@@ -33,27 +33,36 @@ Package := Object clone do(
   installer ::= nil
   //doc Package downloader Instance of [[PackageDownloader]] for this package.
   downloader ::= nil
+  
+  //doc Package info Contains all the data provided in package.json
+  info ::= method(
+    self loadInfo)
+
+  //doc Package env Environment in which package is installed.
+  env ::= nil
 
   init := method(
     self config = Map with(
       "name", nil,
       "uri",  nil,
-      "path", nil,
-      "meta", Map clone))
+      "path", nil))
 
-  //doc Package with(name, uri) Creates new package with provided name and URI.
-  with := method(name_, uri_,
+  //doc Package with(name, uri[, env]) Creates new package with provided name and URI.
+  with := method(name_, uri_, env_,
     (uri_ exSlice(-1) == "/") ifTrue(
       uri_ = uri_ exSlice(0, -1))
 
+    env_ = if(env_ isNil, Eerie usedEnv, env_)
     self clone setConfig(Map with(
       "name", name_,
       "uri",  uri_,
-      "path", (Eerie usedEnv path) .. "/addons/" .. name_)))
+      "path", (env_ path) .. "/addons/" .. name_)) setEnv(env_))
 
-  //doc Package withConfig(config) Creates new package from provided config Map.
-  withConfig := method(config,
-    klone := self clone setConfig(config)
+  //doc Package withConfig(config[, env]) Creates new package from provided config Map.
+  withConfig := method(config, env_,
+    env_ = if(env_ isNil, Eerie usedEnv, env_)
+    klone := self clone setConfig(config) setEnv(env_)
+
     klone config at("installer") isNil ifFalse(
       klone installer = Eerie PackageInstaller instances getSlot(klone config at("installer"))
       klone installer = klone installer with(klone config at("path")))
@@ -63,9 +72,9 @@ Package := Object clone do(
 
     klone)
 
-  //doc Package fromUri(uri) Creates new package from provided uri. Name is determined with [[Package guessName]].
-  fromUri := method(uri_,
-    self with(self guessName(uri_), uri_))
+  //doc Package fromUri(uri[, env]) Creates new package from provided uri. Name is determined with [[Package guessName]].
+  fromUri := method(uri_, env_,
+    self with(self guessName(uri_), uri_, env_))
 
   //doc Package guessName(uri) Guesses name from provide URI. Usually it is just file's basename.
   guessName := method(uri_,
@@ -106,13 +115,13 @@ Package := Object clone do(
 
     self setInstaller(Eerie PackageInstaller detect(self path))
     self installer loadConfig
-    self loadMetadata
+    self loadInfo
 
     self installDependencies
     self installer install
 
-    self loadMetadata
-    Eerie usedEnv appendPackage(self)
+    self loadInfo
+    self env appendPackage(self)
 
     self runHook("after" .. event)
     self)
@@ -136,11 +145,11 @@ Package := Object clone do(
     self runHook("beforeRemove")
 
     Directory with(self path .. "/bin") files foreach(f,
-      File with("#{Eerie usedEnv path}/bin/#{f name}" interpolate) remove)
+      File with("#{self env path}/bin/#{f name}" interpolate) remove)
 
     #Directory with(self path) remove
     Eerie sh("rm -rf #{self path}" interpolate)
-    Eerie usedEnv removePackage(self)
+    self env removePackage(self)
 
     true)
 
@@ -152,21 +161,24 @@ Package := Object clone do(
       try(Thread createThread(f contents))
       f close))
 
-  //doc Package loadMetadata Loads package.json file.
-  loadMetadata := method(
-    meta := File with((self path) .. "/package.json")
-    meta exists ifTrue(
-      self config atPut("meta", Yajl parseJson(meta openForReading contents))
-      meta close))
+  //doc Package loadInfo Loads package.json file.
+  loadInfo := method(
+    pkgInfo := File with((self path) .. "/package.json")
+    self info = if(pkgInfo exists,
+      Yajl parseJson(pkgInfo openForReading contents),
+      Map clone)
+
+    pkgInfo close
+    self info)
 
   //doc Package providesProtos Returns list of protos this package provides.
   providesProtos := method(
-    p := self config at("meta") ?at("protos")
+    p := self info at("protos")
     if(p isNil, list(), p))
 
   //doc Package dependencies([category]) Returns list of dependencies this package has. <code>category</code> can be <code>protos</code>, <code>packages</code>, <code>headers</code> or <code>libs</code>.
   dependencies := method(category,
-    d := self config at("meta") ?at("dependencies")
+    d := self info at("dependencies")
     if(category and d and d isEmpty not, d = d at(category))
     if(d isNil, list(), d))
 

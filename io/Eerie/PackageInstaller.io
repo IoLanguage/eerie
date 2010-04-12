@@ -54,7 +54,8 @@ PackageInstaller := Object clone do(
       self setConfig(Yajl parseJson(configFile openForReading contents))
       configFile close))
 
-  //doc PackageInstaller extractDataFromPackageJson
+  /*doc PackageInstaller extractDataFromPackageJson
+  Creates <code>protos</code>, <code>deps</code> and <code>build.io</code> files from <code>package.json</code>*/
   extractDataFromPackageJson := method(
     providedProtos  := self config at("protos") ?join(" ")
     providedProtos isNil ifTrue(
@@ -72,14 +73,14 @@ PackageInstaller := Object clone do(
       headerDeps  := deps ?at("headers")
       libDeps     := deps ?at("libs")
 
-      buildIo := "AddonBuilder clone do(\n" asMutable
+      buildIo := list("AddonBuilder clone do(")
       libDeps ?foreach(lib,
-        buildIo appendSeq("  dependsOnLib(\"#{lib}\")\n"))
+        buildIo append("""  dependsOnLib("#{lib}")"""))
       headerDeps ?foreach(header,
-        buildIo appendSeq("  dependsOnHeader(\"#{header}\")\n"))
-      buildIo appendSeq(")\n")
+        buildIo append("""  dependsOnHeader("#{header}")"""))
+      buildIo append(")\n")
 
-      self fileNamed("build.io") create openForUpdating write(buildIo interpolate) close))
+      self fileNamed("build.io") remove create openForUpdating write(buildIo join("\n") interpolate) close))
 
   //doc PackageInstaller buildPackageJson
   buildPackageJson := method(
@@ -98,7 +99,7 @@ PackageInstaller := Object clone do(
       protoDeps openForReading contents split(" ") foreach(pd, package at("dependencies") append(pd strip)))
     protoDeps close
 
-    self fileNamed("package.json") create openForUpdating write(package asJson) close
+    self fileNamed("package.json") remove create openForUpdating write(package asJson) close
 
     self)
 

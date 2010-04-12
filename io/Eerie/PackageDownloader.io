@@ -35,7 +35,8 @@ PackageDownloader := Object clone do(
   createSkeleton := method(
     self root createSubdirectory("io")
     self root createSubdirectory("bin")
-    self root createSubdirectory("hooks"))
+    self root createSubdirectory("hooks")
+    self root createSubdirectory("source"))
 )
 
 //doc PackageDownloader instances Contains all PackageDownloader clones

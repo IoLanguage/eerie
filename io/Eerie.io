@@ -50,6 +50,7 @@ Eerie := Object clone do(
     "info",     " - ",
     "error",    " ! ",
     "console",  " > ",
+    "debug",    " # ",
     "output",   "")
   //doc Eerie log(message, mode) Displays the message to the user, mode can be "info", "error", "console" or "output".
   log := method(str, mode,
@@ -84,6 +85,16 @@ Eerie := Object clone do(
   revertConfig := method(
     self configFile close remove openForUpdating write(self configBackup)
     self setConfig(Yajl parseJson(self configBackup)))
+)
+
+# Fixing Yajl's not-printing of errors
+Yajl  do(
+  _parseJson := getSlot("parseJson")
+  parseJson = method(json,
+    result := Yajl _parseJson(json)
+    if(result type == "Error",
+      Exception raise("Yajl: " .. result message),
+      result))
 )
 
 Eerie clone = Eerie do(

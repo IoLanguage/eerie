@@ -95,7 +95,7 @@ Env := Object clone do(
       (pkgConfig type == "Map") ifFalse(
         pkgConfig = Yajl parseJson(pkgConfig))
 
-      Eerie Package withConfig(pkgConfig)))
+      Eerie Package withConfig(pkgConfig, self)))
 
   //doc Env packageNamed(name) Returns package with provided name if it exists, <code>nil</code> otherwise.
   packageNamed := method(pkgName,

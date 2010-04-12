@@ -17,13 +17,18 @@ DirectoryInstaller := Eerie PackageInstaller clone do(
     Eerie sh("mv #{self path}/*.io #{ioDir path}" interpolate))
 
   buildPackageJson := method(
-    self fileNamed("package.json") remove create openForUpdating write(Map with(
-      "author", User name,
-      "dependencies", list(),
-      "protos", self protosList
-    ) asJson) close)
-  
+    pkgInfo := self fileNamed("package.json")
+    pkgInfo exists ifFalse(
+      pkgInfo create openForUpdating write(Map with(
+        "author", User name,
+        "dependencies", list(),
+        "protos", self protosList
+      ) asJson) close))
+
   extractDataFromPackageJson := method(
-    self fileNamed("depends") remove create openForUpdating write("\n") close
-    self fileNamed("protos")  remove create openForUpdating write(self protosList join(" ") .. "\n") close)
+    deps := self fileNamed("depends")
+    deps exists ifFalse(deps create openForUpdating write("\n") close)
+
+    pprotos := self fileNamed("protos")
+    pprotos exists ifFalse(deps create openForUpdating write(self protosList join(" ") .. "\n") close))
 )
