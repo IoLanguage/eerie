@@ -3,15 +3,13 @@ DirectoryDownloader := Eerie PackageDownloader clone do(
     Directory with(uri) exists)
 
   download := method(
-    Eerie sh("cp -R #{self uri}/* #{self path}" interpolate)
-    #Eerie sh("cp -R #{self uri}/.* #{self path}" interpolate)
-    )
+    Eerie sh("cp -R #{self uri}/* #{self path}" interpolate))
+  
+  update := getSlot("download")
 
-  update := method(
+  hasUpdates := method(
     # Directory doesen't provide lastDataChange method
     original  := File with(self uri)  lastDataChangeDate
     copy      := File with(self path) lastDataChangeDate
-
-    (original > copy) ifTrue(
-      self download))
+    original > copy)
 )

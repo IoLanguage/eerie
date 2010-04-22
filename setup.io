@@ -18,7 +18,7 @@ Object clone do(
 
     bashScript := """
 
-# Four Commandments of Eerie
+# Three Commandments of Eerie
 EERIEDIR=#{eeriePath}
 PATH=$PATH:$EERIEDIR/activeEnv/bin:$EERIEDIR/base/bin
 export EERIEDIR PATH
@@ -57,15 +57,18 @@ AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/acti
     Eerie sh("ln -s #{baseEnv path} #{eeriePath}/base" interpolate)
 
     Eerie Env with("_plugins") create
-
-    # This allows Eerie to perform self-update.
-    Eerie Package fromUri("git://github.com/josip/eerie.git") install
-    #Eerie Package fromUri(Directory currentWorkingDirectory) install
     Eerie saveConfig
+    
+    # This allows Eerie to perform self-update.
+    Eerie Transaction begin
+    #Eerie Transaction install(Eerie Package fromUri("git://github.com/josip/eerie.git"))
+    Eerie Transaction install(Eerie Package fromUri(Directory currentWorkingDirectory))
+    Eerie Transaction run
 
     Eerie Env with("default") create activate use
 
     "---- Fin ----" println
-    System sleep(1)
+    System sleep(2)
     " - Oh, wait, is there an eerie sound coming out of your basement?" println)
 ) setup
+

@@ -23,17 +23,18 @@ ArchiveDownloader := Eerie PackageDownloader clone do(
 
     self uri containsSeq("http") ifTrue(
       tmpFile := Directory with(Eerie tmpDir) fileNamed(self uri split("/") last)
-      Eerie log("Downloading #{self uri}")
       URL with(self uri) fetchToFile(tmpFile)
       tmpFile exists ifFalse(
-        Exception raise("Could not download file #{self uri}." interpolate))
+        Eerie Exception raise("failedDownload", self uri))
       self uri = tmpFile path)
 
     Eerie sh(self format cmd interpolate)
+    # If archive contains an directory with all the code we need to move
+    # everything out of there
     (self root directories size == 1 and self root files isEmpty) ifTrue(
       extraDir = self root directories first name
-      Eerie sh("mv #{extraDir} __contents__")
-      Eerie sh("mv __contents__/* #{self path}")
+      Eerie sh("mv #{extraDir} __contents__" interpolate)
+      Eerie sh("mv __contents__/* #{self path}" interpolate)
       Eerie sh("rm __contents__"))
 
     tmpFile isNil ifFalse(

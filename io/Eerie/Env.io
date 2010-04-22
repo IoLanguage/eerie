@@ -41,7 +41,7 @@ Env := Object clone do(
   create := method(
     root := Directory with((Eerie root) .. "/env/" .. (self name))
     root exists ifTrue(
-      Exception raise("Environment '#{self name}' already exists." interpolate))
+      Eerie Exception raise("existingEnv", self name))
 
     root create
     root createSubdirectory("bin")
@@ -89,7 +89,7 @@ Env := Object clone do(
   isUsed := method(
     Eerie usedEnv == self)
 
-  //doc Env packages Returns list of packages installed within this environment.
+  //doc Env packages Returns list of packages installed in this environment.
   packages := method(
     self packages = self config at("packages") map(pkgConfig,
       (pkgConfig type == "Map") ifFalse(
@@ -103,15 +103,28 @@ Env := Object clone do(
 
   //doc Env appendPackage(package) Saves package's configuration into own configuration.
   appendPackage := method(package,
-    self config at("packages") appendIfAbsent(package asJson)
+    self config at("packages") appendIfAbsent(package config)
     self packages appendIfAbsent(package)
     Eerie saveConfig
 
     self)
 
-  removePackage := method(package
-    self config at("packages") removeAt(package name)
+  //doc Env removePackage(package)
+  removePackage := method(package,
+    self config at("packages") remove(package config)
     self packages remove(package)
+    Eerie saveConfig
+
+    self)
+    
+  //doc Env updatePackage(package)
+  updatePackage := method(package,
+    self config at("packages") detect(name == package name) isNil ifTrue(
+      Eerie log("Tried to update package which is not yet installed. (#{self name}/#{package name})", "debug")
+      return(false))
+
+    self config at("packages") removeAt(package name) atPut(package name, package config)
+    self packages remove(old) append(package)
     Eerie saveConfig
 
     self)

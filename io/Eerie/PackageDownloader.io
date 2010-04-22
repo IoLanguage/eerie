@@ -19,6 +19,7 @@ PackageDownloader := Object clone do(
   detect := method(uri_, path_,
     self instances foreachSlot(slotName, downloader,
       downloader canDownload(uri_) ifTrue(
+        Eerie log("Using #{slotName} for #{uri_}", "debug")
         return(downloader with(uri_, path_))))
 
     Eerie revertConfig
@@ -28,7 +29,9 @@ PackageDownloader := Object clone do(
   canDownload := method(uri, false)
   //doc PackageDownloader download Downloads package from <code>self uri</code> to <code>self path</code>.
   download    := method(false)
-  //doc PackageDownloader update Updates the package. Returns false if there is no need for update.
+  //doc PackageDownloader hasUpdates
+  hasUpdates  := method(false)
+  //doc PackageDownloader update Updates the package.
   update      := method(true)
 
   //doc PackageDownloader createSkeleton Creates required directories, <code>io</code>, <code>bin</code> and <code>hooks</code>.

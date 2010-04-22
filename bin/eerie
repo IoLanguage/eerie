@@ -4,9 +4,10 @@ Kano setUseExternalFile(false)
 
 Eerie do(
   _log := getSlot("log")
+
   log = method(str, mode,
     (mode == nil or mode == "info" or mode == "error") ifTrue(
-      self _log(str, mode)))
+      call delegateToMethod(self, "_log")))
 )
 
 Namespaces Env := Namespace clone do(
@@ -28,70 +29,81 @@ Namespaces Env := Namespace clone do(
   active := task(
     """Prints the name of active env."""
     Eerie activeEnv name println)
+
+  list := task(
+    """Lists all envs. Active environment has an asterisk before its name."""
+
+    activeEnv := Eerie activeEnv name
+    Eerie envs map(name) sort foreach(env,
+      if(env exSlice(0, 1) == "_",
+        Eerie log(env, "debug")
+      ,
+        active := if(activeEnv == env, " * ", " - ")
+        (active .. env) println
+      )))
 )
-
-Eerie describe do(
-  setNamespace(Namespaces Env)
-  task("list") do(
-    describe("Lists all available environments.")
-    callsSlot("envs")
-
-    after(envs,
-      envs = envs map(env,
-        if(env isActive, env name .. " [A]", env name))
-      envs select(!= nil)\
-        select(exSlice(0, 1) != "_")\
-        sort)
-
-    returns(List, Map with("joinWith", "\n",
-                           "bullet", "*",
-                           "indent", 1))
-  )
-) done
 
 Namespaces Pkg := Namespace clone do(
   install := task(uri,
     """Installs a new package."""
     pkg := Eerie Package fromUri(uri)
-    pkg install
-    "Package #{pkg name} has been installed." interpolate println
+    
+    Eerie Transaction begin
+    Eerie Transaction install(pkg)
+    Eerie Transaction run
 
     readme := pkg info at("readme")
     readmeFile := File with(pkg path .. "/" .. readme)
     readmeFile exists ifTrue(
       "Opening readme file..." println
       # Allows user to abort with Control+C
-      System sleep(2)
+      System sleep(4)
 
       openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
-      openCommand isNil ifTrue(openCommand = "most")
+      openCommand isNil ifTrue(openCommand = "more")
 
       System system(openCommand .. " " .. readmeFile path)))
 
+  # We are using Eerie usedEnv here because it will be the same as activeEnv
+  # unless we modify it - as we do for plugins.
   update := task(name,
     """Updates the package and all of its dependencies."""
-    Eerie activeEnv packageNamed(name) ?update
-    "Package #{name} has been updated." interpolate println)
+    Eerie Transaction begin
+
+    pkg := Eerie usedEnv packageNamed(name)
+    pkg isNil ifTrue(
+        Eerie Exception raise("missingPackage", name))
+
+    Eerie Transaction update(pkg)
+    Eerie Transaction run)
 
   updateAll := task(
     """Updates all packages within current env."""
-    Eerie activeEnv packages foreach(pkg,
-      pkg update ifTrue("#{pkg name} has been updated." interpolate println)))
+    Eerie Transaction begin
+    Eerie usedEnv packages foreach(pkg,
+      Eerie Transaction update(pkg))
+    Eerie Transaction run)
 
   remove := task(name,
     """Removes the package."""
-    Eerie activeEnv packageNamed(name) ?remove
-    "Package #{name} has been removed." interpolate println)
+    
+    pkg := Eerie usedEnv packageNamed(name)
+    pkg isNil ifTrue(
+      Exception raise("missingPackage", name))
+    
+    Eerie Transaction begin
+    Eerie Transaction remove(pkg)
+    Eerie Transaction run)
 
   info := task(name,
     """Shows description of a package."""
-    pkg := Eerie activeEnv packageNamed(name)
+    pkg := Eerie usedEnv packageNamed(name)
     pkg isNil ifTrue(
-      Exception raise("No such package exists."))
+      Eerie Exception raise("missingPackage", name))
 
     maxKeySize := pkg info keys map(size) max + 2
 
-    meta foreach(key, value,
+    pkg info foreach(key, value,
       value isKindOf(List) ifTrue(value = value join(", "))
       value isKindOf(Map) ifTrue(value = value asObject slotSummary)
       key = (key asMutable makeFirstCharacterUppercase .. ":") alignLeft(maxKeySize, " ")
@@ -99,8 +111,11 @@ Namespaces Pkg := Namespace clone do(
 
   list := task(
     """Lists all packages installed within current env."""
-    Eerie activeEnv packages foreach(pkg,
-      (pkg name .. " @" .. (pkg info at("version"))) println
+    Eerie usedEnv packages foreach(pkg,
+      website := pkg info at("website")
+      website = if(website isNil, "", " (" .. website .. ")")
+
+      (pkg name .. " @" .. (pkg info at("version")) .. website) println
       ("  " .. (pkg info at("description"))) println))
 
   create := task(name, path,
@@ -112,7 +127,7 @@ Namespaces Pkg := Namespace clone do(
 
     root := Directory with(path)
     root exists ifTrue(
-      Exception raise("Destination directory already exists (#{path})" interpolate))
+      Eerie Exception raise("alreadyInstalled", path))
 
     root create
     Eerie PackageDownloader clone setPath(path) createSkeleton
@@ -122,6 +137,8 @@ Namespaces Pkg := Namespace clone do(
     |  "version":      "0.1",
     |  "description":  "My cool new project.",
     |  "author":       "#{User name}",
+    |  "website":      "http://#{name}-project.org/",
+    |  "readme":       "README",
     |  "protos":       ["#{name}"],
     |  "dependencies": {
     |    "libs":     [],
@@ -138,22 +155,55 @@ Namespaces Pkg := Namespace clone do(
     "New package structure has been created in #{root path}." interpolate println)
 )
 
+Namespaces Plugin := Namespace clone do(
+  _before := method(
+    Eerie Env named("_plugins") use)
+
+  install := Namespaces Pkg getSlot("install")  setSlot("description", "Installs new plugin.")
+  remove  := Namespaces Pkg getSlot("remove")   setSlot("description", "Removes a plugin.")
+  list    := Namespaces Pkg getSlot("list")     setSlot("description", "Lists all installed plugins.")
+)
+
 Namespaces Default do(
   selfUpdate := task(
     """Updates Eerie and its dependencies."""
     Eerie Env named("_base") use
-    Eerie usedEnv packages foreach(update))
+    
+    Eerie Transaction begin
+    Eerie usedEnv packages foreach(pkg, Eerie Transaction update(pkg))
+    Eerie Transaction run)
 
   envs    := Namespaces Env getSlot("list")
   pkgs    := Namespaces Pkg getSlot("list")
   install := Namespaces Pkg getSlot("install")
   remove  := Namespaces Pkg getSlot("remove")
+  
+  update  := task(
+    """Updates Eerie along with installed packages."""
+    Namespaces Default selfUpdate
+    Eerie activeEnv use
+    Namespaces Pkg updateAll)
+    
+  releaseLock := task(
+    """Removes transaction lock.
+    Use only if you are sure that process which placed the lock isn't running."""
+    Eerie Transaction lockFile close remove
+
+    "Transaction lock has been removed" println)
 )
 
 Namespaces Options do(
+  s := option(
+    """Print nothing to stdout."""
+    Object println = method())
+
   v := option(
     """Use verbose output."""
     Eerie log = Eerie getSlot("_log"))
+
+  V := option(
+    """Prints Eerie version."""
+    Eerie Env named("_base") packageNamed("Eerie") info at("version") println)
 )
 
 Kano run

@@ -1,25 +1,12 @@
-# AddonBuilder and ErrorReport are part of standard Io package, (c) Steve Dekorte
+# AddonBuilder is part of standard Io package, (c) Steve Dekorte
 Sequence prepend := method(s, s .. self)
 Directory fileNamedOrNil := method(path,
   f := self fileNamed(path)
   if(f exists, f, nil))
 
 AddonBuilder := Object clone do(
-  ErrorReport := Object clone do(
-    removeFile := method(
-      File clone with("errors") remove close
-    )
-
-    addError := method(error,
-      error print
-      Directory currentWorkingDirectory println
-      File clone openForAppending("errors") write(error) close
-    )
-  )
-  
   isDisabled := false
   disable := method(isDisabled = true)
-  errors := ErrorReport clone
 
   platform := System platform split at(0) asLowercase
   cflags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
@@ -165,48 +152,40 @@ AddonBuilder := Object clone do(
   optionallyDependsOnLib       := method(v, a := pathForLib(v) != nil; if(a, dependsOnLib(v)); a)
   optionallyDependsOnFramework := method(v, a := pathForFramework(v) != nil; if(a, dependsOnFramework(v)); a)
 
-  missingFrameworks := method(errors,
-    //writeln("errors: ", errors type)
-    depends frameworks select(p,
-      if(pathForFramework(p) == nil,
-        errors addError(self name .. " is missing " .. p .. " framework\n")
-        self isAvailable := false
-        true
-      )
-    )
+  missingFrameworks := method(
+    missing := self depends frameworks select(p, self pathForFramework(p) == nil)
+    if(missing contains(false),
+      self isAvailable := false)
+
+    missing
   )
 
-  missingHeaders := method(errors,
-    depends headers select(p,
-      if(pathForHeader(p) == nil,
-        errors addError(self name .. " is missing " .. p .. " header\n")
-        self isAvailable := false
-        true
-      )
-    )
+  missingHeaders := method(
+    missing := self depends headers select(h, self pathForHeader(p) == nil)
+    if(missing contains(false),
+      self isAvailable := false)
+
+    missing
   )
 
-  missingLibs := method(errors,
-    depends libs select(p,
-      //writeln("pathForLib(", p, ") = ", pathForLib(p))
-      if(pathForLib(p) == nil,
-        errors addError(self name .. " is missing " .. p .. " library\n")
-        self isAvailable := false
-        true
-      )
-    )
+  missingLibs := method(
+    missing := self depends libs select(p, self pathForLib(p) == nil)
+    if(missing contains(false),
+      self isAvailable := false)
+
+    missing
   )
 
-  hasDepends := method(errors, missingFrameworks(errors) size == 0 and missingLibs(errors) size == 0 and missingHeaders(errors) size == 0)
+  hasDepends := method(
+    self missingFrameworks size + self missingLibs size + self missingHeaders size == 0)
 
   installCommands := method(
     commands := Map clone
-    errors := ErrorReport clone
-    missingLibs(errors) foreach(p,
-      if(debs at(p), commands atPut("aptget", "apt-get install " .. debs at(p) .. " && ldconfig"))
-      if(ebuilds at(p), commands atPut("emerge", "emerge -DN1 " .. ebuilds at(p)))
-      if(pkgs at(p), commands atPut("port", "port install " .. pkgs at(p)))
-      if(rpms at(p), commands atPut("urpmi", "urpmi " .. rpms at(p) .. " && ldconfig"))
+    missingLibs foreach(p,
+      if(debs at(p),    commands atPut("aptget",  "apt-get install "  .. debs at(p) .. " && ldconfig"))
+      if(ebuilds at(p), commands atPut("emerge",  "emerge -DN1 "      .. ebuilds at(p)))
+      if(pkgs at(p),    commands atPut("port",    "port install "     .. pkgs at(p)))
+      if(rpms at(p),    commands atPut("urpmi",   "urpmi "            .. rpms at(p) .. " && ldconfig"))
     )
     commands
   )
@@ -227,7 +206,7 @@ AddonBuilder := Object clone do(
       oldPath := Directory currentWorkingDirectory
       Directory setCurrentWorkingDirectory(folder path))
 
-    result := Eerie sh(s)
+    result := Eerie sh(s, false, folder path)
 
     if(oldPath != nil,
       Directory setCurrentWorkingDirectory(oldPath))

@@ -17,21 +17,25 @@ Eerie := Object clone do(
   //doc Eerie envs List of environmets
   envs                := List clone
 
-  //doc Eerie sh(cmd[, logFailure=true, dir=cwd]) Executes system command.
+  /*doc Eerie sh(cmd[, logFailure=true, dir=cwd])
+  Executes system command. If logFailure is true and command exists with non-zero value application will abort.
+  */
   sh := method(cmd, logFailure, dir,
     self log(cmd, "console")
-    dir isNil ifFalse(
+    prevDir := nil
+    if(dir != nil and dir != ".",
       cmd = "cd " .. dir .. " && " .. cmd
-      prevDir := Directory currentWorkingDirectory
+      prevDir = Directory currentWorkingDirectory
       Directory setCurrentWorkingDirectory(dir))
 
     cmdOut := System runCommand(cmd)
     stdOut := cmdOut stdout
     stdErr := cmdOut stderr
 
-    dir isNil ifFalse(
+    prevDir isNil ifFalse(
       Directory setCurrentWorkingDirectory(prevDir))
 
+    # System runCommand leaves weird files behind
     System system("rm -f *-stdout")
     System system("rm -f *-stderr")
 
@@ -52,7 +56,7 @@ Eerie := Object clone do(
     "console",  " > ",
     "debug",    " # ",
     "output",   "")
-  //doc Eerie log(message, mode) Displays the message to the user, mode can be "info", "error", "console" or "output".
+  //doc Eerie log(message, mode) Displays the message to the user, mode can be "info", "error", "console", "debug" or "output".
   log := method(str, mode,
     mode ifNil(mode = "info")
     ((self _logMods at(mode)) .. str) interpolate(call sender) println)
@@ -69,9 +73,11 @@ Eerie := Object clone do(
     activeEnv_ isNil ifFalse(
       self setActiveEnv(Eerie Env named(activeEnv_))
       self activeEnv use)
+
+    self loadPlugins
     self)
 
-  //doc Eerie updateConfig(key, value) Updates config object.
+  //doc Eerie updateConfig(key, value) Updates config Map.
   updateConfig := method(key, value,
     self config atPut(key, value)
     self saveConfig)
@@ -85,10 +91,18 @@ Eerie := Object clone do(
   revertConfig := method(
     self configFile close remove openForUpdating write(self configBackup)
     self setConfig(Yajl parseJson(self configBackup)))
+
+  //doc Eerie loadPlugins Loads Eerie plugins.
+  loadPlugins := method(
+    self plugins := Object clone
+
+    Eerie Env named("_plugins") ?packages ?foreach(pkg,
+      self log("Loading #{pkg name} plugin", "debug")
+      self plugins doFile(pkg path .. "/io/main.io")))
 )
 
-# Fixing Yajl's not-printing of errors
-Yajl  do(
+# Fixing Yajl's silent treatment of parse errors
+Yajl do(
   _parseJson := getSlot("parseJson")
   parseJson = method(json,
     result := Yajl _parseJson(json)
@@ -98,14 +112,18 @@ Yajl  do(
 )
 
 Eerie clone = Eerie do(
+  //doc Eerie Exception [[Exception]]
+  doRelativeFile("Eerie/Exception.io")
+  //doc Eerie Env [[Env]]
+  doRelativeFile("Eerie/Env.io")
   //doc Eerie Package [[Pacakge]]
   doRelativeFile("Eerie/Package.io")
   //doc Eerie PackageDownloader [[PackageDownloader]]
   doRelativeFile("Eerie/PackageDownloader.io")
   //doc Eerie PackageInstaller [[PackageInstaller]]
   doRelativeFile("Eerie/PackageInstaller.io")
-  //doc Eerie Env [[Env]]
-  doRelativeFile("Eerie/Env.io")
+  //doc Eerie Transaction [[Transaction]]
+  doRelativeFile("Eerie/Transaction.io")
 
   init
 )

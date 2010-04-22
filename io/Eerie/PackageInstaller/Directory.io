@@ -13,6 +13,7 @@ DirectoryInstaller := Eerie PackageInstaller clone do(
     self protosList)
 
   install := method(
+    self loadConfig
     ioDir := self dirNamed("io") create
     Eerie sh("mv #{self path}/*.io #{ioDir path}" interpolate))
 
