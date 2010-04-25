@@ -19,6 +19,8 @@ Eerie Exception := Exception clone do(
 
   //doc Exception raise(problem, description) Returns a new Eerie Exception.
   raise := method(problemKey, msg,
+    Eerie Transaction releaseLock
+    
     self setProblem(problemKey) setMsg(msg)
     self super(raise("Eerie: " .. self problem .. ": " .. self problemMsg)))
 

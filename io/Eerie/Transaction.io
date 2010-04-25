@@ -36,6 +36,9 @@ Transaction := Object clone do(
 
   //doc Transaction run
   run := method(
+    self items isEmpty ifTrue(
+      return(self releaseLock))
+
     self items = self items select(action,
       #Eerie log("Preparing #{action name} for #{action pkg uri}...")
       action prepare ifTrue(
@@ -71,7 +74,7 @@ Transaction := Object clone do(
   resolveDeps := method(package,
     Eerie log("Resolving dependencies for #{package name}")
     deps := package info at("dependencies")
-    if(deps == nil or deps keys isEmpty,
+    if(deps == nil or deps ?keys ?isEmpty,
       return(true))
 
     # TODO: Check if all dependencies are actually satisfied before
@@ -84,7 +87,7 @@ Transaction := Object clone do(
 
     deps at("protos") ?foreach(protoName,
       AddonLoader hasAddonNamed(protoName) ifFalse(
-        Exception raise("missingProto", list(package name, protoName))))
+        Eerie Exception raise("missingProto", list(package name, protoName))))
 
     self depsCheckedFor append(package uri)
     Eerie log("Missing pkgs: #{toInstall map(name)}", "debug")
