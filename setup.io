@@ -1,74 +1,20 @@
 #!/usr/bin/env io
 
 Importer addSearchPath("io/")
+doFile("hooks/beforeInstall.io")
 
-Object clone do(
-  setup := method(
-    "---- Installing Eerie ----" println
-    homePath := User homeDirectory path
-    eeriePath := homePath .. "/.eerie"
-    eerieDir := Directory with(eeriePath)
+Eerie do(
+  _log := getSlot("log")
+  _allowedModes := list("info", "error", "transaction", "install")
 
-    eerieDir exists ifTrue(
-      " ! ~/.eerie directory already exists. Aborting installation." println
-      System exit(1))
+  log = method(str, mode,
+    (mode == nil or self _allowedModes contains(mode)) ifTrue(
+      call delegateToMethod(self, "_log")))
+)
 
-    bashFiles := list("bashrc", "profile", "bash_profile") map(f,
-      Path with(homePath, "/." .. f))
+Eerie Transaction clone\
+  install(Eerie Package fromUri(Directory currentWorkingDirectory))\
+  run
 
-    bashScript := """
-
-# Three Commandments of Eerie
-EERIEDIR=#{eeriePath}
-PATH=$PATH:$EERIEDIR/activeEnv/bin:$EERIEDIR/base/bin
-export EERIEDIR PATH
-# That's all folks
-
-""" interpolate
-
-    bashFiles foreach(path,
-      f := File with(path) openForAppending
-      f contents containsSeq("EERIEDIR") ifFalse(
-        f appendToContents(bashScript))
-      f close)
-
-    " - Updated bash profile." println
-
-    iorc := File with(homePath .. "/.iorc")
-    iorc exists ifFalse(iorc create)
-    loaderCode := """
-AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
-AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv/addons")
-"""
-    iorc openForAppending contents containsSeq("EERIEDIR") ifFalse(
-      iorc appendToContents(loaderCode .. "\n"))
-    iorc close
-    " - Updated iorc file." println
-
-    System setEnvironmentVariable("EERIEDIR", eeriePath)
-
-    eerieDir create
-    eerieDir directoryNamed("env") create
-    eerieDir directoryNamed("tmp") create
-
-    eerieDir fileNamed("/config.json") create openForUpdating write("{\"envs\": {}}") close
-
-    baseEnv := Eerie Env with("_base") create activate use
-    Eerie sh("ln -s #{baseEnv path} #{eeriePath}/base" interpolate)
-
-    Eerie Env with("_plugins") create
-    Eerie saveConfig
-    
-    # This allows Eerie to perform self-update.
-    Eerie Transaction begin
-    #Eerie Transaction install(Eerie Package fromUri("git://github.com/josip/eerie.git"))
-    Eerie Transaction install(Eerie Package fromUri(Directory currentWorkingDirectory))
-    Eerie Transaction run
-
-    Eerie Env with("default") create activate use
-
-    "---- Fin ----" println
-    System sleep(2)
-    " - Oh, wait, is there an eerie sound coming out of your basement?" println)
-) setup
+" --- Done! --- " println
 

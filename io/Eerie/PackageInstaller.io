@@ -119,7 +119,7 @@ PackageInstaller := Object clone do(
 
   //doc PackageInstaller copyBinaries Creates symlinks for files <code>bin</code> directory in active environment's <code>bin</code>.
   copyBinaries := method(
-    Eerie sh("chmod +x #{self path}/bin/*" interpolate)
+    Eerie sh("chmod u+x #{self path}/bin/*" interpolate)
     self dirNamed("bin") files foreach(original,
       link := File with(Eerie usedEnv path .. "/bin/" .. original name)
       link exists ifFalse(
@@ -132,6 +132,6 @@ PackageInstaller instances := Object clone do(
   doRelativeFile("PackageInstaller/File.io")
   //doc PackageInstaller Directory Installs whole directories.
   doRelativeFile("PackageInstaller/Directory.io")
-  //doc PacakgeInstaller IoAddon Installs directories with structure of an Io addon.
+  //doc PacakgeInstaller IoAddon Installs directories structured as an Io addon.
   doRelativeFile("PackageInstaller/IoAddon.io")
 )

@@ -104,7 +104,11 @@ Package := Object clone do(
     f := File with("#{self path}/hooks/#{hook}.io" interpolate)
     f exists ifTrue(
       Eerie log("Launching #{hook} hook for #{self name}", "debug")
-      try(Thread createThread(f contents))
+      ctx := Object clone
+      e := try(ctx doFile(f path))
+      e catch(
+        Eerie log("#{hook} failed.", "error")
+        Eerie log(e message, "debug"))
       f close))
 
   //doc Package loadInfo Loads package.json file.

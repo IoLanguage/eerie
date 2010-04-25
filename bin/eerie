@@ -4,12 +4,16 @@ Kano setUseExternalFile(false)
 
 Eerie do(
   _log := getSlot("log")
+  _allowedModes := list("info", "error", "transaction", "install")
 
   log = method(str, mode,
-    (mode == nil or mode == "info" or mode == "error") ifTrue(
+    (mode == nil or self _allowedModes contains(mode)) ifTrue(
       call delegateToMethod(self, "_log")))
 )
 
+System systemInterruptHandler := method(
+  Eerie Transaction releaseLock)
+ 
 Namespaces Env := Namespace clone do(
   create := task(name,
     """Creates a new environment."""
@@ -23,8 +27,12 @@ Namespaces Env := Namespace clone do(
 
   remove := task(name,
     """Removes an env with all its packages."""
-    Eerie Env named(name) remove
-    "Env #{name} was removed." interpolate println)
+    env := Eerie Env named(name)
+    if(Eerie Env activeEnv == env,
+      "Can't remove active environment." println
+    ,
+      Eerie Env named(name) remove
+      "Env #{name} was removed." interpolate println))
 
   active := task(
     """Prints the name of active env."""
@@ -47,10 +55,8 @@ Namespaces Pkg := Namespace clone do(
   install := task(uri,
     """Installs a new package."""
     pkg := Eerie Package fromUri(uri)
-    
-    Eerie Transaction begin
-    Eerie Transaction install(pkg)
-    Eerie Transaction run
+
+    Eerie Transaction clone install(pkg) run
 
     readme := pkg info at("readme")
     readmeFile := File with(pkg path .. "/" .. readme)
@@ -68,21 +74,18 @@ Namespaces Pkg := Namespace clone do(
   # unless we modify it - as we do for plugins.
   update := task(name,
     """Updates the package and all of its dependencies."""
-    Eerie Transaction begin
-
     pkg := Eerie usedEnv packageNamed(name)
     pkg isNil ifTrue(
         Eerie Exception raise("missingPackage", name))
 
-    Eerie Transaction update(pkg)
-    Eerie Transaction run)
+    Eerie Exception clone update(pkg) run)
 
   updateAll := task(
     """Updates all packages within current env."""
-    Eerie Transaction begin
+    t := Eerie Transaction clone
     Eerie usedEnv packages foreach(pkg,
-      Eerie Transaction update(pkg))
-    Eerie Transaction run)
+      t update(pkg))
+    t run)
 
   remove := task(name,
     """Removes the package."""
@@ -91,9 +94,7 @@ Namespaces Pkg := Namespace clone do(
     pkg isNil ifTrue(
       Exception raise("missingPackage", name))
     
-    Eerie Transaction begin
-    Eerie Transaction remove(pkg)
-    Eerie Transaction run)
+    Eerie Transaction clone remove(pkg) run)
 
   info := task(name,
     """Shows description of a package."""
@@ -165,31 +166,33 @@ Namespaces Plugin := Namespace clone do(
 )
 
 Namespaces Default do(
+  # Aliases
+  envs      := Namespaces Env getSlot("list")
+  activate  := Namespaces Env getSlot("activate")
+  pkgs      := Namespaces Pkg getSlot("list")
+  install   := Namespaces Pkg getSlot("install")
+  remove    := Namespaces Pkg getSlot("remove")
+  update    := Namespaces Pkg getSlot("update")
+  
   selfUpdate := task(
     """Updates Eerie and its dependencies."""
     Eerie Env named("_base") use
-    
-    Eerie Transaction begin
-    Eerie usedEnv packages foreach(pkg, Eerie Transaction update(pkg))
-    Eerie Transaction run)
 
-  envs    := Namespaces Env getSlot("list")
-  pkgs    := Namespaces Pkg getSlot("list")
-  install := Namespaces Pkg getSlot("install")
-  remove  := Namespaces Pkg getSlot("remove")
+    t := Eerie Transaction clone
+    Eerie usedEnv packages foreach(pkg, t update(pkg))
+    t run)
   
-  update  := task(
-    """Updates Eerie along with installed packages."""
-    Namespaces Default selfUpdate
-    Eerie activeEnv use
-    Namespaces Pkg updateAll)
-    
   releaseLock := task(
     """Removes transaction lock.
     Use only if you are sure that process which placed the lock isn't running."""
-    Eerie Transaction lockFile close remove
+    lockFile := Eerie Transaction lockFile
+    lockFile exists ifFalse(
+      return("There was no lock at all." println))
 
-    "Transaction lock has been removed" println)
+    # TODO: Check if process which has lock exists and kill it.
+
+    Eerie Transaction lockFile close remove
+    "Transaction lock has been removed." println)
 )
 
 Namespaces Options do(
@@ -198,7 +201,8 @@ Namespaces Options do(
     Object println = method())
 
   v := option(
-    """Use verbose output."""
+    """Uses verbose output - debug messages, shell commands - everything will be printed.
+    Watch out for information overload."""
     Eerie log = Eerie getSlot("_log"))
 
   V := option(

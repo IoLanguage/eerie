@@ -23,12 +23,13 @@ Eerie := Object clone do(
   sh := method(cmd, logFailure, dir,
     self log(cmd, "console")
     prevDir := nil
+    dirPrefix := ""
     if(dir != nil and dir != ".",
-      cmd = "cd " .. dir .. " && " .. cmd
+      dirPrefix = "cd " .. dir .. " && "
       prevDir = Directory currentWorkingDirectory
       Directory setCurrentWorkingDirectory(dir))
 
-    cmdOut := System runCommand(cmd)
+    cmdOut := System runCommand(dirPrefix .. cmd)
     stdOut := cmdOut stdout
     stdErr := cmdOut stderr
 
@@ -36,8 +37,8 @@ Eerie := Object clone do(
       Directory setCurrentWorkingDirectory(prevDir))
 
     # System runCommand leaves weird files behind
-    System system("rm -f *-stdout")
-    System system("rm -f *-stderr")
+    System system(dirPrefix .. "rm -f *-stdout")
+    System system(dirPrefix .. "rm -f *-stderr")
 
     if(cmdOut exitStatus != 0,
       if(logFailure == false,
@@ -51,11 +52,13 @@ Eerie := Object clone do(
       true))
 
   _logMods := Map with(
-    "info",     " - ",
-    "error",    " ! ",
-    "console",  " > ",
-    "debug",    " # ",
-    "output",   "")
+    "info",         " - ",
+    "error",        " ! ",
+    "console",      " > ",
+    "debug",        " # ",
+    "install",      " + ",
+    "transaction",  "-> ",
+    "output",       "")
   //doc Eerie log(message, mode) Displays the message to the user, mode can be "info", "error", "console", "debug" or "output".
   log := method(str, mode,
     mode ifNil(mode = "info")
@@ -124,6 +127,8 @@ Eerie clone = Eerie do(
   doRelativeFile("Eerie/PackageInstaller.io")
   //doc Eerie Transaction [[Transaction]]
   doRelativeFile("Eerie/Transaction.io")
+  //doc Eerie TransactionAction [[TransactionAction]]
+  doRelativeFile("Eerie/TransactionAction.io")
 
   init
 )

@@ -1,7 +1,12 @@
 Transaction := Object clone do(
   items         := List clone
   depsCheckedFor  := List clone
-  
+
+  init := method(
+    self items = List clone
+    self depsCheckedFor = List clone
+    self acquireLock)
+ 
   lockFile := File with(Eerie root .. "/.transaction_lock")
 
   //doc Transaction acquireLock
@@ -23,30 +28,22 @@ Transaction := Object clone do(
     if(self lockFile openForReading contents == System thisProcessPid asString,
       self lockFile close remove
       true))
-
+      
+  //doc Transaction hasLock
   hasLock := method(
     self lockFile exists ifFalse(return(false))
     self lockFile contents == System thisProcessPid asString)
 
-  //doc Transaction begin
-  begin := method(
-    self acquireLock
-    self items = List clone
-    self depsCheckedFor = List clone
-    self)
-
   //doc Transaction run
   run := method(
     self items = self items select(action,
-      pkg := action second
-      Eerie log("Preparing #{action first} for #{pkg name}...")
-      self actions getSlot(action first) prepare(pkg) ifTrue(
-        self resolveDeps(pkg)))
+      #Eerie log("Preparing #{action name} for #{action pkg uri}...")
+      action prepare ifTrue(
+        self resolveDeps(action pkg)))
 
     self items reverse foreach(action,
-      pkg := action second
-      Eerie log("#{action first}ing #{pkg name}...")
-      self actions getSlot(action first) execute(pkg))
+      Eerie log("#{action asVerb} #{action pkg uri}...")
+      action execute)
 
     self releaseLock)
 
@@ -56,21 +53,20 @@ Transaction := Object clone do(
     self items detect(act, act second uri == uri) != nil)
 
   //doc Transaction addAction(actionName, package)
-  addAction := method(action, pkg,
-    self items contains(list(action, pkg)) ifFalse(
-      self actions hasLocalSlot(action) ifFalse(
-        Exception raise("unknownTransactionAction", action))
-      self items append(list(action, pkg)))
+  addAction := method(action,
+    self items contains(action) ifFalse(
+      Eerie log("#{action name} #{action pkg uri}", "transaction")
+      self items append(action))
     self)
 
   install := method(package,
-    self addAction("Install", package))
+    self addAction(Eerie TransactionAction named("Install") with(package)))
 
   update := method(package,
-    self addAction("Update",  package))
-  
+    self addAction(Eerie TransactionAction named("Update") with(package)))
+
   remove := method(package,
-    self addAction("Remove", package))
+    self addAction(Eerie TransactionAction named("Remove") with(package)))
 
   resolveDeps := method(package,
     Eerie log("Resolving dependencies for #{package name}")
@@ -78,6 +74,8 @@ Transaction := Object clone do(
     if(deps == nil or deps keys isEmpty,
       return(true))
 
+    # TODO: Check if all dependencies are actually satisfied before
+    # installing them
     toInstall := list()
     deps at("packages") ?foreach(uri,
       self depsCheckedFor contains(uri) ifTrue(continue)
@@ -91,12 +89,7 @@ Transaction := Object clone do(
     self depsCheckedFor append(package uri)
     Eerie log("Missing pkgs: #{toInstall map(name)}", "debug")
     toInstall foreach(pkg, install(pkg))
-    self)
+    true)
 )
-Transaction clone = Transaction
 
-Transaction actions := Object clone do(
-  doRelativeFile("TransactionActions/install.io")
-  doRelativeFile("TransactionActions/update.io")
-  doRelativeFile("TransactionActions/remove.io")
-)
+

@@ -19,7 +19,7 @@ Eerie Exception := Exception clone do(
 
   //doc Exception raise(problem, description) Returns a new Eerie Exception.
   raise := method(problemKey, msg,
-    self setProblem(problemKey) setProblemMsg(msg)
+    self setProblem(problemKey) setMsg(msg)
     self super(raise("Eerie: " .. self problem .. ": " .. self problemMsg)))
 
   forward := method(
