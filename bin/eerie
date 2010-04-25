@@ -78,7 +78,7 @@ Namespaces Pkg := Namespace clone do(
     pkg isNil ifTrue(
         Eerie Exception raise("missingPackage", name))
 
-    Eerie Exception clone update(pkg) run)
+    Eerie Transaction clone update(pkg) run)
 
   updateAll := task(
     """Updates all packages within current env."""
