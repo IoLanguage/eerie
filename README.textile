@@ -8,9 +8,8 @@ h2. How to install
 
 <pre><code>$ git clone git://github.com/josip/eerie.git
 $ cd eerie
-$ io setup.io
-# Close current terminal session and start a new one or reload your profile
-$ . ~/.bash_profile
+$ io setup.io ~/.path_to_your_shell_startup_script
+$ source ~/.path_to_your_shell_startup_script
 </code></pre>
 
 Eerie currently ships with a simple <code>eerie</code> command which can do all sorts exciting of things!
