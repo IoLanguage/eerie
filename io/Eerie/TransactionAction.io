@@ -5,7 +5,7 @@ TransactionAction := Object clone do(
       (slotName == name_) ifTrue(
         return(action)))
 
-    Eerie Exception raise("missingTransactionAction", name_))
+    Eerie MissingTransactionException raise(name_))
 
   exists := method(name_,
     self named(name_) != nil)

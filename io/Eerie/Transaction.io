@@ -90,7 +90,7 @@ Transaction := Object clone do(
 
     deps at("protos") ?foreach(protoName,
       AddonLoader hasAddonNamed(protoName) ifFalse(
-        Eerie Exception raise("missingProto", list(package name, protoName))))
+        Eerie MissingProtoException raise(list(package name, protoName))))
 
     self depsCheckedFor append(package uri)
     Eerie log("Missing pkgs: #{toInstall map(name)}", "debug")

@@ -41,7 +41,7 @@ Env := Object clone do(
   create := method(
     root := Directory with((Eerie root) .. "/env/" .. (self name))
     root exists ifTrue(
-      Eerie Exception raise("existingEnv", self name))
+      Eerie ExistingEnvException raise(self name))
 
     root create
     root createSubdirectory("bin")

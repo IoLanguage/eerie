@@ -119,7 +119,7 @@ Eerie clone = Eerie do(
   doRelativeFile("Eerie/Exception.io")
   //doc Eerie Env [[Env]]
   doRelativeFile("Eerie/Env.io")
-  //doc Eerie Package [[Pacakge]]
+  //doc Eerie Package [[Package]]
   doRelativeFile("Eerie/Package.io")
   //doc Eerie PackageDownloader [[PackageDownloader]]
   doRelativeFile("Eerie/PackageDownloader.io")

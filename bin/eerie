@@ -77,7 +77,7 @@ Namespaces Pkg := Namespace clone do(
     """Updates the package and all of its dependencies."""
     pkg := Eerie usedEnv packageNamed(name)
     pkg isNil ifTrue(
-        Eerie Exception raise("missingPackage", name))
+        Eerie MissingPackageException raise(name))
 
     Eerie Transaction clone update(pkg) run)
 
@@ -101,7 +101,7 @@ Namespaces Pkg := Namespace clone do(
     """Shows description of a package."""
     pkg := Eerie usedEnv packageNamed(name)
     pkg isNil ifTrue(
-      Eerie Exception raise("missingPackage", name))
+      Eerie MissingPackageException raise(name))
 
     maxKeySize := pkg info keys map(size) max + 2
 
@@ -129,7 +129,7 @@ Namespaces Pkg := Namespace clone do(
 
     root := Directory with(path)
     root exists ifTrue(
-      Eerie Exception raise("alreadyInstalled", path))
+      Eerie AlreadyInstalledException raise(path))
 
     root create
     Eerie PackageDownloader clone setPath(path) createSkeleton
