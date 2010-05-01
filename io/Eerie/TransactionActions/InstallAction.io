@@ -9,6 +9,7 @@ InstallAction := Eerie TransactionAction clone do(
         setDownloader(Eerie PackageDownloader detect(uri, path)))
 
       runHook("beforeDownload")
+      Eerie log("Fetching #{name}", "info")
       downloader download
       runHook("afterDownload")
     )

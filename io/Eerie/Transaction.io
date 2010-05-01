@@ -25,7 +25,7 @@ Transaction := Object clone do(
 
   //doc Tranasction releaseLock
   releaseLock := method(
-    self lockFile exits ifFalse(
+    self lockFile exists ifFalse(
       return(true))
 
     if(self lockFile openForReading contents == System thisProcessPid asString,
@@ -48,7 +48,7 @@ Transaction := Object clone do(
         self resolveDeps(action pkg)))
 
     self items reverse foreach(action,
-      Eerie log("#{action asVerb} #{action pkg uri}...")
+      Eerie log("#{action asVerb} #{action pkg name}...")
       action execute)
 
     self releaseLock)
@@ -61,7 +61,7 @@ Transaction := Object clone do(
   //doc Transaction addAction(actionName, package)
   addAction := method(action,
     self items contains(action) ifFalse(
-      Eerie log("#{action name} #{action pkg uri}", "transaction")
+      Eerie log("#{action name} #{action pkg name}", "transaction")
       self items append(action))
     self)
 
