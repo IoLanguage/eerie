@@ -25,6 +25,9 @@ Transaction := Object clone do(
 
   //doc Tranasction releaseLock
   releaseLock := method(
+    self lockFile exits ifFalse(
+      return(true))
+
     if(self lockFile openForReading contents == System thisProcessPid asString,
       self lockFile close remove
       true))

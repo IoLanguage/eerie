@@ -5,6 +5,8 @@ eeriePath := homePath .. "/.eerie"
 eerieDir  := Directory with(eeriePath)
 
 appendEnvVariables := method(
+  System setEnvironmentVariable("EERIEDIR", eeriePath)
+
   # select() should eliminate symlinks
   bashFiles := list("bashrc", "profile", "bash_profile") map(f,
     Path with(homePath, "/." .. f)) select(p, File with(p) isRegularFile)
@@ -25,15 +27,13 @@ appendEnvVariables := method(
 appendAddonLoaderPaths := method(
   iorc := File with(homePath .. "/.iorc")
   iorc exists ifFalse(iorc create)
-  loaderCode := """
-    AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
-    AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv)"""
+  loaderCode := """|
+    |AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
+    |AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv)""" fixMultiline
 
   iorc openForAppending contents containsSeq("EERIEDIR") ifFalse(
     iorc appendToContents(loaderCode .. "\n"))
-  iorc close
-
-  System setEnvironmentVariable("EERIEDIR", eeriePath))
+  iorc close)
 
 createDirectories := method(
   eerieDir create
@@ -59,5 +59,3 @@ eerieDir exists ifFalse(
   appendAddonLoaderPaths
   createDirectories
   createDefaultEnvs)
-
-

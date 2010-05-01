@@ -15,7 +15,7 @@ $ . ~/.bash_profile
 
 Eerie currently ships with a simple <code>eerie</code> command which can do all sorts exciting of things!
 
-<code>$ eerie pkg:install git://github.com/josip/generys.git</code>
+<code>$ eerie install git://github.com/josip/generys.git</code>
 
 That will, for example, install the Generys package! How exciting!
 For a complete guide on installing and using Eerie check out its "web site":http://josip.github.com/eerie.
@@ -26,11 +26,10 @@ h3. Currently implemented
 
   * Working package manager
   * Converting local files and folders into packages
-  * Installing from Git repositories
+  * Installing from Git, SVN, Bazaar and Mercurial repositories, as well as tarballs (.tar.bz2, .tar.gz, .7z, , .zip, .rar)
   * Addons with .c files are being compiled and loaded properly
   * All installations are local to the current user, there is no "global mode"
   * Command-line tool
-  * Support for other VCS (Git, SVN and Mercurial are working)
 
 h3. Missing basic features (should be added soon)
 
@@ -41,7 +40,7 @@ h3. Missing basic features (should be added soon)
 h3. Planned features
 
   * Ability to locally patch packages, _à la_ "BSD Ports":http://www.freebsd.org/ports/index.html ("see also":http://networking.ringofsaturn.com/Unix/createportpatch.php)
-  * Run tests
+  * Run tests during install
   * Generate documentation
   * Optional central repository (or repositories, like "Ruby Gems":http://rubygems.org/)
 

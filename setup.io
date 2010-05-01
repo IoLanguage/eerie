@@ -13,8 +13,7 @@ Eerie do(
 )
 
 Eerie Transaction clone\
-  install(Eerie Package fromUri("git://github.com/josip/eerie"))\
+  install(Eerie Package fromUri("git://github.com/josip/eerie.git"))\
   run
 
 " --- Done! --- " println
-

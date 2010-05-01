@@ -17,4 +17,3 @@ UpdateAction := Eerie TransactionAction clone do(
 
     true)
 )
-
