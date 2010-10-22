@@ -9,19 +9,16 @@ category: usage
 <h2 style="margin-top:0">Post-install</h2>
 <p>
   First make sure you have Eerie installed, if not, the check out the <a href="index.html#install">introductory page</a>.
-  To be able to use <code>eerie</code> command you have to either start a new terminal session or simply reload your bash profile:
 </p>
 
-<pre><code>$ . ~/.bash_profile</code></pre>
-
 <p class="note">
-  Not all operating systems sotre bash profile in the same file, OS X keeps it in <code>~/.bash_profile</code>,
-  while some Linux it can be distributions in <code>~/.bashrc</code>, or <code>~/.profile</code> file. Make sure you
-  reload the right one.
+  If you don't want Eerie to touch your shell's start up script, just don't pass
+  path to it when running <code>setup.io</code>, you will get a short instructions
+  which environment varables need to be set and to which values.
 </p>
 
 <p>
-  Now try running <code>eerie</code> command, if it prints nothing it means you successfully installed it! Bravo!
+  Now try running <code>eerie</code> command, if it complains about no given tasks it - don't worry, we'll give it a headache soon!
 </p>
 
 <a name="concepts"></a>
@@ -67,18 +64,18 @@ category: usage
 <p>
   Now let us begin with this simple command:
 </p>
-<pre><code>$ eerie -tasks
+<pre><code>$ eerie -T
 $ ...
 </code></pre>
 <p>
   As you can see, there's nothing revolutionary going on, it just prints all the commands it knows together with their short descriptions.
-  Now we shall create an environment in which we will develop our next super-cool web-app.
+  Now we shall create an environment in which we will develop our next super-cool web app.
   To do that, we'll need:
   <ol>
     <li>New environment,</li>
     <li>Super awesome web framework,</li>
-    <li>Io -> HTML transformer,</li>
-    <li>Secret ingredients which will make our web-app even more awesome.</li>
+    <li>Io templating support,</li>
+    <li>Secret ingredients which will make our web app even more awesome.</li>
   </ol>
 </p>
 <pre><code>$ eerie env:create webapp
@@ -87,8 +84,8 @@ $ eerie env:activate webapp
 ...
 $ eerie install git://github.com/josip/generys
 ...
-$ eerie install gith://github.com/abc/def
+$ eerie install git://github.com/stygstra/Io-Templating.git
 ...
-$ generys -i super-secret-app/
+$ generys create super-secret-app/
 ...
 </code></pre>
