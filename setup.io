@@ -37,8 +37,8 @@ appendAddonLoaderPaths := method(
   iorc := File with(homePath .. "/.iorc")
   iorc exists ifFalse(iorc create)
   loaderCode := """|
-    | AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
-    | AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv/addons")""" fixMultiline
+    |AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
+    |AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv/addons")""" fixMultiline
 
   iorc openForAppending contents containsSeq("EERIEDIR") ifFalse(
     iorc appendToContents(loaderCode .. "\n"))
