@@ -29,7 +29,7 @@ Namespaces Env := Namespace clone do(
   remove := task(name,
     """Removes an env with all its packages."""
     env := Eerie Env named(name)
-    if(Eerie Env activeEnv == env,
+    if(Eerie activeEnv == env,
       "Can't remove active environment." println
     ,
       Eerie Env named(name) remove
