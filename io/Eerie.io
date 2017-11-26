@@ -4,6 +4,8 @@
 Eerie := Object clone do(
   //doc Eerie root Value of EERIEDIR system's environment variable.
   root                ::= System getEnvironmentVariable("EERIEDIR")
+  //doc Path to Io's headers (needed for native addons compilation).
+  ioHeadersPath        ::= root .. "/headers"
   //doc Eerie tmpDir
   tmpDir              ::= root .. "/tmp"
   //doc Eerie usedEnv Environment currently in use, not necessarily same as [[Eerie activeEnv]].

@@ -206,7 +206,7 @@ AddonBuilder := Object clone do(
       oldPath := Directory currentWorkingDirectory
       Directory setCurrentWorkingDirectory(folder path))
 
-    result := Eerie sh(s, false, folder path)
+    result := Eerie sh(s, true, folder path)
 
     if(oldPath != nil,
       Directory setCurrentWorkingDirectory(oldPath))
@@ -278,6 +278,7 @@ AddonBuilder := Object clone do(
       if((objFile == nil) or(objFile lastDataChangeDate < f lastDataChangeDate),
 
         includes := includePaths map(v, "-I" .. Path with(System installPrefix, "include/io", v))
+        includes append("-I" .. Eerie ioHeadersPath)
         includes appendSeq(headerSearchPaths map(v, "-I" .. v))
 
         _depends := depends includes join(" ")

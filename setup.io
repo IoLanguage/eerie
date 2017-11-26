@@ -37,8 +37,8 @@ appendAddonLoaderPaths := method(
   iorc := File with(homePath .. "/.iorc")
   iorc exists ifFalse(iorc create)
   loaderCode := """|
-    |AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
-    |AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv/addons")""" fixMultiline
+    | AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
+    | AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv/addons")""" fixMultiline
 
   iorc openForAppending contents containsSeq("EERIEDIR") ifFalse(
     iorc appendToContents(loaderCode .. "\n"))
@@ -49,9 +49,20 @@ createDirectories := method(
   eerieDir create
   eerieDir directoryNamed("env") create
   eerieDir directoryNamed("tmp") create
+  eerieDir directoryNamed("headers") create
 
-  eerieDir fileNamed("/config.json")\
-    create openForUpdating write("{\"envs\": {}}") close)
+  eerieDir fileNamed("/config.json") create openForUpdating write("{\"envs\": {}}") close
+)
+
+copyHeaders := method(
+  " - Copying headers" println
+
+  ioSourcesDir := Directory at("io_source/libs")
+  headers := ioSourcesDir recursiveFilesOfTypes(list(".h", ".hpp"))
+  headers foreach(file,
+    file copyToPath(eerieDir at("headers") path .. "/" .. file name)
+  )
+)
 
 createDefaultEnvs := method(
   baseEnv := Eerie Env with("_base") create activate use
@@ -62,9 +73,8 @@ createDefaultEnvs := method(
   Eerie saveConfig)
 
 installEeriePkg := method(
-  Eerie Transaction clone\
-    install(Eerie Package fromUri("git://github.com/josip/eerie.git"))\
-    run)
+  Eerie Transaction clone install(Eerie Package fromUri("https://github.com/AlesTsurko/eerie.git")) run
+)
 
 activateDefaultEnv := method(
   Eerie Env named("default") activate)
@@ -85,8 +95,10 @@ eerieDir exists ifFalse(
         call delegateToMethod(self, "_log")))
   )
   
+  copyHeaders
   createDefaultEnvs
   installEeriePkg
   appendEnvVariables
   activateDefaultEnv
-  " --- Done! --- " println)
+  " --- Done! --- " println
+)
