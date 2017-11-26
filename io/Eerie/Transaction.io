@@ -94,7 +94,7 @@ Transaction := Object clone do(
 
     self depsCheckedFor append(package uri)
     Eerie log("Missing pkgs: #{toInstall map(name)}", "debug")
-    toInstall foreach(pkg, install(pkg))
+    toInstall foreach(pkg, Eerie Transaction clone install(pkg) run)
     true)
 )
 
