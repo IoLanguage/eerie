@@ -73,7 +73,7 @@ createDefaultEnvs := method(
   Eerie saveConfig)
 
 installEeriePkg := method(
-  Eerie Transaction clone install(Eerie Package fromUri("https://github.com/AlesTsurko/eerie.git")) run
+  Eerie Transaction clone install(Eerie Package fromUri("git://github.com/AlesTsurko/eerie.git")) run
 )
 
 activateDefaultEnv := method(
