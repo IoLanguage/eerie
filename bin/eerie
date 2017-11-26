@@ -141,7 +141,7 @@ Namespaces Pkg := Namespace clone do(
     |  "description":  "My cool new project.",
     |  "author":       "#{User name}",
     |  "website":      "http://#{name}-project.org/",
-    |  "readme":       "README",
+    |  "readme":       "README.md",
     |  "protos":       ["#{name}"],
     |  "dependencies": {
     |    "libs":     [],
@@ -152,7 +152,7 @@ Namespaces Pkg := Namespace clone do(
     |}""" splitNoEmpties("\n") map(split("|") last) join("\n") strip interpolate
 
     root fileNamed("package.json") create openForUpdating write(pkgInfo) close
-    root fileNamed("README") create openForUpdating write("=== " .. name .. " ===\nDon't forget to update this doc.\n") close
+    root fileNamed("README.md") create openForUpdating write("=== " .. name .. " ===\nDon't forget to update this doc.\n") close
     root directoryNamed("io") fileNamed(name .. ".io") create openForUpdating write(name .. " := Object clone do(\n\n)\n") close
 
     "New package structure has been created in #{root path}." interpolate println)

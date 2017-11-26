@@ -9,6 +9,6 @@
   "protos": ["Eerie"],
   "dependencies": {
     "protos": ["Yajl"],
-    "packages": ["https://github.com/AlesTsurko/kano.git", "https://github.com/AlesTsurko/docio.git"]
+    "packages": ["git://github.com/AlesTsurko/kano.git", "git://github.com/AlesTsurko/docio.git"]
   }
 }
