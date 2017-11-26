@@ -3,12 +3,12 @@
   "version": 0.2,
   "description": "Package manager for Io.",
   "author": "Josip Lisec",
-  "readme": "README.textile",
+  "readme": "README.md",
   "website": "http://josip.github.com/eerie",
   "categories": ["utility", "system"],
   "protos": ["Eerie"],
   "dependencies": {
     "protos": ["Yajl"],
-    "packages": ["git://github.com/josip/kano.git"]
+    "packages": ["https://github.com/AlesTsurko/kano.git"]
   }
 }
