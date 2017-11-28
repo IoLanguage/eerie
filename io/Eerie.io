@@ -4,9 +4,9 @@
 Eerie := Object clone do(
   //doc Eerie root Value of EERIEDIR system's environment variable.
   root                ::= System getEnvironmentVariable("EERIEDIR")
-  //doc Path to Io's headers (needed for native addons compilation).
-  ioHeadersPath        ::= root .. "/headers"
-  //doc Eerie tmpDir
+  //doc Eerie ioHeadersPath Get path to Io's headers.
+  ioHeadersPath       ::= root .. "/headers"
+  //doc Eerie tmpDir Get path to temp directory.
   tmpDir              ::= root .. "/tmp"
   //doc Eerie usedEnv Environment currently in use, not necessarily same as [[Eerie activeEnv]].
   # usedEnv will be set from Eerie/Env.io
@@ -72,15 +72,18 @@ Eerie := Object clone do(
     self setConfigBackup(self configFile contents)
 
     self config at("envs") ?foreach(name, envConfig,
-      Eerie Env withConfig(name, envConfig))
+      Eerie Env withConfig(name, envConfig)
+    )
 
     activeEnv_ := self config at("activeEnv")
     activeEnv_ isNil ifFalse(
       self setActiveEnv(Eerie Env named(activeEnv_))
-      self activeEnv use)
+      self activeEnv use
+    )
 
     self loadPlugins
-    self)
+    self
+  )
 
   //doc Eerie updateConfig(key, value) Updates config Map.
   updateConfig := method(key, value,

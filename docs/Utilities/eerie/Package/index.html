@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+		<html>
+		<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+		<title>Package</title>
+		<META HTTP-EQUIV="EXPIRES" CONTENT=0>
+		<link rel="stylesheet" href="../../../../docs.css">
+		</head>
+		<body>
+		
+<br>
+<h1>Eerie Reference</h1>
+<br><br><br>
+<br><br><br>
+<a class='column' href='../../index.html'>Utilities</a>
+&nbsp;&nbsp;<font color=#ccc>/</font>&nbsp;&nbsp;
+<a class='column' href='../index.html'>eerie</a>
+&nbsp;&nbsp;<font color=#ccc>/</font>&nbsp;&nbsp;
+<b>Package</b>
+<br><br><br>
+<br><br><br>
+<table border=0 cellspacing=0 style="margin-left:8em; width:40em; line-height:1.2em;">
+<tr><td colspan=3>&nbsp;</td></tr>
+<tr><td colspan=3>&nbsp;</td></tr>
+<tr><td colspan=3>&nbsp;</td></tr>
+<tr>
+<td align=right>
+</td>
+<td></td>
+<td>
+<hr align=left color=#ddd height=1>
+<br><br>
+<a name="Package-asJson"></a><b>
+asJson
+</b>
+<p>
+<div class=slotDescription>
+Returns config.
+</div>
+<a name="Package-config"></a><b>
+config
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-dependencies"></a><b>
+dependencies([category])
+</b>
+<p>
+<div class=slotDescription>
+Returns list of dependencies this package has. <code>category</code> can be <code>protos</code>, <code>packages</code>, <code>headers</code> or <code>libs</code>.
+</div>
+<a name="Package-downloader"></a><b>
+downloader
+</b>
+<p>
+<div class=slotDescription>
+Instance of [[PackageDownloader]] for this package.
+</div>
+<a name="Package-env"></a><b>
+env
+</b>
+<p>
+<div class=slotDescription>
+Environment in which package is installed.
+</div>
+<a name="Package-fromUri"></a><b>
+fromUri(uri[, env])
+</b>
+<p>
+<div class=slotDescription>
+Creates new package from provided uri. Name is determined with [[Package guessName]].
+</div>
+<a name="Package-guessName"></a><b>
+guessName(uri)
+</b>
+<p>
+<div class=slotDescription>
+Guesses name from provide URI. Usually it is just file's basename.
+</div>
+<a name="Package-info"></a><b>
+info
+</b>
+<p>
+<div class=slotDescription>
+Contains all the data provided in package.json
+</div>
+<a name="Package-installer"></a><b>
+installer
+</b>
+<p>
+<div class=slotDescription>
+Instace of [[PackageInstaller]] for this package.
+</div>
+<a name="Package-loadInfo"></a><b>
+loadInfo
+</b>
+<p>
+<div class=slotDescription>
+Loads package.json file.
+</div>
+<a name="Package-name"></a><b>
+name
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-path"></a><b>
+path
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-providesProtos"></a><b>
+providesProtos
+</b>
+<p>
+<div class=slotDescription>
+Returns list of protos this package provides.
+</div>
+<a name="Package-runHook"></a><b>
+runHook(hookName)
+</b>
+<p>
+<div class=slotDescription>
+Runs Io script with hookName in package's <code>hooks<code> directory if it exists.
+</div>
+<a name="Package-setDownloader"></a><b>
+setDownloader(packageDownloader)
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-setInstaller"></a><b>
+setInstaller(packageInstaller)
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-setName"></a><b>
+setName(name)
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-setPath"></a><b>
+setPath(path)
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-setUri"></a><b>
+setUri
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-uri"></a><b>
+uri
+</b>
+<p>
+<div class=slotDescription>
+
+</div>
+<a name="Package-with"></a><b>
+with(name, uri[, env])
+</b>
+<p>
+<div class=slotDescription>
+Creates new package with provided name and URI.
+</div>
+<a name="Package-withConfig"></a><b>
+withConfig(config[, env])
+</b>
+<p>
+<div class=slotDescription>
+Creates new package from provided config Map.
+</div>
+</td>
+</tr>
+</table>
+<br><br><br><br><br>
+</body>
+</html>

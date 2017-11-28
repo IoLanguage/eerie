@@ -1,10 +1,11 @@
 doc Eerie root 
 Value of EERIEDIR system's environment variable.
 ------
-doc Path to 
-Io's headers (needed for native addons compilation).
+doc Eerie ioHeadersPath 
+Get path to Io's headers.
 ------
-doc Eerie tmpDir
+doc Eerie tmpDir 
+Get path to temp directory.
 ------
 doc Eerie usedEnv 
 Environment currently in use, not necessarily same as [[Eerie activeEnv]].
