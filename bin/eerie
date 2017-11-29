@@ -69,7 +69,8 @@ Namespaces Pkg := Namespace clone do(
       openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
       openCommand isNil ifTrue(openCommand = "more")
 
-      System system(openCommand .. " " .. readmeFile path)))
+      System system(openCommand .. " " .. readmeFile path))
+  )
 
   # We are using Eerie usedEnv here because it will be the same as activeEnv
   # unless we modify it - as we do for plugins.
@@ -80,7 +81,8 @@ Namespaces Pkg := Namespace clone do(
         Eerie MissingPackageException raise(name)
     )
 
-    Eerie Transaction clone update(pkg) run)
+    Eerie Transaction clone update(pkg) run
+  )
 
   updateAll := task(
     """Updates all packages within current env."""
@@ -124,13 +126,14 @@ Namespaces Pkg := Namespace clone do(
   create := task(name, path,
     """Creates an empty package structure.
     If <path> is omitted, new directory will be created in current working directory."""
-    name = name asMutable makeFirstCharacterUppercase
+    protoName = name asMutable makeFirstCharacterUppercase
     path isNil ifTrue(
       path = Directory currentWorkingDirectory .. "/" .. name)
 
     root := Directory with(path)
     root exists ifTrue(
-      Eerie AlreadyInstalledException raise(path))
+      Eerie AlreadyInstalledException raise(path)
+    )
 
     root create
     Eerie PackageDownloader clone setPath(path) createSkeleton
@@ -143,7 +146,7 @@ Namespaces Pkg := Namespace clone do(
     |  "author":       "#{User name}",
     |  "website":      "http://#{name}-project.org/",
     |  "readme":       "README.md",
-    |  "protos":       ["#{name}"],
+    |  "protos":       ["#{protoName}"],
     |  "dependencies": {
     |    "libs":     [],
     |    "headers":  [],
@@ -154,7 +157,7 @@ Namespaces Pkg := Namespace clone do(
 
     root fileNamed("package.json") create openForUpdating write(pkgInfo) close
     root fileNamed("README.md") create openForUpdating write("=== " .. name .. " ===\nDon't forget to update this doc.\n") close
-    root directoryNamed("io") fileNamed(name .. ".io") create openForUpdating write(name .. " := Object clone do(\n\n)\n") close
+    root directoryNamed("io") fileNamed(protoName .. ".io") create openForUpdating write(protoName .. " := Object clone do(\n\n)\n") close
 
     "New package structure has been created in #{root path}." interpolate println)
 )
