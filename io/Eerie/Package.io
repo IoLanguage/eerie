@@ -85,7 +85,9 @@ Package := Object clone do(
     # We can't use baseName here because it returns nil for directories
     if(f exists,
       f name split("."),
-      uri_ split("/") last split(".")) first makeFirstCharacterUppercase)
+      uri_ split("/") last split(".")
+    ) first
+  )
 
   //doc Package setInstaller(packageInstaller)
   setInstaller := method(inst,

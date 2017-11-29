@@ -1,5 +1,6 @@
 #!/usr/bin/env io
 
+# doFile("../io/Eerie.io")
 Eerie
 Kano setUseExternalFile(false)
 
@@ -206,14 +207,15 @@ Namespaces Options do(
     """Print nothing to stdout."""
     Object println = method())
 
-  v := option(
+  verbose := option(
     """Uses verbose output - debug messages, shell commands - everything will be printed.
     Watch out for information overload."""
     Eerie log = Eerie getSlot("_log"))
 
-  V := option(
+  v := option(
     """Prints Eerie version."""
-    Eerie Env named("_base") packageNamed("Eerie") info at("version") println)
+    Eerie Env named("_base") packageNamed("Eerie") info at("version") println
+  )
 )
 
 Kano run

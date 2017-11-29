@@ -1,7 +1,8 @@
 PackageInstaller := Object clone do(
   compileFlags := if(System platform split first asLowercase == "windows",
     "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
-    "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
+    "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS"
+  )
 
   //doc PackageInstaller path Path to at which package is located.
   path  ::= nil

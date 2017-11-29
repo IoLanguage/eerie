@@ -69,7 +69,8 @@ Transaction := Object clone do(
     self addAction(Eerie TransactionAction named("Install") with(package)))
 
   update := method(package,
-    self addAction(Eerie TransactionAction named("Update") with(package)))
+    self addAction(Eerie TransactionAction named("Update") with(package))
+  )
 
   remove := method(package,
     self addAction(Eerie TransactionAction named("Remove") with(package)))
