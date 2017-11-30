@@ -81,7 +81,8 @@ PackageInstaller := Object clone do(
         buildIo append("""  dependsOnHeader("#{header}")"""))
       buildIo append(")\n")
 
-      self fileNamed("build.io") remove create openForUpdating write(buildIo join("\n") interpolate) close))
+      self fileNamed("build.io") remove create openForUpdating write(buildIo join("\n") interpolate) close)
+    )
 
   //doc PackageInstaller buildPackageJson
   buildPackageJson := method(
@@ -103,7 +104,7 @@ PackageInstaller := Object clone do(
 
     pJson := self fileNamed("package.json")
     pJson exists ifFalse(
-      pJson create openForUpdating write(package asJson)
+      pJson remove create openForUpdating write(package asJson)
     )
     pJson close
 

@@ -86,7 +86,7 @@ Package := Object clone do(
     if(f exists,
       f name split("."),
       uri_ split("/") last split(".")
-    ) first
+    ) first makeFirstCharacterUppercase
   )
 
   //doc Package setInstaller(packageInstaller)

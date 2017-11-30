@@ -75,7 +75,7 @@ createDefaultEnvs := method(
 installEeriePkg := method(
   packageUri := "git://github.com/AlesTsurko/eerie.git"
   if(System args at(1) == "-dev",
-    packageUri = Directory clone path
+    packageUri = Directory currentWorkingDirectory
   )
   Eerie Transaction clone install(Eerie Package fromUri(packageUri)) run
 )
