@@ -15,7 +15,7 @@ appendEnvVariables := method(
     |PATH=$PATH:$EERIEDIR/base/bin:$EERIEDIR/activeEnv/bin
     |export EERIEDIR PATH
     |# End Eerie config""" fixMultiline interpolate
-  bashFile := System args at(1)
+  bashFile := if(System args at(1) != "-dev", System args at(1))
 
   if(bashFile,
     bashFile = File with(bashFile)
@@ -73,7 +73,11 @@ createDefaultEnvs := method(
   Eerie saveConfig)
 
 installEeriePkg := method(
-  Eerie Transaction clone install(Eerie Package fromUri("git://github.com/AlesTsurko/eerie.git")) run
+  packageUri := "git://github.com/AlesTsurko/eerie.git"
+  if(System args at(1) == "-dev",
+    packageUri = Directory clone path
+  )
+  Eerie Transaction clone install(Eerie Package fromUri(packageUri)) run
 )
 
 activateDefaultEnv := method(

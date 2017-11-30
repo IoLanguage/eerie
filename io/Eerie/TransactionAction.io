@@ -3,9 +3,12 @@ TransactionAction := Object clone do(
     name_ = name_ .. "Action"
     self instances foreachSlot(slotName, action,
       (slotName == name_) ifTrue(
-        return(action)))
+        return(action)
+      )
+    )
 
-    Eerie MissingTransactionException raise(name_))
+    Eerie MissingTransactionException raise(name_)
+  )
 
   exists := method(name_,
     self named(name_) != nil)
@@ -13,7 +16,8 @@ TransactionAction := Object clone do(
   pkg ::= nil
 
   with := method(pkg_,
-    self clone setPkg(pkg_))
+    self clone setPkg(pkg_)
+  )
 
   //doc TransactionAction asVerb
   asVerb := method(

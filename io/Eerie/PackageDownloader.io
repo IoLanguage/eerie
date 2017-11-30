@@ -6,11 +6,13 @@ PackageDownloader := Object clone do(
 
   //doc PackageDownloader root Directory object pointing to [[PackageDownloader path]].
   root := method(
-    self root = Directory with(self path))
+    self root = Directory with(self path)
+  )
 
   //doc PackageDownloader with(uri, path) Creates a new [[PackgeDownloader]].
   with := method(uri_, path_,
-    self clone setUri(uri_) setPath(path_))
+    self clone setUri(uri_) setPath(path_)
+  )
 
   /*doc PackageDownloader with(uri, path)
   Looks for [[PackageDownloader]] which understands provided URI. If suitable downloader is found,

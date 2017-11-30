@@ -87,7 +87,8 @@ PackageInstaller := Object clone do(
   buildPackageJson := method(
     package := Map with(
       "dependencies", list(),
-      "protos",       list())
+      "protos",       list()
+    )
 
     providedProtos := self fileNamed("protos")
     protoDeps := self fileNamed("depends")
@@ -100,9 +101,14 @@ PackageInstaller := Object clone do(
       protoDeps openForReading contents split(" ") foreach(pd, package at("dependencies") append(pd strip)))
     protoDeps close
 
-    self fileNamed("package.json") remove create openForUpdating write(package asJson) close
+    pJson := self fileNamed("package.json")
+    pJson exists ifFalse(
+      pJson create openForUpdating write(package asJson)
+    )
+    pJson close
 
-    self)
+    self
+  )
 
   //doc PackageInstaller compile Compiles the package.
   compile := method(

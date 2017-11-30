@@ -3,7 +3,8 @@ UpdateAction := Eerie TransactionAction clone do(
   asVerb := "Updating"
 
   prepare := method(
-    self pkg downloader hasUpdates)
+    self pkg downloader hasUpdates
+  )
 
   execute := method(
     self pkg do(
@@ -15,5 +16,6 @@ UpdateAction := Eerie TransactionAction clone do(
 
       runHook("afterUpdate"))
 
-    true)
+    true
+  )
 )

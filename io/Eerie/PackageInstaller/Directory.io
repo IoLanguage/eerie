@@ -24,12 +24,15 @@ DirectoryInstaller := Eerie PackageInstaller clone do(
         "author", User name,
         "dependencies", list(),
         "protos", self protosList
-      ) asJson) close))
+      ) asJson) close
+    )
+  )
 
   extractDataFromPackageJson := method(
     deps := self fileNamed("depends")
     deps exists ifFalse(deps create openForUpdating write("\n") close)
 
     pprotos := self fileNamed("protos")
-    pprotos exists ifFalse(deps create openForUpdating write(self protosList join(" ") .. "\n") close))
+    pprotos exists ifFalse(deps create openForUpdating write(self protosList join(" ") .. "\n") close)
+  )
 )

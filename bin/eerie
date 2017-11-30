@@ -1,6 +1,5 @@
 #!/usr/bin/env io
 
-# doFile("../io/Eerie.io")
 Eerie
 Kano setUseExternalFile(false)
 
