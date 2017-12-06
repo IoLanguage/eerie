@@ -1,3 +1,6 @@
+//metadoc Env category Utilites
+//metadoc Env description Reprsents an Eerie enveronment.
+
 Env := Object clone do(
   //doc Env config
   config ::= nil

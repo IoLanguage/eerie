@@ -1,3 +1,6 @@
+//metadoc Package category Utilites
+//metadoc Package description Reprsents an Eerie package.
+
 Package := Object clone do(
   //doc Package config
   config ::= nil

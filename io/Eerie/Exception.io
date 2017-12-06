@@ -1,5 +1,5 @@
-//metadoc Eerie Exception Exception handling object. 
-/*metadoc Eerie Exception description
+//metadoc Exception category Utilities 
+/*metadoc Exception description
 To check what type of error has been raise you can use:
 <pre><code>install := try(Eerie Transaction do(
   begin
@@ -11,6 +11,8 @@ install catch(
   if(install isMissingPackage, "You fool! You can't install a fake package!" println))
 </code></pre>
 */
+
+//doc Eerie Exception Exception handling object. 
 Eerie Exception := Exception clone do(
   errorMsg ::= nil
 

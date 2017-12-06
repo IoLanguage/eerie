@@ -1,3 +1,6 @@
+//metadoc Transaction category Utilites
+//metadoc Transaction description
+
 Transaction := Object clone do(
   items         := List clone
   depsCheckedFor  := List clone

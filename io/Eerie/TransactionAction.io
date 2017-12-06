@@ -1,3 +1,6 @@
+//metadoc TransactionAction category Utilites
+//metadoc TransactionAction description
+
 TransactionAction := Object clone do(
   named := method(name_,
     name_ = name_ .. "Action"

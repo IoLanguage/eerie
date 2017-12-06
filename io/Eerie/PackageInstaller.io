@@ -1,3 +1,6 @@
+//metadoc PackageInstaller category Utilites
+//metadoc PackageInstaller description
+
 PackageInstaller := Object clone do(
   compileFlags := if(System platform split first asLowercase == "windows",
     "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
@@ -104,7 +107,7 @@ PackageInstaller := Object clone do(
 
     pJson := self fileNamed("package.json")
     pJson exists ifFalse(
-      pJson remove create openForUpdating write(package asJson)
+      pJson create openForUpdating write(package asJson)
     )
     pJson close
 

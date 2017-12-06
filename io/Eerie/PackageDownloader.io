@@ -1,3 +1,6 @@
+//metadoc PackageDownloader category Utilites
+//metadoc PackageDownloader description
+
 PackageDownloader := Object clone do(
   //doc PackageDownloader uri 
   uri         ::= nil
