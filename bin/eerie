@@ -126,7 +126,7 @@ Namespaces Pkg := Namespace clone do(
   create := task(name, path,
     """Creates an empty package structure.
     If <path> is omitted, new directory will be created in current working directory."""
-    protoName = name asMutable makeFirstCharacterUppercase
+    protoName := name asMutable makeFirstCharacterUppercase
     path isNil ifTrue(
       path = Directory currentWorkingDirectory .. "/" .. name)
 
