@@ -1,5 +1,6 @@
 svn := Object clone do(
     check := method(uri,
+        if(uri containsSeq("git://") or uri containsSeq(".git"), return false)
         r := System runCommand("svn info " .. uri)
         r exitStatus == 0 and r stderr containsSeq("Not a valid") not
     )
