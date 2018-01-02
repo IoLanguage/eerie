@@ -24,7 +24,7 @@ PackageInstaller := Object clone do(
   with := method(_path,
     self clone setPath(_path))
 
-  //doc PacakgeInstaller detect(path) Returns first PackageInstaller which can install package at provided path.
+  //doc PackageInstaller detect(path) Returns first PackageInstaller which can install package at provided path.
   detect := method(_path,
     self instances foreachSlot(slotName, installer,
       installer canInstall(_path) ifTrue(
@@ -143,6 +143,6 @@ PackageInstaller instances := Object clone do(
   doRelativeFile("PackageInstaller/File.io")
   //doc PackageInstaller Directory Installs whole directories.
   doRelativeFile("PackageInstaller/Directory.io")
-  //doc PacakgeInstaller IoAddon Installs directories structured as an Io addon.
+  //doc PackageInstaller IoAddon Installs directories structured as an Io addon.
   doRelativeFile("PackageInstaller/IoAddon.io")
 )

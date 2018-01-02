@@ -1,7 +1,7 @@
 {
   "name": "Eerie",
   "version": 0.2,
-  "description": "Package manager for Io.",
+  "description": "The package manager for Io.",
   "author": "Josip Lisec",
   "readme": "README.md",
   "website": "http://josip.github.com/eerie",

@@ -26,7 +26,7 @@ Transaction := Object clone do(
     self lockFile close openForUpdating write(System thisProcessPid asString) close
     true)
 
-  //doc Tranasction releaseLock
+  //doc Transaction releaseLock
   releaseLock := method(
     self lockFile exists ifFalse(
       return(true))

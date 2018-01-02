@@ -104,7 +104,7 @@ Package := Object clone do(
     self config atPut("downloader", downl type)
     self)
 
-  //doc Package runHook(hookName) Runs Io script with hookName in package's <code>hooks<code> directory if it exists.
+  //doc Package runHook(hookName) Runs Io script with hookName in package's <code>hooks</code> directory if it exists.
   runHook := method(hook,
     f := File with("#{self path}/hooks/#{hook}.io" interpolate)
     f exists ifTrue(

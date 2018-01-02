@@ -1,14 +1,15 @@
 git := Object clone do(
-  check     := method(uri,
-    uri containsSeq("git://") or uri containsSeq(".git"))
+    check     := method(uri,
+        uri containsSeq("git://") or uri containsSeq(".git")
+    )
 
-  cmd         := "git"
-  download    := list("clone #{self uri} #{self path}", "submodule init", "submodule update")
-  update      := list("pull", "submodule update")
+    cmd         := "git"
+    download    := list("clone #{self uri} #{self path}", "submodule init", "submodule update")
+    update      := list("pull", "submodule update")
 
-  # Unfortunately, this isn't working as expected and there seems to be
-  # no actual way of checking for updates in a repo without pulling it
-  #hasUpdates  := method(path,
+    # Unfortunately, this isn't working as expected and there seems to be
+    # no actual way of checking for updates in a repo without pulling it
+    #hasUpdates  := method(path,
     # git ls-remote reference: ftp.sunet.se/pub/Linux/kernel.org/software/scm/git/docs/git-ls-remote.html
     #r := System runCommand("git ls-remote " .. path)
     #refs := r stdout split("\n") map(split("\t") reverse)
@@ -22,5 +23,5 @@ git := Object clone do(
 
     #head != remoteHead)
 
-  hasUpdates := method(true)
+    hasUpdates := method(true)
 )

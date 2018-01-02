@@ -1,7 +1,7 @@
-//metadoc Exception category Utilities 
+//metadoc Exception category Utilites 
 /*metadoc Exception description
 To check what type of error has been raise you can use:
-<pre><code>install := try(Eerie Transaction do(
+<pre><code class="language-io">install := try(Eerie Transaction do(
   begin
   install(Eerie Env packageNamed("fakePackage"))
   run
