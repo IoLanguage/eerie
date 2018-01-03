@@ -121,6 +121,8 @@ PackageInstaller := Object clone do(
     prevPath := Directory currentWorkingDirectory
     Directory setCurrentWorkingDirectory(self path)
 
+    Directory with(self path .. "/_build") createIfAbsent
+
     addon := builderContext doFile((self path) .. "/build.io")
     addon folder := Directory with(self path)
     addon build(self compileFlags)
