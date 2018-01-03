@@ -12,10 +12,12 @@ DirectoryInstaller := Eerie PackageInstaller clone do(
 
     self protosList)
 
-  install := method(
-    self loadConfig
-    ioDir := self dirNamed("io") create
-    Eerie sh("mv #{self path}/*.io #{ioDir path}" interpolate))
+    install := method(
+        self loadConfig
+        ioDir := self dirNamed("io") create
+        statusCode := Eerie sh("mv #{self path}/*.io #{ioDir path}" interpolate)
+        if(statusCode == 0, return true, return false)
+    )
 
   buildPackageJson := method(
     pkgInfo := self fileNamed("package.json")

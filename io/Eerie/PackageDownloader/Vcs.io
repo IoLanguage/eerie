@@ -11,7 +11,8 @@ VcsDownloader := Eerie PackageDownloader clone do(
             dir = self path
         )
 
-        Eerie sh((self vcs cmd) .. " " .. args, true, dir)
+        statusCode := Eerie sh((self vcs cmd) .. " " .. args, true, dir)
+        if(statusCode == 0, return true, return false)
     )
 
     runCommands := method(cmds,
