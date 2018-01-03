@@ -23,35 +23,36 @@ Eerie := Object clone do(
   Executes system command. If logFailure is true and command exists with non-zero value application will abort.
   */
   sh := method(cmd, logFailure, dir,
-    self log(cmd, "console")
-    prevDir := nil
-    dirPrefix := ""
-    if(dir != nil and dir != ".",
-      dirPrefix = "cd " .. dir .. " && "
-      prevDir = Directory currentWorkingDirectory
-      Directory setCurrentWorkingDirectory(dir))
+      self log(cmd, "console")
+      prevDir := nil
+      dirPrefix := ""
+      if(dir != nil and dir != ".",
+          dirPrefix = "cd " .. dir .. " && "
+          prevDir = Directory currentWorkingDirectory
+          Directory setCurrentWorkingDirectory(dir)
+      )
 
-    cmdOut := System runCommand(dirPrefix .. cmd)
-    stdOut := cmdOut stdout
-    stdErr := cmdOut stderr
+      cmdOut := System runCommand(dirPrefix .. cmd)
+      stdOut := cmdOut stdout
+      stdErr := cmdOut stderr
 
-    prevDir isNil ifFalse(
-      Directory setCurrentWorkingDirectory(prevDir))
+      prevDir isNil ifFalse(
+          Directory setCurrentWorkingDirectory(prevDir)
+      )
 
-    # System runCommand leaves weird files behind
-    System system(dirPrefix .. "rm -f *-stdout")
-    System system(dirPrefix .. "rm -f *-stderr")
+      # System runCommand leaves weird files behind
+      System system(dirPrefix .. "rm -f *-stdout")
+      System system(dirPrefix .. "rm -f *-stderr")
 
-    if(cmdOut exitStatus != 0,
-      if(logFailure == false,
-        false
-      ,
-        self log("Last command exited with the following error:", "error")
-        self log(stdOut, "error")
-        self log(stdErr, "error")
-        System exit(1))
-    ,
-      true))
+      if(cmdOut exitStatus != 0 and logFailure == true,
+          self log("Last command exited with the following error:", "error")
+          self log(stdOut, "error")
+          self log(stdErr, "error")
+          System exit(cmdOut exitStatus)
+          ,
+          return cmdOut exitStatus
+      )
+  )
 
   _logMods := Map with(
     "info",         " - ",

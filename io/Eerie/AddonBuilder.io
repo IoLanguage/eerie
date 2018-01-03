@@ -197,37 +197,42 @@ AddonBuilder := Object clone do(
   )
 
   systemCall := method(s,
-    if(trySystemCall(s) == 256, System exit(1))
+      statusCode := trySystemCall(s)
+      if(statusCode == 256, System exit(1))
+      return statusCode
   )
 
   trySystemCall := method(s,
-    oldPath := nil
-    if(folder path != ".",
-      oldPath := Directory currentWorkingDirectory
-      Directory setCurrentWorkingDirectory(folder path))
+      oldPath := nil
+      if(folder path != ".",
+          oldPath := Directory currentWorkingDirectory
+          Directory setCurrentWorkingDirectory(folder path)
+      )
 
-    result := Eerie sh(s, true, folder path)
+      result := Eerie sh(s, true, folder path)
 
-    if(oldPath != nil,
-      Directory setCurrentWorkingDirectory(oldPath))
+      if(oldPath != nil,
+          Directory setCurrentWorkingDirectory(oldPath)
+      )
 
-    result
+      return result
   )
 
   pkgConfig := method(pkg, flags,
-    (platform == "windows") ifTrue(return(""))
+      (platform == "windows") ifTrue(return(""))
 
-    resFile := (folder path) .. "/_build/_pkg_config" .. (Date now asNumber asHex)
-    statusCode := systemCall("pkg-config #{pkg} #{flags} --silence-errors > #{resFile}" interpolate)
-    if(statusCode == 0,
-      resFile := File with(resFile) openForReading
-      flags = resFile contents asMutable strip
-      resFile close remove
+      resFile := (folder path) .. "/_build/_pkg_config" .. (Date now asNumber asHex)
+      // System runCommand (Eerie sh) doesn't create a file with ">", so here we use System system instead
+      statusCode := System system("pkg-config #{pkg} #{flags} --silence-errors > #{resFile}" interpolate)
+      if(statusCode == 0,
+          resFile := File with(resFile) openForReading
+          flags := resFile contents asMutable strip
+          resFile close remove
 
-      return(flags)
-    ,
-      return("")
-    )
+          return(flags)
+          ,
+          return("")
+      )
   )
 
   pkgConfigLibs   := method(pkg, pkgConfig(pkg, "--libs") splitNoEmpties(linkLibFlag) map(strip))
