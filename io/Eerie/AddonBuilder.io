@@ -242,7 +242,7 @@ AddonBuilder := Object clone do(
   name := method(folder name)
   oldDate := Date clone setYear(1970)
 
-  libName := method("libIo" .. folder name ..  ".a")
+  libName := method("libIo" .. self name ..  ".a")
 
   libFile := method(folder fileNamedOrNil(libName))
   objsFolder := method(self objsFolder := folder createSubdirectory("_build/objs"))
@@ -382,7 +382,7 @@ AddonBuilder := Object clone do(
 
   ioCodeFolder := method(folder directoryNamed("io"))
   ioFiles      := method(ioCodeFolder filesWithExtension("io"))
-  initFileName := method("source/Io" .. folder name .. "Init.c")
+  initFileName := method("source/Io" .. self name .. "Init.c")
 
   isStatic := false
 
