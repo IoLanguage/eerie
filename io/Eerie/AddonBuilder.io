@@ -426,7 +426,7 @@ AddonBuilder := Object clone do(
     if (platform == "windows",
       initFile write("__declspec(dllexport)\n")
     )
-    initFile write("\nvoid Io" .. folder name .. "Init(IoObject *context)\n")
+    initFile write("\nvoid " .. initFileName fileName .. "(IoObject *context)\n")
     initFile write("{\n")
     if(iocFiles size > 0,
       initFile write("\tIoState *self = IoObject_state((IoObject *)context);\n\n")
