@@ -120,25 +120,9 @@ For a complete guide on installing and using Eerie check out its [web site](http
 
 ## Features
 
-### Currently implemented
-
   * Working package manager
   * Converting local files and folders into packages
   * Installing from Git, SVN, Bazaar and Mercurial repositories, as well as tarballs (.tar.bz2, .tar.gz, .7z, , .zip, .rar)
   * Addons with .c files are being compiled and loaded properly
   * All installations are local to the current user, there is no "global mode"
   * Command-line tool
-
-### Missing basic features (should be added soon)
-
-  * Installing specific version of a package
-  * Documentation
-  * Tests
-
-### Planned features
-
-  * Ability to locally patch packages, _à la_ [BSD Ports](http://www.freebsd.org/ports/index.html) ([see also](http://networking.ringofsaturn.com/Unix/createportpatch.php))
-  * Run tests during install
-  * Generate documentation
-  * Optional central repository (or repositories, like [Ruby Gems](http://rubygems.org/))
-
