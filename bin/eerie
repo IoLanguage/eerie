@@ -56,20 +56,24 @@ Namespaces Pkg := Namespace clone do(
   install := task(uri,
     """Installs a new package."""
     pkg := Eerie Package fromUri(uri)
-
     Eerie Transaction clone install(pkg) run
+    // openReadme
+  )
 
-    readme := pkg info at("readme")
-    readmeFile := File with(pkg path .. "/" .. readme)
-    readmeFile exists ifTrue(
-      "Opening readme file..." println
-      # Allows user to abort with Control+C
-      System sleep(4)
+  openReadme := method(
+      pkg := Eerie Package fromUri(uri)
+      readme := pkg info at("readme")
+      readmeFile := File with(pkg path .. "/" .. readme)
+      readmeFile exists ifTrue(
+          "Opening readme file..." println
+          # Allows user to abort with Control+C
+          System sleep(4)
 
-      openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
-      openCommand isNil ifTrue(openCommand = "more")
+          openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
+          openCommand isNil ifTrue(openCommand = "more")
 
-      System system(openCommand .. " " .. readmeFile path))
+          System system(openCommand .. " " .. readmeFile path)
+      )
   )
 
   # We are using Eerie usedEnv here because it will be the same as activeEnv

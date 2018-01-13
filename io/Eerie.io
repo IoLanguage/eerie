@@ -8,10 +8,10 @@ Eerie := Object clone do(
   ioHeadersPath       ::= root .. "/headers"
   //doc Eerie tmpDir Get path to temp directory.
   tmpDir              ::= root .. "/tmp"
-  //doc Eerie usedEnv Environment currently in use, not necessarily same as [[Eerie activeEnv]].
+  //doc Eerie usedEnv Environment currently in use, not necessarily same as [Eerie activeEnv](eerie.html#activeEnv).
   # usedEnv will be set from Eerie/Env.io
   usedEnv             ::= nil
-  //doc Eerie activeEnv Default environment. You probably need [[Eerie usedEnv]].
+  //doc Eerie activeEnv Default environment. You probably need [Eerie usedEnv](eerie.html#usedEnv).
   activeEnv           ::= nil
   configFile          :=  nil
   config              ::= nil
@@ -62,7 +62,7 @@ Eerie := Object clone do(
     "install",      " + ",
     "transaction",  "-> ",
     "output",       "")
-  //doc Eerie log(message, mode) Displays the message to the user, mode can be "info", "error", "console", "debug" or "output".
+  //doc Eerie log(message, mode) Displays the message to the user. Mode can be `"info"`, `"error"`, `"console"`, `"debug"` or `"output"`.
   log := method(str, mode,
     mode ifNil(mode = "info")
     ((self _logMods at(mode)) .. str) interpolate(call sender) println)
@@ -121,19 +121,19 @@ Yajl do(
 )
 
 Eerie clone = Eerie do(
-  //doc Eerie Exception [[Exception]]
+  //doc Eerie Exception [Exception](exception.html)
   doRelativeFile("Eerie/Exception.io")
-  //doc Eerie Env [[Env]]
+  //doc Eerie Env [Env](env.html)
   doRelativeFile("Eerie/Env.io")
-  //doc Eerie Package [[Package]]
+  //doc Eerie Package [Package](package.html)
   doRelativeFile("Eerie/Package.io")
-  //doc Eerie PackageDownloader [[PackageDownloader]]
+  //doc Eerie PackageDownloader [PackageDownloader](packagedownloader.html)
   doRelativeFile("Eerie/PackageDownloader.io")
-  //doc Eerie PackageInstaller [[PackageInstaller]]
+  //doc Eerie PackageInstaller [PackageInstaller](packageinstaller.html)
   doRelativeFile("Eerie/PackageInstaller.io")
-  //doc Eerie Transaction [[Transaction]]
+  //doc Eerie Transaction [Transaction](transaction.html)
   doRelativeFile("Eerie/Transaction.io")
-  //doc Eerie TransactionAction [[TransactionAction]]
+  //doc Eerie TransactionAction [TransactionAction](transactionaction.html)
   doRelativeFile("Eerie/TransactionAction.io")
 
   init
