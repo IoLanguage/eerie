@@ -60,7 +60,7 @@ Namespaces Pkg := Namespace clone do(
     // openReadme
   )
 
-  openReadme := method(
+  _openReadme := method(
       pkg := Eerie Package fromUri(uri)
       readme := pkg info at("readme")
       readmeFile := File with(pkg path .. "/" .. readme)
@@ -167,12 +167,26 @@ Namespaces Pkg := Namespace clone do(
 )
 
 Namespaces Plugin := Namespace clone do(
-  _before := method(
-    Eerie Env named("_plugins") use)
 
-  install := Namespaces Pkg getSlot("install")  setSlot("description", "Installs new plugin.")
-  remove  := Namespaces Pkg getSlot("remove")   setSlot("description", "Removes a plugin.")
-  list    := Namespaces Pkg getSlot("list")     setSlot("description", "Lists all installed plugins.")
+    _before := method(
+        Eerie Env named("_plugins") use
+    )
+
+    install := task(uri,
+        """Installs a new plugin."""
+        Namespaces Pkg install(uri)
+    )
+
+    remove := task(name,
+        """Removes a plugin."""
+        Namespaces Pkg remove(name)
+    )
+
+    list := task(
+        """Lists all installed plugins."""
+        Namespaces Pkg list
+    )
+
 )
 
 Namespaces Default do(

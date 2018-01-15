@@ -78,28 +78,37 @@ Transaction := Object clone do(
   remove := method(package,
     self addAction(Eerie TransactionAction named("Remove") with(package)))
 
-  resolveDeps := method(package,
-    Eerie log("Resolving dependencies for #{package name}")
-    deps := package info at("dependencies")
-    if(deps == nil or deps ?keys ?isEmpty,
-      return(true))
+    resolveDeps := method(package,
+        Eerie log("Resolving dependencies for #{package name}")
+        deps := package info at("dependencies")
+        if(deps == nil or deps ?keys ?isEmpty,
+            return(true)
+        )
 
-    # TODO: Check if all dependencies are actually satisfied before
-    # installing them
-    toInstall := list()
-    deps at("packages") ?foreach(uri,
-      self depsCheckedFor contains(uri) ifTrue(continue)
-      if(Eerie usedEnv packages detect(pkg, pkg uri == uri) isNil,
-        toInstall appendIfAbsent(Eerie Package fromUri(uri))))
+        toInstall := list()
+        deps at("packages") ?foreach(uri,
+            self depsCheckedFor contains(uri) ifTrue(continue)
+            if(Eerie usedEnv packages detect(pkg, pkg uri == uri) isNil,
+                toInstall appendIfAbsent(Eerie Package fromUri(uri))
+            )
+        )
 
-    deps at("protos") ?foreach(protoName,
-      AddonLoader hasAddonNamed(protoName) ifFalse(
-        Eerie MissingProtoException raise(list(package name, protoName))))
+        deps at("protos") ?foreach(protoName,
+            AddonLoader hasAddonNamed(protoName) ifFalse(
+                Eerie MissingProtoException raise(list(package name, protoName))
+            )
+        )
 
-    self depsCheckedFor append(package uri)
-    Eerie log("Missing pkgs: #{toInstall map(name)}", "debug")
-    toInstall foreach(pkg, Eerie Transaction clone install(pkg) run)
-    true)
+        self depsCheckedFor append(package uri)
+        Eerie log("Missing pkgs: #{toInstall map(name)}", "debug")
+        toInstall foreach(pkg, 
+            if(pkg env packages detect(name == pkg name) isNil,
+                Eerie Transaction clone install(pkg) run
+            )
+        )
+        true
+    )
+
 )
 
 
