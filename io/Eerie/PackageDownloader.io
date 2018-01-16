@@ -14,7 +14,7 @@ PackageDownloader := Object clone do(
 
   //doc PackageDownloader with(uri, path) Creates a new [[PackgeDownloader]].
   with := method(uri_, path_,
-    self clone setUri(uri_) setPath(path_)
+      self clone setUri(uri_) setPath(path_)
   )
 
   /*doc PackageDownloader with(uri, path)

@@ -2,19 +2,26 @@ InstallAction := Eerie TransactionAction clone do(
   asVerb := "Installing"
 
   prepare := method(
-    Directory with(self pkg path) create
+      if(Eerie usedEnv packages detect(name asLowercase == self pkg name asLowercase),
+          Eerie log("Package with name #{self pkg name} already installed in #{Eerie usedEnv name}." interpolate, "info")
+          return(false)
+      )
 
-    self pkg do(
-      downloader isNil ifTrue(
-        setDownloader(Eerie PackageDownloader detect(uri, path)))
+      Directory with(self pkg path) create
 
-      runHook("beforeDownload")
-      Eerie log("Fetching #{name}", "info")
-      downloader download
-      runHook("afterDownload")
-    )
+      self pkg do(
+          downloader isNil ifTrue(
+              setDownloader(Eerie PackageDownloader detect(uri, path))
+          )
 
-    true)
+          runHook("beforeDownload")
+          Eerie log("Fetching #{name}", "info")
+          downloader download
+          runHook("afterDownload")
+      )
+
+      true
+  )
 
   execute := method(
     self pkg do(

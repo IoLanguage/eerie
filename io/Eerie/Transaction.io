@@ -61,7 +61,7 @@ Transaction := Object clone do(
     uri := package uri
     self items detect(act, act second uri == uri) != nil)
 
-  //doc Transaction addAction(actionName, package)
+  //doc Transaction addAction(action)
   addAction := method(action,
     self items contains(action) ifFalse(
       Eerie log("#{action name} #{action pkg name}", "transaction")
@@ -102,9 +102,7 @@ Transaction := Object clone do(
         self depsCheckedFor append(package uri)
         Eerie log("Missing pkgs: #{toInstall map(name)}", "debug")
         toInstall foreach(pkg, 
-            if(pkg env packages detect(name == pkg name) isNil,
-                Eerie Transaction clone install(pkg) run
-            )
+            Eerie Transaction clone install(pkg) run
         )
         true
     )

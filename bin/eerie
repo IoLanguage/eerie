@@ -57,7 +57,7 @@ Namespaces Pkg := Namespace clone do(
     """Installs a new package."""
     pkg := Eerie Package fromUri(uri)
     Eerie Transaction clone install(pkg) run
-    // openReadme
+    // _openReadme
   )
 
   _openReadme := method(

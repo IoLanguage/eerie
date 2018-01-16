@@ -1,6 +1,12 @@
 //metadoc Eerie category Utilites
 //metadoc Eerie author Josip Lisec
 //metadoc Eerie description Eerie is the package manager for Io.
+
+System userInterruptHandler := method(
+    Eerie log("Reverting config before interrupt.")
+    Eerie revertConfig
+)
+
 Eerie := Object clone do(
   //doc Eerie root Value of EERIEDIR system's environment variable.
   root                ::= System getEnvironmentVariable("EERIEDIR")
@@ -108,11 +114,6 @@ Eerie := Object clone do(
     Eerie Env named("_plugins") ?packages ?foreach(pkg,
       self log("Loading #{pkg name} plugin", "debug")
       self plugins doFile(pkg path .. "/io/main.io")))
-)
-
-System userInterruptHandler := method(
-    Eerie log("Reverting config before interrupt.")
-    Eerie revertConfig
 )
 
 # Fixing Yajl's silent treatment of parse errors
