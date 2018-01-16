@@ -110,6 +110,11 @@ Eerie := Object clone do(
       self plugins doFile(pkg path .. "/io/main.io")))
 )
 
+System userInterruptHandler := method(
+    Eerie log("Reverting config before interrupt.")
+    Eerie revertConfig
+)
+
 # Fixing Yajl's silent treatment of parse errors
 Yajl do(
   _parseJson := getSlot("parseJson")
