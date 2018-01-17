@@ -1,5 +1,6 @@
 //metadoc Package category Utilites
 //metadoc Package description Reprsents an Eerie package.
+doRelativeFile("Path.io")
 
 Package := Object clone do(
   //doc Package config
@@ -52,14 +53,19 @@ Package := Object clone do(
 
   //doc Package with(name, uri[, env]) Creates new package with provided name and URI.
   with := method(name_, uri_, env_,
-    (uri_ exSlice(-1) == "/") ifTrue(
-      uri_ = uri_ exSlice(0, -1))
+      (uri_ exSlice(-1) == "/") ifTrue(
+          uri_ = uri_ exSlice(0, -1)
+      )
 
-    env_ = if(env_ isNil, Eerie usedEnv, env_)
-    self clone setConfig(Map with(
-      "name", name_,
-      "uri",  uri_,
-      "path", (env_ path) .. "/addons/" .. name_)) setEnv(env_))
+      env_ = if(env_ isNil, Eerie usedEnv, env_)
+      uri_ = Path absoluteIfNeeded(uri_)
+      self clone setConfig(Map with(
+          "name", name_,
+          "uri",  uri_,
+          "path", (env_ path) .. "/addons/" .. name_
+          )
+      ) setEnv(env_)
+  )
 
   //doc Package withConfig(config[, env]) Creates new package from provided config Map.
   withConfig := method(config, env_,
@@ -75,7 +81,7 @@ Package := Object clone do(
 
     klone)
 
-  //doc Package fromUri(uri[, env]) Creates new package from provided uri. Name is determined with [[Package guessName]].
+  //doc Package fromUri(uri[, env]) Creates a new package from provided uri. Name is determined with [[Package guessName]].
   fromUri := method(uri_, env_,
     self with(self guessName(uri_), uri_, env_))
 
@@ -104,7 +110,7 @@ Package := Object clone do(
     self config atPut("downloader", downl type)
     self)
 
-  //doc Package runHook(hookName) Runs Io script with hookName in package's <code>hooks</code> directory if it exists.
+  //doc Package runHook(hookName) Runs Io script with hookName in package's `hooks` directory if it exists.
   runHook := method(hook,
     f := File with("#{self path}/hooks/#{hook}.io" interpolate)
     f exists ifTrue(
