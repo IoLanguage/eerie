@@ -12,13 +12,6 @@ install catch(
 </code></pre>
 */
 
-/* Exception do( */
-    /* raise := method(arg, */
-        /* Eerie transaction releaseLock */
-        /* super(raise(arg)) */
-    /* ) */
-/* ) */
-
 //doc Eerie Exception Exception handling object. 
 Eerie Exception := Exception clone do(
   errorMsg ::= nil

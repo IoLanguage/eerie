@@ -240,4 +240,13 @@ Namespaces Options do(
   )
 )
 
+// Autorelease transaction lock on any exception
+raiseMethod := Exception clone getSlot("raise")
+Exception do(
+    raise := method(arg,
+        Eerie Transaction releaseLock
+        raiseMethod(arg)
+    )
+)
+
 Kano run
