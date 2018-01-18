@@ -10,6 +10,9 @@ UpdateAction := Eerie TransactionAction clone do(
     self pkg do(
       runHook("beforeUpdate")
 
+      downloader canDownload(downloader uri) ifFalse(
+          Eerie FailedDownloadException raise(downloader uri)
+      )
       downloader update
       installer install
       loadInfo

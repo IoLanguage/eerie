@@ -12,6 +12,14 @@ install catch(
 </code></pre>
 */
 
+/* Exception do( */
+    /* raise := method(arg, */
+        /* Eerie transaction releaseLock */
+        /* Eerie revertConfig */
+        /* super(raise(arg)) */
+    /* ) */
+/* ) */
+
 //doc Eerie Exception Exception handling object. 
 Eerie Exception := Exception clone do(
   errorMsg ::= nil
@@ -20,6 +28,7 @@ Eerie Exception := Exception clone do(
     Eerie Transaction releaseLock
     super(raise(self errorMsg interpolate)))
 )
+
 
 Eerie do(
   //doc Eerie AlreadyInstalledException

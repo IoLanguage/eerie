@@ -16,6 +16,9 @@ InstallAction := Eerie TransactionAction clone do(
 
           runHook("beforeDownload")
           Eerie log("Fetching #{name}", "info")
+          downloader canDownload(downloader uri) ifFalse(
+              Eerie FailedDownloadException raise(downloader uri)
+          )
           downloader download
           runHook("afterDownload")
       )
