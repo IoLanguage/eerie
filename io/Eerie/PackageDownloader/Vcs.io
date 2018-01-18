@@ -5,23 +5,7 @@ VcsDownloader := Eerie PackageDownloader clone do(
         doRelativeFile("vcs/hg.io")
     )
 
-    vcsCmd := method(args,
-        dir := nil
-        Directory with(self path) exists ifTrue(
-            dir = self path
-        )
-
-        statusCode := Eerie sh((self vcs cmd) .. " " .. args, true, dir)
-        if(statusCode == 0, return true, return false)
-    )
-
-    runCommands := method(cmds,
-        cmds foreach(cmd,
-            self vcsCmd(cmd interpolate)
-        )
-
-        true
-    )
+    chosenVcs ::= nil
 
     whichVcs := method(_uri,
         self vcs slotNames foreach(name,
@@ -34,7 +18,7 @@ VcsDownloader := Eerie PackageDownloader clone do(
     )
 
     chooseVcs := lazySlot(
-        self vcs = self vcs getSlot(self whichVcs(self uri))
+        self setChosenVcs(self vcs getSlot(self whichVcs(self uri)))
     )
 
     // Reimplementation of default PackageDownloader methods
@@ -47,16 +31,34 @@ VcsDownloader := Eerie PackageDownloader clone do(
         self root files isEmpty ifTrue(
             self root remove
         )
-        self runCommands(self vcs download)
+        self runCommands(self chosenVcs download)
+    )
+
+    runCommands := method(cmds,
+        cmds foreach(cmd,
+            self vcsCmd(cmd interpolate)
+        )
+
+        true
+    )
+
+    vcsCmd := method(args,
+        dir := nil
+        Directory with(self path) exists ifTrue(
+            dir = self path
+        )
+
+        statusCode := Eerie sh((self chosenVcs cmd) .. " " .. args, true, dir)
+        if(statusCode == 0, return true, return false)
     )
 
     update = method(
         self chooseVcs
-        self runCommands(self vcs update)
+        self runCommands(self chosenVcs update)
     )
 
     hasUpdates = method(
         self chooseVcs
-        self vcs hasUpdates(self path)
+        self chosenVcs hasUpdates(self path)
     )
 )

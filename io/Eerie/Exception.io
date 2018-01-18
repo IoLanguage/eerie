@@ -15,7 +15,6 @@ install catch(
 /* Exception do( */
     /* raise := method(arg, */
         /* Eerie transaction releaseLock */
-        /* Eerie revertConfig */
         /* super(raise(arg)) */
     /* ) */
 /* ) */

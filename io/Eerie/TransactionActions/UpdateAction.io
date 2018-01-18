@@ -7,18 +7,19 @@ UpdateAction := Eerie TransactionAction clone do(
   )
 
   execute := method(
-    self pkg do(
-      runHook("beforeUpdate")
+      self pkg do(
+          runHook("beforeUpdate")
 
-      downloader canDownload(downloader uri) ifFalse(
-          Eerie FailedDownloadException raise(downloader uri)
+          downloader canDownload(downloader uri) ifFalse(
+              Eerie FailedDownloadException raise(downloader uri)
+          )
+          downloader update
+          installer install
+          loadInfo
+
+          runHook("afterUpdate")
       )
-      downloader update
-      installer install
-      loadInfo
 
-      runHook("afterUpdate"))
-
-    true
+      true
   )
 )
