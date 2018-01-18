@@ -174,12 +174,17 @@ Namespaces Plugin := Namespace clone do(
 
     install := task(uri,
         """Installs a new plugin."""
-        Namespaces Pkg install(uri)
+        Namespaces Pkg clone install(uri)
     )
 
     remove := task(name,
         """Removes a plugin."""
-        Namespaces Pkg remove(name)
+        Namespaces Pkg clone remove(name)
+    )
+
+    update := task(name,
+        """Updates the plugin."""
+        Namespaces Pkg clone update(name)
     )
 
     list := task(
