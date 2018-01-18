@@ -31,7 +31,7 @@ Eerie do(
   //doc Eerie MissingProtoException
   MissingProtoException     := Exception clone setErrorMsg("Package '#{arg at(0)}' required Proto '#{arg at(1)} which is missing'.")
   //doc Eerie MissingPackageException
-  MissingPackageException   := Exception clone setErrorMsg("Package '#{arg at(0)}' is missing.")
+  MissingPackageException   := Exception clone setErrorMsg("Package '#{arg}' is missing.")
   //doc Eerie MissingTransactionActionException
   MissingTransactionActionException  := Exception clone setErrorMsg("There is no '#{arg}' transaction.")
 )
