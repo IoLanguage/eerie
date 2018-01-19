@@ -127,6 +127,16 @@ Namespaces Pkg := Namespace clone do(
       (pkg name .. " @" .. (pkg info at("version")) .. website) println
       ("  " .. (pkg info at("description"))) println))
 
+  hook := task(hookName, packageName,
+      """Runs a hook with name at first argument for the package with name at the second one."""
+      pkg := Eerie usedEnv packageNamed(name)
+      pkg isNil ifTrue(
+          Eerie MissingPackageException raise(name)
+      )
+
+      pkg runHook(hookName)
+  )
+
   create := task(name, path,
     """Creates an empty package structure.
     If <path> is omitted, new directory will be created in current working directory."""
