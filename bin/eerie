@@ -53,127 +53,147 @@ Namespaces Env := Namespace clone do(
 )
 
 Namespaces Pkg := Namespace clone do(
-  install := task(uri,
-    """Installs a new package."""
-    pkg := Eerie Package fromUri(uri)
-    Eerie Transaction clone install(pkg) run
-    // _openReadme
-  )
-
-  _openReadme := method(
-      pkg := Eerie Package fromUri(uri)
-      readme := pkg info at("readme")
-      readmeFile := File with(pkg path .. "/" .. readme)
-      readmeFile exists ifTrue(
-          "Opening readme file..." println
-          # Allows user to abort with Control+C
-          System sleep(4)
-
-          openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
-          openCommand isNil ifTrue(openCommand = "more")
-
-          System system(openCommand .. " " .. readmeFile path)
-      )
-  )
-
-  # We are using Eerie usedEnv here because it will be the same as activeEnv
-  # unless we modify it - as we do for plugins.
-  update := task(name,
-    """Updates the package and all of its dependencies."""
-    pkg := Eerie usedEnv packageNamed(name)
-    pkg isNil ifTrue(
-        Eerie MissingPackageException raise(name)
+    install := task(uri,
+        """Installs a new package."""
+        pkg := Eerie Package fromUri(uri)
+        Eerie Transaction clone install(pkg) run
+        // _openReadme(pkg)
     )
 
-    Eerie Transaction clone update(pkg) run
-  )
+    _openReadme := method(pkg,
+        readme := pkg info at("readme")
+        readmeFile := File with(pkg path .. "/" .. readme)
+        readmeFile exists ifTrue(
+            "Opening readme file..." println
+            # Allows user to abort with Control+C
+            System sleep(4)
 
-  updateAll := task(
-    """Updates all packages within current env."""
-    t := Eerie Transaction clone
-    Eerie usedEnv packages foreach(pkg,
-      t update(pkg))
-    t run)
+            openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
+            openCommand isNil ifTrue(openCommand = "more")
 
-  remove := task(name,
-    """Removes the package."""
-    
-    pkg := Eerie usedEnv packageNamed(name)
-    pkg isNil ifTrue(
-      Exception raise("missingPackage", name))
-    
-    Eerie Transaction clone remove(pkg) run)
-
-  info := task(name,
-    """Shows description of a package."""
-    pkg := Eerie usedEnv packageNamed(name)
-    pkg isNil ifTrue(
-      Eerie MissingPackageException raise(name))
-
-    maxKeySize := pkg info keys map(size) max + 2
-
-    pkg info foreach(key, value,
-      value isKindOf(List) ifTrue(value = value join(", "))
-      value isKindOf(Map) ifTrue(value = value asObject slotSummary)
-      key = (key asMutable makeFirstCharacterUppercase .. ":") alignLeft(maxKeySize, " ")
-      (key .. value) println))
-
-  list := task(
-    """Lists all packages installed within current env."""
-    Eerie usedEnv packages foreach(pkg,
-      website := pkg info at("website")
-      website = if(website isNil, "", " (" .. website .. ")")
-
-      (pkg name .. " @" .. (pkg info at("version")) .. website) println
-      ("  " .. (pkg info at("description"))) println))
-
-  hook := task(hookName, packageName,
-      """Runs a hook with name at first argument for the package with name at the second one."""
-      pkg := Eerie usedEnv packageNamed(name)
-      pkg isNil ifTrue(
-          Eerie MissingPackageException raise(name)
-      )
-
-      pkg runHook(hookName)
-  )
-
-  create := task(name, path,
-    """Creates an empty package structure.
-    If <path> is omitted, new directory will be created in current working directory."""
-    protoName := name asMutable makeFirstCharacterUppercase
-    path isNil ifTrue(
-      path = Directory currentWorkingDirectory .. "/" .. name)
-
-    root := Directory with(path)
-    root exists ifTrue(
-      Eerie AlreadyInstalledException raise(path)
+            System system(openCommand .. " " .. readmeFile path)
+        )
     )
 
-    root create
-    Eerie PackageDownloader clone setPath(path) createSkeleton
+    # We are using Eerie usedEnv here because it will be the same as activeEnv
+    # unless we modify it - as we do for plugins.
+    update := task(name,
+        """Updates the package and all of its dependencies."""
+        pkg := Eerie usedEnv packageNamed(name)
+        pkg isNil ifTrue(
+            Eerie MissingPackageException raise(name)
+        )
 
-    pkgInfo := """|
-    |{
-    |  "name":         "#{name}",
-    |  "version":      "0.1",
-    |  "description":  "My cool new project.",
-    |  "author":       "#{User name}",
-    |  "website":      "http://#{name}-project.org/",
-    |  "readme":       "README.md",
-    |  "protos":       ["#{protoName}"],
-    |  "dependencies": {
-    |    "libs":     [],
-    |    "headers":  [],
-    |    "protos":   [],
-    |    "packages": []
-    |  }
-    |}""" splitNoEmpties("\n") map(split("|") last) join("\n") strip interpolate
+        Eerie Transaction clone update(pkg) run
+    )
 
-    root fileNamed("package.json") create openForUpdating write(pkgInfo) close
-    root fileNamed("README.md") create openForUpdating write("=== " .. name .. " ===\nDon't forget to update this doc.\n") close
-    root directoryNamed("io") fileNamed(protoName .. ".io") create openForUpdating write(protoName .. " := Object clone do(\n\n)\n") close
+    updateAll := task(
+        """Updates all packages within current env."""
+        t := Eerie Transaction clone
+        Eerie usedEnv packages foreach(pkg,
+            t update(pkg)
+        )
+        t run
+    )
 
-    "New package structure has been created in #{root path}." interpolate println)
+    remove := task(name,
+        """Removes the package."""
+
+        pkg := Eerie usedEnv packageNamed(name)
+        pkg isNil ifTrue(
+            Exception raise("missingPackage", name)
+        )
+
+        Eerie Transaction clone remove(pkg) run
+    )
+
+    info := task(name,
+        """Shows description of a package."""
+        pkg := Eerie usedEnv packageNamed(name)
+        pkg isNil ifTrue(
+            Eerie MissingPackageException raise(name)
+        )
+
+        maxKeySize := pkg info keys map(size) max + 2
+
+        pkg info foreach(key, value,
+            value isKindOf(List) ifTrue(value = value join(", "))
+            value isKindOf(Map) ifTrue(value = value asObject slotSummary)
+            key = (key asMutable makeFirstCharacterUppercase .. ":") alignLeft(maxKeySize, " ")
+            (key .. value) println
+        )
+    )
+
+    help := method(name,
+        """Opens documentation for the package in the browser."""
+        if(name not,
+            Docio openDocsForPackageWithName("Eerie")
+            ,
+            Docio openDocsForPackageWithName(name)
+        )
+    )
+
+    list := task(
+        """Lists all packages installed within current env."""
+        Eerie usedEnv packages foreach(pkg,
+            website := pkg info at("website")
+            website = if(website isNil, "", " (" .. website .. ")")
+
+            (pkg name .. " @" .. (pkg info at("version")) .. website) println
+            ("  " .. (pkg info at("description"))) println
+        )
+    )
+
+    hook := task(hookName, packageName,
+        """Runs a hook with name at first argument for the package with name at the second one."""
+        pkg := Eerie usedEnv packageNamed(name)
+        pkg isNil ifTrue(
+            Eerie MissingPackageException raise(name)
+        )
+
+        pkg runHook(hookName)
+    )
+
+    create := task(name, path,
+        """Creates an empty package structure.
+        If <path> is omitted, new directory will be created in current working directory."""
+        protoName := name asMutable makeFirstCharacterUppercase
+        path isNil ifTrue(
+            path = Directory currentWorkingDirectory .. "/" .. name
+        )
+
+        root := Directory with(path)
+        root exists ifTrue(
+            Eerie AlreadyInstalledException raise(path)
+        )
+
+        root create
+        Eerie PackageDownloader clone setPath(path) createSkeleton
+
+        pkgInfo := """|
+        |{
+        |  "name":         "#{name}",
+        |  "version":      "0.1",
+        |  "description":  "My cool new project.",
+        |  "author":       "#{User name}",
+        |  "website":      "http://#{name}-project.org/",
+        |  "readme":       "README.md",
+        |  "protos":       ["#{protoName}"],
+        |  "dependencies": {
+        |    "libs":     [],
+        |    "headers":  [],
+        |    "protos":   [],
+        |    "packages": []
+        |  }
+        |}""" splitNoEmpties("\n") map(split("|") last) join("\n") strip interpolate
+
+        root fileNamed("package.json") create openForUpdating write(pkgInfo) close
+        root fileNamed("README.md") create openForUpdating write("=== " .. name .. " ===\nDon't forget to update this doc.\n") close
+        root directoryNamed("io") fileNamed(protoName .. ".io") create openForUpdating write(protoName .. " := Object clone do(\n\n)\n") close
+
+        "New package structure has been created in #{root path}." interpolate println
+    )
+
 )
 
 Namespaces Plugin := Namespace clone do(
@@ -212,6 +232,7 @@ Namespaces Default do(
   install   := Namespaces Pkg getSlot("install")
   remove    := Namespaces Pkg getSlot("remove")
   update    := Namespaces Pkg getSlot("update")
+  help      := Namespaces Pkg getSlot("help")
   
   selfUpdate := task(
     """Updates Eerie and its dependencies."""
