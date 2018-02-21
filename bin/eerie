@@ -158,7 +158,7 @@ Namespaces Pkg := Namespace clone do(
         """Creates an empty package structure.
         If <path> is omitted, new directory will be created in current working directory."""
         protoName := name asMutable makeFirstCharacterUppercase
-        path isNil ifTrue(
+        if(path isNil or (path == "."),
             path = Directory currentWorkingDirectory .. "/" .. name
         )
 
