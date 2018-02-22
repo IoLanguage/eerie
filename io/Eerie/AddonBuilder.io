@@ -458,12 +458,4 @@ AddonBuilder := Object clone do(
     )
     code
   )
-
-  generateDocs := method(
-    systemCall("../../_build/binaries/io ../../tools/io/DocsExtractor.io .")
-  )
-
-  cleanDocs := method(
-    systemCall("rm -f docs/docs.txt")
-  )
 )
