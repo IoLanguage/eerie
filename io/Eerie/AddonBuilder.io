@@ -290,7 +290,7 @@ AddonBuilder := Object clone do(
         _includes := includes join(" ")
         s := "#{cc} #{options} #{_depends} #{_includes} -I." interpolate
         if(list("cygwin", "mingw", "windows") contains(platform) not,
-          s = s .. "-fPIC "
+          s = s .. " -fPIC "
         ,
           s = s .. "-DBUILDING_"
           s = s .. name asUppercase
