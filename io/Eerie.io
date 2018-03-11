@@ -5,6 +5,7 @@
 System userInterruptHandler := method(
     Eerie log("Reverting config before interrupt.")
     Eerie revertConfig
+    Eerie Transaction releaseLock
 )
 
 Eerie := Object clone do(
