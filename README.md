@@ -1,7 +1,4 @@
-# Eerie, package manager for Io
-
-Eerie is an attempt to create feature-full package manager for Io, due to lack of working and usable package managers.
-Eerie is modelled after [Rip](https://github.com/defunkt/rip) which means that there is no central repository of packages, and that environments are used as a tool for switching between different versions.
+# Eerie, the package manager for Io
 
 ## How to install
 
@@ -14,15 +11,13 @@ $ source ~/.path_to_your_shell_startup_script
 
 ## Usage
 
-Eerie currently ships with a simple `eerie` command which can do all sorts exciting of things!
+Eerie ships with a command line tool. To install a package, for example, run:
 
 ```
-$ eerie install git://github.com/josip/generys.git
+$ eerie install https://github.com/josip/generys.git
 ```
 
-That will, for example, install the Generys package! How exciting!
-
-Here is a full list of available commands (run `eerie -T` to view it):
+The list of available commands (run `eerie -T` to view it):
 
 ```shell
 Default:
@@ -34,18 +29,21 @@ Default:
   envs
     Lists all envs. Active environment has an asterisk before its name.
 
+  help <name>
+    Opens documentation for the package in the browser.
+
   install <uri>
-    Installs new plugin.
+    Installs a new package.
 
   pkgs
-    Lists all installed plugins.
+    Lists all packages installed within current env.
 
   releaseLock
     Removes transaction lock.
     Use only if you are sure that process which placed the lock isn't running.
 
   remove <name>
-    Removes a plugin.
+    Removes the package.
 
   selfUpdate
     Updates Eerie and its dependencies.
@@ -84,6 +82,9 @@ Options:
     Print nothing to stdout.
 
   v
+    Prints Eerie version.
+
+  verbose
     Uses verbose output - debug messages, shell commands - everything will be printed.
     Watch out for information overload.
 
@@ -94,17 +95,23 @@ Pkg:
     Creates an empty package structure.
     If <path> is omitted, new directory will be created in current working directory.
 
+  help <name>
+    Opens documentation for the package in the browser.
+
+  hook <hookName> <packageName>
+    Runs a hook with name at first argument for the package with name at the second one.
+
   info <name>
     Shows description of a package.
 
   install <uri>
-    Installs new plugin.
+    Installs a new package.
 
   list
-    Lists all installed plugins.
+    Lists all packages installed within current env.
 
   remove <name>
-    Removes a plugin.
+    Removes the package.
 
   update <name>
     Updates the package and all of its dependencies.
@@ -114,15 +121,16 @@ Pkg:
 
 Plugin:
   Usage: eerie plugin:<task>
+
+  install <uri>
+    Installs a new plugin.
+
+  list
+    Lists all installed plugins.
+
+  remove <name>
+    Removes a plugin.
+
+  update <name>
+    Updates the plugin.
 ```
-
-For a complete guide on installing and using Eerie check out its [web site](http://josip.github.com/eerie).
-
-## Features
-
-  * Working package manager
-  * Converting local files and folders into packages
-  * Installing from Git, SVN, Bazaar and Mercurial repositories, as well as tarballs (.tar.bz2, .tar.gz, .7z, , .zip, .rar)
-  * Addons with .c files are being compiled and loaded properly
-  * All installations are local to the current user, there is no "global mode"
-  * Command-line tool
