@@ -1,6 +1,7 @@
 //metadoc Eerie category Utilites
 //metadoc Eerie author Josip Lisec
 //metadoc Eerie description Eerie is the package manager for Io.
+SystemCommand
 
 System userInterruptHandler := method(
     Eerie log("Reverting config before interrupt.")

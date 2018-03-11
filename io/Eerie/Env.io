@@ -66,23 +66,28 @@ Env := Object clone do(
 
   //doc Env activate Sets self as (global) default environment ([[Env use]] is not called).
   activate := method(
-    Directory with((Eerie root) .. "/activeEnv") exists ifTrue(
-      Eerie sh("rm #{Eerie root}/activeEnv" interpolate))
-    Eerie updateConfig("activeEnv", self name)
+      Directory with((Eerie root) .. "/activeEnv") exists ifTrue(
+          File with((Eerie root) .. "/activeEnv") remove
+      )
+      Eerie updateConfig("activeEnv", self name)
 
-    Eerie sh("ln -s #{self path} #{Eerie root}/activeEnv" interpolate)
-    Eerie setActiveEnv(self)
+      SystemCommand ln(self path, Eerie root .. "/activeEnv")
 
-    self)
+      Eerie setActiveEnv(self)
+
+      self
+  )
 
   //doc Env remove Removes the environment.
   remove := method(
-    Eerie config at("envs") removeAt(self name)
-    Eerie saveConfig
-    Eerie envs remove(self)
+      Eerie config at("envs") removeAt(self name)
+      Eerie saveConfig
+      Eerie envs remove(self)
 
-    Eerie sh("rm -rf #{self path}" interpolate)
-    true)
+      Directory with(self path) remove
+
+      true
+  )
 
   //doc Env isActive
   isActive := method(

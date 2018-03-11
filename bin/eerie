@@ -188,7 +188,7 @@ Namespaces Pkg := Namespace clone do(
         |}""" splitNoEmpties("\n") map(split("|") last) join("\n") strip interpolate
 
         root fileNamed("package.json") create openForUpdating write(pkgInfo) close
-        root fileNamed("README.md") create openForUpdating write("=== " .. name .. " ===\nDon't forget to update this doc.\n") close
+        root fileNamed("README.md") create openForUpdating write("# " .. name .. " \nDon't forget to update this doc.\n") close
         root directoryNamed("io") fileNamed(protoName .. ".io") create openForUpdating write(protoName .. " := Object clone do(\n\n)\n") close
 
         "New package structure has been created in #{root path}." interpolate println
