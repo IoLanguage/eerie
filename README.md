@@ -1,6 +1,6 @@
-# Eerie, the package manager for Io
+# Eerie
 
-## How to install
+## Installing
 
 ```shell
 $ git clone --recursive https://github.com/AlesTsurko/eerie.git
