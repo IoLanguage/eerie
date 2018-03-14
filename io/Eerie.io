@@ -120,12 +120,14 @@ Eerie := Object clone do(
 
 # Fixing Yajl's silent treatment of parse errors
 Yajl do(
-  _parseJson := getSlot("parseJson")
-  parseJson = method(json,
-    result := Yajl _parseJson(json)
-    if(result type == "Error",
-      Exception raise("Yajl: " .. result message),
-      result))
+    _parseJson := getSlot("parseJson")
+        parseJson = method(json,
+            result := Yajl _parseJson(json)
+            if(result type == "Error",
+                Exception raise("Yajl: " .. result message),
+                result
+            )
+        )
 )
 
 Eerie clone = Eerie do(

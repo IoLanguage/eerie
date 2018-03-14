@@ -1,15 +1,7 @@
-Sequence do(
-    toWinPath := method(path,
-        winPath := path asMutable
-        if(winPath == ".", winPath = winPath .. "\\")
-        winPath asMutable replaceSeq("/", "\\")
-    )
-)
-
 SystemCommand := Object clone do(
     ln := method(sourcePath, linkPath,
       if(System platform asLowercase == "windows",
-          Eerie sh("mklink /D " .. ((linkPath .. " " .. sourcePath) toWinPath))
+          Eerie sh("mklink /D " .. ((linkPath .. " " .. sourcePath) asOSPath))
           ,
           Eerie sh("ln -s " .. (sourcePath .. " " .. linkPath))
       )

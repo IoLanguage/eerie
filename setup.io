@@ -2,9 +2,9 @@
 
 Importer addSearchPath("io/")
 
-homePath  := User homeDirectory path
-eeriePath := homePath .. "/.eerie"
+eeriePath := System ioPath .. "/eerie"
 eerieDir  := Directory with(eeriePath)
+homePath  := User homeDirectory path
 
 System setEnvironmentVariable("EERIEDIR", eeriePath)
 
@@ -73,7 +73,7 @@ createDefaultEnvs := method(
   Eerie saveConfig)
 
 installEeriePkg := method(
-  packageUri := "git://github.com/AlesTsurko/eerie.git"
+  packageUri := "https://github.com/tonikasoft/eerie.git"
   if(System args at(1) == "-dev",
     packageUri = Directory currentWorkingDirectory
   )
@@ -86,17 +86,22 @@ activateDefaultEnv := method(
 Sequence fixMultiline := method(
   self splitNoEmpties("\n") map(split("|") last) join("\n") strip)
 
-eerieDir exists ifFalse(
+# Run the process
+if(eerieDir exists,
+  Exception raise(eerieDir path .. " already exists.")
+  ,
   appendAddonLoaderPaths
   createDirectories
 
   Eerie do(
-    _log := getSlot("log")
-    _allowedModes := list("info", "error", "transaction", "install")
+      _log := getSlot("log")
+      _allowedModes := list("info", "error", "transaction", "install")
 
-    log = method(str, mode,
-      (mode == nil or self _allowedModes contains(mode)) ifTrue(
-        call delegateToMethod(self, "_log")))
+      log = method(str, mode,
+          (mode == nil or self _allowedModes contains(mode)) ifTrue(
+              call delegateToMethod(self, "_log")
+          )
+      )
   )
   
   copyHeaders
