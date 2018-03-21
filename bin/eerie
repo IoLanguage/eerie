@@ -162,7 +162,7 @@ Namespaces Pkg := Namespace clone do(
             path = Directory currentWorkingDirectory .. "/" .. name
         )
 
-        root := Directory with(path)
+        root := Directory with(path stringByExpandingTilde)
         root exists ifTrue(
             Eerie AlreadyInstalledException raise(path)
         )

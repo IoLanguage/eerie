@@ -49,14 +49,18 @@ PackageInstaller := Object clone do(
 
   //doc PackageInstaller loadConfig Looks for configuration data (in <code>protos</code> and <code>deps</code>) and then loads package.json.
   loadConfig := method(
-    if(self fileNamed("protos") exists,
-      self buildPackageJson,
-      self extractDataFromPackageJson)
+      if(self fileNamed("protos") exists,
+          self buildPackageJson
+          ,
+          self extractDataFromPackageJson
+      )
 
-    configFile := self fileNamed("package.json")
-    configFile exists ifTrue(
-      self setConfig(Yajl parseJson(configFile openForReading contents))
-      configFile close))
+      configFile := self fileNamed("package.json")
+      configFile exists ifTrue(
+          self setConfig(configFile openForReading contents parseJson)
+          configFile close
+      )
+  )
 
   /*doc PackageInstaller extractDataFromPackageJson
   Creates <code>protos</code>, <code>deps</code> and <code>build.io</code> files from <code>package.json</code>*/

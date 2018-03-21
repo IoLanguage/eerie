@@ -77,7 +77,7 @@ Eerie := Object clone do(
 
   init := method(
     self configFile := File with((self root) .. "/config.json") openForUpdating
-    self setConfig(Yajl parseJson(self configFile contents))
+    self setConfig(self configFile contents parseJson)
     self setConfigBackup(self configFile contents)
 
     self config at("envs") ?foreach(name, envConfig,
@@ -106,8 +106,9 @@ Eerie := Object clone do(
 
   //doc Eerie revertConfig Reverts config to the state it was in before executing this script.
   revertConfig := method(
-    self configFile close remove openForUpdating write(self configBackup)
-    self setConfig(Yajl parseJson(self configBackup)))
+      self configFile close remove openForUpdating write(self configBackup)
+      self setConfig(self configBackup parseJson)
+  )
 
   //doc Eerie loadPlugins Loads Eerie plugins.
   loadPlugins := method(
@@ -116,18 +117,6 @@ Eerie := Object clone do(
     Eerie Env named("_plugins") ?packages ?foreach(pkg,
       self log("Loading #{pkg name} plugin", "debug")
       self plugins doFile(pkg path .. "/io/main.io")))
-)
-
-# Fixing Yajl's silent treatment of parse errors
-Yajl do(
-    _parseJson := getSlot("parseJson")
-        parseJson = method(json,
-            result := Yajl _parseJson(json)
-            if(result type == "Error",
-                Exception raise("Yajl: " .. result message),
-                result
-            )
-        )
 )
 
 Eerie clone = Eerie do(

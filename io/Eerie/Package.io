@@ -124,13 +124,15 @@ Package := Object clone do(
 
   //doc Package loadInfo Loads package.json file.
   loadInfo := method(
-    pkgInfo := File with((self path) .. "/package.json")
-    self info = if(pkgInfo exists,
-      Yajl parseJson(pkgInfo openForReading contents),
-      Map clone)
+      pkgInfo := File with((self path) .. "/package.json")
+      self info = if(pkgInfo exists,
+          pkgInfo openForReading contents parseJson,
+          Map clone
+      )
 
-    pkgInfo close
-    self info)
+      pkgInfo close
+      self info
+  )
 
   //doc Package providesProtos Returns list of protos this package provides.
   providesProtos := method(

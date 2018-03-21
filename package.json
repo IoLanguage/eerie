@@ -8,7 +8,6 @@
   "categories": ["utility", "system"],
   "protos": ["Eerie"],
   "dependencies": {
-    "protos": ["Yajl", "Regex"],
     "packages": [
         "https://github.com/tonikasoft/kano.git", 
         "https://github.com/tonikasoft/docio.git"

@@ -99,11 +99,14 @@ Env := Object clone do(
 
   //doc Env packages Returns list of packages installed in this environment.
   packages := method(
-    self packages = self config at("packages") map(pkgConfig,
-      (pkgConfig type == "Map") ifFalse(
-        pkgConfig = Yajl parseJson(pkgConfig))
+      self packages = self config at("packages") map(pkgConfig,
+          (pkgConfig type == "Map") ifFalse(
+              pkgConfig = pkgConfig parseJson
+          )
 
-      Eerie Package withConfig(pkgConfig, self)))
+          Eerie Package withConfig(pkgConfig, self)
+      )
+  )
 
   //doc Env packageNamed(name) Returns package with provided name if it exists, <code>nil</code> otherwise.
   packageNamed := method(pkgName,
