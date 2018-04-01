@@ -3,7 +3,7 @@
 ## Installing
 
 ```shell
-$ git clone --recursive https://github.com/tonikasoft/eerie.git
+$ git clone https://github.com/tonikasoft/eerie.git
 $ cd eerie
 $ io setup.io ~/.path_to_your_shell_startup_script
 $ source ~/.path_to_your_shell_startup_script
