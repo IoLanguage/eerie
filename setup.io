@@ -4,7 +4,6 @@ Importer addSearchPath("io/")
 
 eeriePath := System ioPath .. "/eerie"
 eerieDir  := Directory with(eeriePath)
-homePath  := User homeDirectory path
 
 System setEnvironmentVariable("EERIEDIR", eeriePath)
 
@@ -32,18 +31,6 @@ appendEnvVariables := method(
     "Make sure to update your shell's environment variables before using Eerie." println
     "Here's a sample code you could use:" println
     bashScript println))
-
-appendAddonLoaderPaths := method(
-  iorc := File with(homePath .. "/.iorc")
-  iorc exists ifFalse(iorc create)
-  loaderCode := """|
-    |AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/base/addons")
-    |AddonLoader appendSearchPath(System getEnvironmentVariable("EERIEDIR") .. "/activeEnv/addons")""" fixMultiline
-
-  iorc openForAppending contents containsSeq("EERIEDIR") ifFalse(
-    iorc appendToContents(loaderCode .. "\n"))
-  iorc close
-  " - Updated ~/.iorc file" println)
 
 createDirectories := method(
   eerieDir create
@@ -80,7 +67,6 @@ Sequence fixMultiline := method(
 if(eerieDir exists,
   Exception raise(eerieDir path .. " already exists.")
   ,
-  appendAddonLoaderPaths
   createDirectories
 
   Eerie do(
