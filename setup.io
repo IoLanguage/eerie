@@ -54,16 +54,6 @@ createDirectories := method(
   eerieDir fileNamed("/config.json") create openForUpdating write("{\"envs\": {}}") close
 )
 
-copyHeaders := method(
-  " - Copying headers" println
-
-  ioSourcesDir := Directory at("io_source/libs")
-  headers := ioSourcesDir recursiveFilesOfTypes(list(".h", ".hpp"))
-  headers foreach(file,
-    file copyToPath(eerieDir at("headers") path .. "/" .. file name)
-  )
-)
-
 createDefaultEnvs := method(
   baseEnv := Eerie Env with("_base") create activate use
   Eerie sh("ln -s #{baseEnv path} #{eeriePath}/base" interpolate)
@@ -104,7 +94,6 @@ if(eerieDir exists,
       )
   )
   
-  copyHeaders
   createDefaultEnvs
   installEeriePkg
   appendEnvVariables

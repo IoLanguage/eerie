@@ -281,9 +281,9 @@ AddonBuilder := Object clone do(
       obj := f name replaceSeq(".cpp", ".o") replaceSeq(".c", ".o") replaceSeq(".m", ".o")
       objFile := objsFolder fileNamedOrNil(obj)
       if((objFile == nil) or(objFile lastDataChangeDate < f lastDataChangeDate),
-
-        includes := includePaths map(v, "-I" .. Path with(System installPrefix, "include/io", v))
-        includes append("-I" .. Eerie ioHeadersPath)
+        ioHeadersPath := Path with(System installPrefix, "include/io")
+        includes := includePaths map(v, "-I" .. Path with(ioHeadersPath, v))
+        includes append("-I" .. ioHeadersPath)
         includes appendSeq(headerSearchPaths map(v, "-I" .. v))
 
         _depends := depends includes join(" ")
