@@ -1,4 +1,4 @@
-#!/usr/bin/env io
+#!/usr/local/bin io
 
 Importer addSearchPath("io/")
 
@@ -33,7 +33,7 @@ appendEnvVariables := method(
     bashScript println))
 
 createDirectories := method(
-  eerieDir create
+  eerieDir createIfAbsent
   eerieDir directoryNamed("env") create
   eerieDir directoryNamed("tmp") create
   eerieDir directoryNamed("headers") create
