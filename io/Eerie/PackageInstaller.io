@@ -136,11 +136,17 @@ PackageInstaller := Object clone do(
 
   //doc PackageInstaller copyBinaries Creates symlinks for files <code>bin</code> directory in active environment's <code>bin</code>.
   copyBinaries := method(
-    Eerie sh("chmod u+x #{self path}/bin/*" interpolate)
-    self dirNamed("bin") files foreach(original,
-      link := File with(Eerie usedEnv path .. "/bin/" .. original name)
-      link exists ifFalse(
-        Eerie sh("ln -s #{original path} #{link path}" interpolate))))
+      (System platform containsAnyCaseSeq("windows") or(System platform containsAnyCaseSeq("mingw"))) not ifTrue(
+          Eerie sh("chmod u+x #{self path}/bin/*" interpolate)
+      )
+      self dirNamed("bin") files foreach(original,
+          link := File with(Eerie usedEnv path .. "/bin/" .. original name)
+          link exists ifFalse(
+              SystemCommand ln(original path, link path)
+          )
+      )
+  )
+
 )
 
 //doc PackageInstaller instances

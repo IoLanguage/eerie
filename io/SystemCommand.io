@@ -8,11 +8,11 @@ SystemCommand := Object clone do(
     )
 
     cpR := method(sourcePath, destinationPath,
-        # FIXME: may not work without admin privileges
         curDir := Directory currentWorkingDirectory
         Directory setCurrentWorkingDirectory(sourcePath stringByExpandingTilde)
 
         Directory walk(item,
+            (item isDirectory) and(item isAccessible not) ifTrue(continue)
             item name at(0) != "."
             newPath := destinationPath stringByExpandingTilde asMutable appendPathSeq(item path asMutable afterSeq("."))
             (item type == "File") ifTrue(
@@ -28,7 +28,7 @@ SystemCommand := Object clone do(
 
     rmFilesContain := method(string,
         Directory files foreach(item,
-            item containsSeq(string) ifTrue(item remove)
+            item name containsSeq(string) ifTrue(item remove)
         )
     )
 )

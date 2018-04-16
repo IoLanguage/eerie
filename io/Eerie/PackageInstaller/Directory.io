@@ -15,8 +15,9 @@ DirectoryInstaller := Eerie PackageInstaller clone do(
     install := method(
         self loadConfig
         ioDir := self dirNamed("io") create
-        statusCode := Eerie sh("mv #{self path}/*.io #{ioDir path}" interpolate)
-        if(statusCode == 0, return true, return false)
+        ioFiles := Directory with(self path) filesWithExtension("io")
+        ioFiles foreach(moveTo(ioDir path))
+        return true
     )
 
   buildPackageJson := method(

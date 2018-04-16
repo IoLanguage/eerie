@@ -6,8 +6,8 @@ DirectoryDownloader := Eerie PackageDownloader clone do(
     download := method(
         # Should we copy dot files also? Not copying .git/.svn/etc folders
         # is ok, but what about the rest?
-        statusCode := Eerie sh("cp -R #{self uri}/* #{self path}" interpolate)
-        if(statusCode == 0, return true, return false)
+        SystemCommand cpR(self uri, self path)
+        return true
     )
 
     update := getSlot("download")

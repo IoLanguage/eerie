@@ -2,7 +2,14 @@
 
 Importer addSearchPath("io/")
 
-eeriePath := System installPrefix .. "/eerie"
+eeriePath := method(
+    platform := System platform
+    if(platform containsAnyCaseSeq("windows") or(platform containsAnyCaseSeq("mingw")),
+        return System installPrefix .. "/eerie"
+        ,
+        return System ioPath .. "/eerie"
+    )
+)
 eerieDir  := Directory with(eeriePath)
 
 System setEnvironmentVariable("EERIEDIR", eeriePath)
