@@ -2,7 +2,7 @@
 
 Importer addSearchPath("io/")
 
-eeriePath := System ioPath .. "/eerie"
+eeriePath := System installPrefix .. "/eerie"
 eerieDir  := Directory with(eeriePath)
 
 System setEnvironmentVariable("EERIEDIR", eeriePath)
