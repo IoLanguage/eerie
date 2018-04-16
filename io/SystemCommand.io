@@ -8,7 +8,7 @@ SystemCommand := Object clone do(
     )
 
     cpR := method(sourcePath, destinationPath,
-        # FIXME: sometimes doesn't work without admin privileges
+        # FIXME: may not work without admin privileges
         curDir := Directory currentWorkingDirectory
         Directory setCurrentWorkingDirectory(sourcePath stringByExpandingTilde)
 
@@ -26,5 +26,10 @@ SystemCommand := Object clone do(
         Directory setCurrentWorkingDirectory(curDir)
     )
 
+    rmFilesContain := method(string,
+        Directory files foreach(item,
+            item containsSeq(string) ifTrue(item remove)
+        )
+    )
 )
 
