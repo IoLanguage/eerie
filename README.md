@@ -1,9 +1,10 @@
 # Eerie
 
 ## Installing
+Io ships with Eerie by default. But if you need:
 
 ```shell
-$ git clone https://github.com/tonikasoft/eerie.git
+$ git clone https://github.com/IoLanguage/eerie.git
 $ cd eerie
 $ io setup.io ~/.path_to_your_shell_startup_script
 $ source ~/.path_to_your_shell_startup_script
@@ -11,7 +12,7 @@ $ source ~/.path_to_your_shell_startup_script
 
 ## Usage
 
-Eerie ships with a command line tool. To install a package, for example, run:
+Besides of the API, Eerie has a commandline interface. To install a package, for example, run:
 
 ```
 $ eerie install https://github.com/josip/generys.git
