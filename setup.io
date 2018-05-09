@@ -57,7 +57,7 @@ createDefaultEnvs := method(
   Eerie saveConfig)
 
 installEeriePkg := method(
-  packageUri := "https://github.com/tonikasoft/eerie.git"
+  packageUri := "https://github.com/IoLanguage/eerie.git"
   if(System args at(1) == "-dev",
     packageUri = Directory currentWorkingDirectory
   )

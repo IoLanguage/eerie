@@ -12,7 +12,7 @@ SystemCommand := Object clone do(
         Directory setCurrentWorkingDirectory(sourcePath stringByExpandingTilde)
 
         Directory walk(item,
-            (item isDirectory) and(item isAccessible not) ifTrue(continue)
+            (item type == "Directory") and(item isAccessible not) ifTrue(continue)
             item name at(0) != "."
             newPath := destinationPath stringByExpandingTilde asMutable appendPathSeq(item path asMutable afterSeq("."))
             (item type == "File") ifTrue(

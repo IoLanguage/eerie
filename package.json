@@ -9,8 +9,8 @@
   "protos": ["Eerie"],
   "dependencies": {
     "packages": [
-        "https://github.com/tonikasoft/kano.git", 
-        "https://github.com/tonikasoft/docio.git"
+        "https://github.com/IoLanguage/kano.git", 
+        "https://github.com/IoLanguage/docio.git"
     ]
   }
 }
