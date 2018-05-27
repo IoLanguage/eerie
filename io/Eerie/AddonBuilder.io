@@ -63,6 +63,11 @@ AddonBuilder := Object clone do(
     self headerSearchPaths := List clone
     self appendHeaderSearchPath := method(v, if(File clone setPath(v) exists, headerSearchPaths appendIfAbsent(v)))
     searchPrefixes foreach(searchPrefix, appendHeaderSearchPath(searchPrefix .. "/include"))
+    if(platform == "windows" or platform == "mingw",
+        appendHeaderSearchPath(Path with(System installPrefix, "Io/include/io") asOSPath)
+        ,
+        appendHeaderSearchPath(Path with(System installPrefix, "include/io") asOSPath)
+    )
 
     self libSearchPaths := List clone
     self appendLibSearchPath := method(v, if(File clone setPath(v) exists, libSearchPaths appendIfAbsent(v)))
@@ -270,8 +275,11 @@ AddonBuilder := Object clone do(
 
     mkdir("_build/headers")
     mkdir("source")
-    if(Directory with(Path with(folder path, "source")) filesWithExtension(".h") size > 0,
-      trySystemCall("cp source/*.h _build/headers")
+    
+    headers := Directory with(Path with(folder path, "source")) filesWithExtension(".h")
+    if(headers size > 0,
+        destinationPath := Path with(self folder path, "_build/headers")
+        headers foreach(file, file copyToPath(destinationPath .. "/" .. file name))
     )
 
     generateInitFile
@@ -281,9 +289,7 @@ AddonBuilder := Object clone do(
       obj := f name replaceSeq(".cpp", ".o") replaceSeq(".c", ".o") replaceSeq(".m", ".o")
       objFile := objsFolder fileNamedOrNil(obj)
       if((objFile == nil) or(objFile lastDataChangeDate < f lastDataChangeDate),
-        ioHeadersPath := Path with(System installPrefix, "include/io")
-        includes := includePaths map(v, "-I" .. Path with(ioHeadersPath, v))
-        includes append("-I" .. ioHeadersPath)
+        includes := includePaths
         includes appendSeq(headerSearchPaths map(v, "-I" .. v))
 
         _depends := depends includes join(" ")
@@ -292,9 +298,7 @@ AddonBuilder := Object clone do(
         if(list("cygwin", "mingw", "windows") contains(platform) not,
           s = s .. " -fPIC "
         ,
-          s = s .. "-DBUILDING_"
-          s = s .. name asUppercase
-          s = s .. "_ADDON "
+          s = s .. " -DBUILDING_#{self name asUppercase}_ADDON " interpolate
         )
 
         s = "#{s} -c #{ccOutFlag}_build/objs/#{obj} source/#{f name}" interpolate

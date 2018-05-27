@@ -13,11 +13,16 @@ SystemCommand := Object clone do(
 
         Directory walk(item,
             (item type == "Directory") and(item isAccessible not) ifTrue(continue)
-            item name at(0) != "."
             newPath := destinationPath stringByExpandingTilde asMutable appendPathSeq(item path asMutable afterSeq("."))
             (item type == "File") ifTrue(
-                Directory with(newPath asMutable beforeSeq(item name)) createIfAbsent
-                item copyToPath(newPath)
+                e := try(
+                    Directory with(newPath asMutable beforeSeq(item name)) createIfAbsent
+                    item copyToPath(newPath)
+                )
+
+                e catch(Exception,
+                    e coroutine backTraceString containsSeq("Permission denied") ifTrue(continue)
+                )
             )
 
             Directory with(newPath) create

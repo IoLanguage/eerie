@@ -43,14 +43,13 @@ createDirectories := method(
   eerieDir createIfAbsent
   eerieDir directoryNamed("env") create
   eerieDir directoryNamed("tmp") create
-  eerieDir directoryNamed("headers") create
 
   eerieDir fileNamed("/config.json") create openForUpdating write("{\"envs\": {}}") close
 )
 
 createDefaultEnvs := method(
   baseEnv := Eerie Env with("_base") create activate use
-  Eerie sh("ln -s #{baseEnv path} #{eeriePath}/base" interpolate)
+  SystemCommand ln(baseEnv path, eeriePath .. "/base")
 
   Eerie Env with("_plugins") create
   Eerie Env with("default") create
