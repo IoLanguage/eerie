@@ -1,6 +1,10 @@
 SystemCommand := Object clone do(
+    getPlatformName = method(
+        return System platform asLowercase
+    )
+
     ln := method(sourcePath, linkPath,
-      if(System platform asLowercase == "windows",
+      if(getPlatformName == "windows" or getPlatformName == "mingw",
           Eerie sh("mklink /D " .. ((linkPath .. " " .. sourcePath) asOSPath))
           ,
           Eerie sh("ln -s " .. (sourcePath .. " " .. linkPath))
@@ -8,27 +12,11 @@ SystemCommand := Object clone do(
     )
 
     cpR := method(sourcePath, destinationPath,
-        curDir := Directory currentWorkingDirectory
-        Directory setCurrentWorkingDirectory(sourcePath stringByExpandingTilde)
-
-        Directory walk(item,
-            (item type == "Directory") and(item isAccessible not) ifTrue(continue)
-            newPath := destinationPath stringByExpandingTilde asMutable appendPathSeq(item path asMutable afterSeq("."))
-            (item type == "File") ifTrue(
-                e := try(
-                    Directory with(newPath asMutable beforeSeq(item name)) createIfAbsent
-                    item copyToPath(newPath)
-                )
-
-                e catch(Exception,
-                    e coroutine backTraceString containsSeq("Permission denied") ifTrue(continue)
-                )
-            )
-
-            Directory with(newPath) create
+        if(getPlatformName == "windows" or getPlatformName == "mingw",
+            Eerie sh("xcopy #{sourcePath asOSPath} #{destinationPath asOSPath} /h /e" interpolate)
+            ,
+            Eerie sh("cp -rf #{sourcePath asOSPath} #{destinationPath asOSPath}" interpolate)
         )
-
-        Directory setCurrentWorkingDirectory(curDir)
     )
 
     rmFilesContain := method(string,
@@ -37,4 +25,5 @@ SystemCommand := Object clone do(
         )
     )
 )
+
 

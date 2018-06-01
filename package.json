@@ -10,7 +10,7 @@
   "dependencies": {
     "packages": [
         "https://github.com/IoLanguage/kano.git", 
-        "https://github.com/IoLanguage/docio.git"
+        "X:\\docio"
     ]
   }
 }
