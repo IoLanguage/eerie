@@ -64,13 +64,16 @@ AddonBuilder := Object clone do(
     self appendHeaderSearchPath := method(v, if(File clone setPath(v) exists, headerSearchPaths appendIfAbsent(v)))
     searchPrefixes foreach(searchPrefix, appendHeaderSearchPath(searchPrefix .. "/include"))
     if(platform == "windows" or platform == "mingw",
-        appendHeaderSearchPath(Path with(System installPrefix, "Io/include/io") asOSPath)
+        appendHeaderSearchPath(Path with(System installPrefix, "Io/include/io") asIoPath)
         ,
-        appendHeaderSearchPath(Path with(System installPrefix, "include/io") asOSPath)
+        appendHeaderSearchPath(Path with(System installPrefix, "include/io"))
     )
 
     self libSearchPaths := List clone
     self appendLibSearchPath := method(v, if(File clone setPath(v) exists, libSearchPaths appendIfAbsent(v)))
+	if(platform == "windows" or platform == "mingw",
+		self appendLibSearchPath(Path with(System installPrefix, "Io") asIoPath)
+	)
     searchPrefixes foreach(searchPrefix, appendLibSearchPath(searchPrefix .. "/lib"))
   )
 
@@ -352,7 +355,11 @@ AddonBuilder := Object clone do(
     )
     links appendSeq(libSearchPaths map(v, linkDirPathFlag .. v))
     links appendSeq(depends libs map(v, if(v at(0) asCharacter == "-", v, linkLibFlag .. v .. linkLibSuffix)))
-    links appendSeq(list(linkDirPathFlag .. (System installPrefix), linkLibFlag .. "iovmall" .. linkLibSuffix))
+    links appendSeq(list(linkDirPathFlag .. (System installPrefix), 
+			linkLibFlag .. "iovmall" .. linkLibSuffix,
+			linkLibFlag .. "basekit" .. linkLibSuffix
+		)
+	)
 
     links appendSeq(depends frameworks map(v, "-framework " .. v))
     links appendSeq(depends linkOptions)
@@ -366,7 +373,9 @@ AddonBuilder := Object clone do(
     )
 
     linksJoined := links join(" ")
-    systemCall("#{linkdll} #{cflags} #{dllCommand} #{s} #{linkOutFlag}_build/dll/#{libname} _build/objs/*.o #{linksJoined}" interpolate)
+
+    linkCommand := "#{linkdll} #{cflags} #{dllCommand} #{s} #{linkOutFlag}_build/dll/#{libname} _build/objs/*.o #{linksJoined}" interpolate
+    systemCall(linkCommand)
   )
 
   embedManifest := method(

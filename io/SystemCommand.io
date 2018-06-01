@@ -1,10 +1,10 @@
 SystemCommand := Object clone do(
-    getPlatformName = method(
+    getPlatformName := method(
         return System platform asLowercase
     )
 
     ln := method(sourcePath, linkPath,
-      if(getPlatformName == "windows" or getPlatformName == "mingw",
+      if((self getPlatformName == "windows") or (self getPlatformName == "mingw"),
           Eerie sh("mklink /D " .. ((linkPath .. " " .. sourcePath) asOSPath))
           ,
           Eerie sh("ln -s " .. (sourcePath .. " " .. linkPath))
@@ -12,7 +12,7 @@ SystemCommand := Object clone do(
     )
 
     cpR := method(sourcePath, destinationPath,
-        if(getPlatformName == "windows" or getPlatformName == "mingw",
+        if((self getPlatformName == "windows") or (self getPlatformName == "mingw"),
             Eerie sh("xcopy #{sourcePath asOSPath} #{destinationPath asOSPath} /h /e" interpolate)
             ,
             Eerie sh("cp -rf #{sourcePath asOSPath} #{destinationPath asOSPath}" interpolate)
@@ -25,5 +25,3 @@ SystemCommand := Object clone do(
         )
     )
 )
-
-
