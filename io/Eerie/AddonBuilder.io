@@ -64,7 +64,7 @@ AddonBuilder := Object clone do(
     self appendHeaderSearchPath := method(v, if(File clone setPath(v) exists, headerSearchPaths appendIfAbsent(v)))
     searchPrefixes foreach(searchPrefix, appendHeaderSearchPath(searchPrefix .. "/include"))
     if(platform == "windows" or platform == "mingw",
-        appendHeaderSearchPath(Path with(System installPrefix, "Io/include/io") asIoPath)
+        appendHeaderSearchPath(Path with(System installPrefix, "include/io") asIoPath)
         ,
         appendHeaderSearchPath(Path with(System installPrefix, "include/io"))
     )
@@ -72,7 +72,7 @@ AddonBuilder := Object clone do(
     self libSearchPaths := List clone
     self appendLibSearchPath := method(v, if(File clone setPath(v) exists, libSearchPaths appendIfAbsent(v)))
 	if(platform == "windows" or platform == "mingw",
-		self appendLibSearchPath(Path with(System installPrefix, "Io") asIoPath)
+		self appendLibSearchPath(System installPrefix asIoPath)
 	)
     searchPrefixes foreach(searchPrefix, appendLibSearchPath(searchPrefix .. "/lib"))
   )
