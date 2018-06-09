@@ -3,11 +3,19 @@ SystemCommand := Object clone do(
         return System platform asLowercase
     )
 
-    ln := method(sourcePath, linkPath,
+    lnFile := method(sourcePath, linkPath,
       if((self getPlatformName == "windows") or (self getPlatformName == "mingw"),
-          Eerie sh("mklink /D " .. ((linkPath .. " " .. sourcePath) asOSPath))
+          Eerie sh("mklink /H #{linkPath asOSPath} #{sourcePath asOSPath}" interpolate)
           ,
-          Eerie sh("ln -s " .. (sourcePath .. " " .. linkPath))
+          self lnDirectory(sourcePath, linkPath)
+      )
+    )
+
+    lnDirectory := method(sourcePath, linkPath,
+      if((self getPlatformName == "windows") or (self getPlatformName == "mingw"),
+          Eerie sh("mklink /J #{linkPath asOSPath} #{sourcePath asOSPath}" interpolate)
+          ,
+          Eerie sh("ln -s #{sourcePath} #{linkPath}" interpolate)
       )
     )
 

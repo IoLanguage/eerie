@@ -49,7 +49,7 @@ createDirectories := method(
 
 createDefaultEnvs := method(
   baseEnv := Eerie Env with("_base") create activate use
-  SystemCommand ln(baseEnv path, eeriePath .. "/base")
+  SystemCommand lnDirectory(baseEnv path, eeriePath .. "/base")
 
   Eerie Env with("_plugins") create
   Eerie Env with("default") create

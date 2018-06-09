@@ -142,7 +142,7 @@ PackageInstaller := Object clone do(
       self dirNamed("bin") files foreach(original,
           link := File with(Eerie usedEnv path .. "/bin/" .. original name)
           link exists ifFalse(
-              SystemCommand ln(original path, link path)
+              SystemCommand lnFile(original path, link path)
           )
       )
   )

@@ -71,7 +71,7 @@ Env := Object clone do(
       )
       Eerie updateConfig("activeEnv", self name)
 
-      SystemCommand ln(self path, Eerie root .. "/activeEnv")
+      SystemCommand lnDirectory(self path, Eerie root .. "/activeEnv")
 
       Eerie setActiveEnv(self)
 
