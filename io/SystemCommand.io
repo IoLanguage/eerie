@@ -23,7 +23,7 @@ SystemCommand := Object clone do(
         if((self getPlatformName == "windows") or (self getPlatformName == "mingw"),
             Eerie sh("xcopy #{sourcePath asOSPath} #{destinationPath asOSPath} /h /e" interpolate)
             ,
-            Eerie sh("cp -rf #{sourcePath asOSPath} #{destinationPath asOSPath}" interpolate)
+            Eerie sh("cp -r #{sourcePath asOSPath}/* #{destinationPath asOSPath}" interpolate)
         )
     )
 
