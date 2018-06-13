@@ -351,7 +351,7 @@ AddonBuilder := Object clone do(
     )
     if(platform != "darwin" and platform != "windows",
       links appendSeq(depends addons map(v,
-        "-Wl,--rpath -Wl,#{System installPrefix}/lib/io/addons/#{v}/_build/dll/" interpolate))
+        "-Wl,--rpath -Wl,#{Eerie root}/activeEnv/addons/#{v}/_build/dll/" interpolate))
     )
     links appendSeq(libSearchPaths map(v, linkDirPathFlag .. v))
     links appendSeq(depends libs map(v, if(v at(0) asCharacter == "-", v, linkLibFlag .. v .. linkLibSuffix)))
@@ -369,7 +369,7 @@ AddonBuilder := Object clone do(
     s := ""
     if(platform == "darwin",
       links append("-flat_namespace")
-      s := " -install_name " .. (System installPrefix) .. "/lib/io/addons/" .. self name .. "/_build/dll/" .. libname
+      s := " -install_name " .. (Eerie root) .. "/activeEnv/addons/" .. self name .. "/_build/dll/" .. libname
     )
 
     linksJoined := links join(" ")
