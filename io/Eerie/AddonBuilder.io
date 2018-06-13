@@ -293,7 +293,7 @@ AddonBuilder := Object clone do(
       objFile := objsFolder fileNamedOrNil(obj)
       if((objFile == nil) or(objFile lastDataChangeDate < f lastDataChangeDate),
         includes := includePaths
-        includes appendSeq(headerSearchPaths map(v, "-I" .. v))
+        includes = includes appendSeq(headerSearchPaths) map(v, "-I" .. v)
 
         _depends := depends includes join(" ")
         _includes := includes join(" ")
