@@ -9,6 +9,11 @@ $ cd eerie
 $ io setup.io ~/.path_to_your_shell_startup_script
 $ source ~/.path_to_your_shell_startup_script
 ```
+For development purposes you'd like to install Eerie from a local directory. You can use `-dev` flag for this:
+
+```shell
+io setup.io -dev
+```
 
 ## Usage
 
