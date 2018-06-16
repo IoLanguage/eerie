@@ -7,6 +7,7 @@ Directory fileNamedOrNil := method(path,
 AddonBuilder := Object clone do(
   isDisabled := false
   disable := method(isDisabled = true)
+  dontGenerateInit ::= false
 
   platform := System platform split at(0) asLowercase
   cflags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
@@ -400,6 +401,7 @@ AddonBuilder := Object clone do(
   isStatic := false
 
   generateInitFile := method(
+      if(dontGenerateInit, return)
     /* if(platform != "windows" and folder directoryNamed("source") filesWithExtension("m") size != 0, return) */
     initFile := folder fileNamed(initFileName) remove create open
     initFile write("#include \"IoState.h\"\n")
