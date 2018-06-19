@@ -1,4 +1,4 @@
-//metadoc TransactionAction category Utilites
+//metadoc TransactionAction category API
 //metadoc TransactionAction description
 
 TransactionAction := Object clone do(

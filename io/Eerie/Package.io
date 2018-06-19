@@ -1,4 +1,4 @@
-//metadoc Package category Utilites
+//metadoc Package category API
 //metadoc Package description Reprsents an Eerie package.
 doRelativeFile("Path.io")
 

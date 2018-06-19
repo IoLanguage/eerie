@@ -1,4 +1,4 @@
-//metadoc Env category Utilites
+//metadoc Env category API
 //metadoc Env description Reprsents an Eerie enveronment.
 
 Env := Object clone do(

@@ -1,4 +1,4 @@
-//metadoc PackageInstaller category Utilites
+//metadoc PackageInstaller category API
 //metadoc PackageInstaller description
 
 PackageInstaller := Object clone do(

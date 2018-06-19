@@ -1,4 +1,4 @@
-//metadoc PackageDownloader category Utilites
+//metadoc PackageDownloader category API
 //metadoc PackageDownloader description
 
 PackageDownloader := Object clone do(

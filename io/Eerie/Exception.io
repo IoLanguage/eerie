@@ -1,4 +1,4 @@
-//metadoc Exception category Utilites 
+//metadoc Exception category API 
 /*metadoc Exception description
 To check what type of error has been raise you can use:
 <pre><code class="language-io">install := try(Eerie Transaction do(

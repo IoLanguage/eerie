@@ -1,4 +1,4 @@
-//metadoc Eerie category Utilites
+//metadoc Eerie category API
 //metadoc Eerie author Josip Lisec
 //metadoc Eerie description Eerie is the package manager for Io.
 SystemCommand
