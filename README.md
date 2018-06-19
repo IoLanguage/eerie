@@ -17,7 +17,7 @@ io setup.io -dev
 
 ## Usage
 
-Besides of the API, Eerie has a commandline interface. To install [jasmineio](https://github.com/bekkopen/jasmineio) package, for example, run:
+Besides of the API, Eerie has a commandline interface. For example to install [jasmineio](https://github.com/bekkopen/jasmineio) package run:
 
 ```
 $ eerie install https://github.com/bekkopen/jasmineio.git
