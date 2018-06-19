@@ -29,7 +29,16 @@ SystemCommand := Object clone do(
 
     rmFilesContain := method(string,
         Directory files foreach(item,
-            item name containsSeq(string) ifTrue(item remove)
+            item name containsSeq(string) ifTrue(self rmFile(item path))
         )
     )
+
+    rmFile := method(string,
+        if((self getPlatformName == "windows") or (self getPlatformName == "mingw"),
+            Eerie sh("del /F #{string}" interpolate)
+            ,
+            Eerie sh("rm -f #{string}" interpolate)
+        )
+    )
+
 )
