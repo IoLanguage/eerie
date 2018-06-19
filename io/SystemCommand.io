@@ -27,7 +27,7 @@ SystemCommand := Object clone do(
         )
     )
 
-    rmFilesContain := method(string,
+    rmFilesContaining := method(string,
         Directory files foreach(item,
             item name containsSeq(string) ifTrue(self rmFile(item path))
         )

@@ -47,8 +47,8 @@ Eerie := Object clone do(
       )
 
       # System runCommand leaves weird files behind
-      SystemCommand rmFilesContain("-stdout")
-      SystemCommand rmFilesContain("-stderr")
+      SystemCommand rmFilesContaining("-stdout")
+      SystemCommand rmFilesContaining("-stderr")
 
       if(cmdOut exitStatus != 0 and logFailure == true,
           self log("Last command exited with the following error:", "error")
