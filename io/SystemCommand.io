@@ -29,7 +29,7 @@ SystemCommand := Object clone do(
 
     rmFilesContaining := method(string,
         Directory files foreach(item,
-            item name containsSeq(string) ifTrue(self rmFile(item path))
+            item name containsSeq(string) ifTrue(item remove)
         )
     )
 
