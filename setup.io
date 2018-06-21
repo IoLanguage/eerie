@@ -7,7 +7,7 @@ eeriePath := method(
     if(platform containsAnyCaseSeq("windows") or(platform containsAnyCaseSeq("mingw")),
         return System installPrefix .. "/eerie"
         ,
-        return System ioPath .. "/eerie"
+        return ("~/.eerie" stringByExpandingTilde)
     )
 )
 eerieDir  := Directory with(eeriePath)
