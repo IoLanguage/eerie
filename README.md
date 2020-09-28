@@ -50,6 +50,12 @@ io setup.io -dev
 
 ## Usage
 
+To open documentation in your browser:
+
+```shell
+eerie doc
+```
+
 Besides of the API, which you can use inside of your scripts, Eerie has a
 command-line interface. For example, to install
 [jasmineio](https://github.com/bekkopen/jasmineio) package run:
