@@ -174,9 +174,9 @@ Namespaces Pkg := Namespace clone do(
         |{
         |  "name":         "#{name}",
         |  "version":      "0.1",
-        |  "description":  "My cool new project.",
+        |  "description":  "",
         |  "author":       "",
-        |  "website":      "http://#{name}-project.org/",
+        |  "website":      "",
         |  "readme":       "README.md",
         |  "protos":       ["#{protoName}"],
         |  "dependencies": {

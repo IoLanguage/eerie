@@ -2,6 +2,24 @@
 
 The package manager for Io.
 
+Eerie may install packages from a specifically structured directory, a single
+file or:
+
+#### Archive
+
+- 7zip
+- rar
+- tarbz2
+- targz
+- zip
+
+#### Version Control System
+
+- bazaar
+- git
+- mercurial
+- svn
+
 
 
 
