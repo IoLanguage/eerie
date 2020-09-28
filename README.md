@@ -1,5 +1,7 @@
 # Eerie
 
+The package manager for Io.
+
 
 
 
