@@ -124,8 +124,10 @@ Namespaces Pkg := Namespace clone do(
         )
     )
 
-    help := method(name,
-        """Opens documentation for the package in the browser."""
+    doc := method(name,
+        """Opens documentation for the package in the browser.
+        Or opens Eerie documentation, if package name isn't specified.
+        """
         if(name not,
             Docio openDocsForPackageWithName("Eerie")
             ,
@@ -226,13 +228,13 @@ Namespaces Plugin := Namespace clone do(
 
 Namespaces Default do(
   # Aliases
-  envs      := Namespaces Env getSlot("list")
-  activate  := Namespaces Env getSlot("activate")
-  pkgs      := Namespaces Pkg getSlot("list")
-  install   := Namespaces Pkg getSlot("install")
-  remove    := Namespaces Pkg getSlot("remove")
-  update    := Namespaces Pkg getSlot("update")
-  help      := Namespaces Pkg getSlot("help")
+  envs     := Namespaces Env getSlot("list")
+  activate := Namespaces Env getSlot("activate")
+  pkgs     := Namespaces Pkg getSlot("list")
+  install  := Namespaces Pkg getSlot("install")
+  remove   := Namespaces Pkg getSlot("remove")
+  update   := Namespaces Pkg getSlot("update")
+  doc      := Namespaces Pkg getSlot("doc")
   
   selfUpdate := task(
     """Updates Eerie and its dependencies."""
@@ -274,10 +276,11 @@ Namespaces Options do(
 // Autorelease transaction lock on any exception
 raiseMethod := Exception clone getSlot("raise")
 Exception do(
-    raise := method(arg,
+    raise := method(error, nestedException,
         Eerie Transaction releaseLock
-        raiseMethod(arg)
+        raiseMethod(error, nestedException)
     )
 )
 
-Kano run
+e := try(Kano run)
+e catch(Exception, "Error: #{e error}" interpolate println)
