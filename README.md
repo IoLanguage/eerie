@@ -8,7 +8,7 @@ The package manager for Io.
 ## Installing
 
 If you installed Io and didn't use `-DWITHOUT_EERIE` flag, Eerie is already
-installed in your system. So this instructions more for Eerie developers.
+installed in your system. So these instructions are for Eerie developers.
 
 ```shell
 $ git clone https://github.com/IoLanguage/eerie.git
