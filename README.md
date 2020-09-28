@@ -67,11 +67,12 @@ Default:
   activate <name>
     Sets environment as default.
 
+  doc <name>
+    Opens documentation for the package in the browser.
+    Or opens Eerie documentation, if package name isn't specified.
+
   envs
     Lists all envs. Active environment has an asterisk before its name.
-
-  help <name>
-    Opens documentation for the package in the browser.
 
   install <uri>
     Installs a new package.
@@ -126,7 +127,8 @@ Options:
     Prints Eerie version.
 
   verbose
-    Uses verbose output - debug messages, shell commands - everything will be printed.
+    Uses verbose output - debug messages, shell commands - everything will be prin
+ted.
     Watch out for information overload.
 
 Pkg:
@@ -134,13 +136,16 @@ Pkg:
 
   create <name> <path>
     Creates an empty package structure.
-    If <path> is omitted, new directory will be created in current working directory.
+    If <path> is omitted, new directory will be created in current working directo
+ry.
 
-  help <name>
+  doc <name>
     Opens documentation for the package in the browser.
+    Or opens Eerie documentation, if package name isn't specified.
 
   hook <hookName> <packageName>
-    Runs a hook with name at first argument for the package with name at the second one.
+    Runs a hook with name at first argument for the package with name at the secon
+d one.
 
   info <name>
     Shows description of a package.
