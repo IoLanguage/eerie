@@ -1,7 +1,12 @@
 # Eerie
 
+
+
+
 ## Installing
-Io ships with Eerie by default. But if you need:
+
+If you installed Io and didn't use `-DWITHOUT_EERIE` flag, Eerie is already
+installed in your system. So this instructions more for Eerie developers.
 
 ```shell
 $ git clone https://github.com/IoLanguage/eerie.git
@@ -9,21 +14,31 @@ $ cd eerie
 $ io setup.io ~/.path_to_your_shell_startup_script
 $ source ~/.path_to_your_shell_startup_script
 ```
-For development purposes you'd like to install Eerie from a local directory. You can use `-dev` flag for this:
+
+For development purposes you need to install Eerie from a local directory, so
+Eerie will remember the path for its sources and you'll be able to update it
+easily calling `eerie selfUpdate`. 
+
+Use `-dev` flag for this:
 
 ```shell
 io setup.io -dev
 ```
 
+
+
+
 ## Usage
 
-Besides of the API, Eerie has a commandline interface. For example to install [jasmineio](https://github.com/bekkopen/jasmineio) package run:
+Besides of the API, which you can use inside of your scripts, Eerie has a
+command-line interface. For example, to install
+[jasmineio](https://github.com/bekkopen/jasmineio) package run:
 
 ```
 $ eerie install https://github.com/bekkopen/jasmineio.git
 ```
 
-The list of available commands (run `eerie -T` to view it):
+Run `eerie -T` to view all the available commands:
 
 ```shell
 Default:
