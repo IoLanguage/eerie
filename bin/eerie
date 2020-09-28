@@ -6,6 +6,7 @@ Kano setUseExternalFile(false)
 Eerie do(
   _log := getSlot("log")
   _allowedModes := list("info", "error", "transaction", "install")
+  _isVerbose := false
 
   log = method(str, mode,
     (mode == nil or self _allowedModes contains(mode)) ifTrue(
@@ -265,6 +266,7 @@ Namespaces Options do(
   verbose := option(
     """Uses verbose output - debug messages, shell commands - everything will be printed.
     Watch out for information overload."""
+    Eerie _isVerbose = true
     Eerie log = Eerie getSlot("_log"))
 
   v := option(
@@ -283,4 +285,6 @@ Exception do(
 )
 
 e := try(Kano run)
-e catch(Exception, "Error: #{e error}" interpolate println)
+e catch(Exception, 
+        "Error: #{e error}" interpolate println
+        Eerie _isVerbose ifTrue(e coroutine backTraceString println))
