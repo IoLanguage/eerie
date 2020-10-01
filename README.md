@@ -48,12 +48,6 @@ You can also use these flags:
   work. It should be also in your `PATH` variable as well as
   `$EERIEDIR/base/bin` and `$EERIEDIR/activeEnv/bin`.
 
-Use `-dev` flag for this:
-
-```shell
-io setup.io -dev
-```
-
 
 
 
