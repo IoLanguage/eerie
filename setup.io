@@ -18,8 +18,8 @@ eeriePackageUrl := if(isDev,
 
 isNotouch := options hasKey("notouch")
 
-isWindows := (System platform containsAnyCaseSeq("windows") 
-        or(System platform containsAnyCaseSeq("mingw")))
+isWindows := (System platform containsAnyCaseSeq("windows") or(
+            System platform containsAnyCaseSeq("mingw")))
 
 shrc := block(
         if(options hasKey("shrc"), return list(options at("shrc")))
