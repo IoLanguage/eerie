@@ -35,6 +35,7 @@ eeriePath := if(isWindows, System installPrefix .. "/eerie",
 eerieDir := Directory with(eeriePath)
 
 System setEnvironmentVariable("EERIEDIR", eeriePath)
+
 System setEnvironmentVariable("PATH", 
         "#{System getEnvironmentVariable(\"PATH\")}:#{eeriePath}/base/bin:#{eeriePath}/activeEnv/bin" interpolate)
 
