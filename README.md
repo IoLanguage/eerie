@@ -41,7 +41,8 @@ You can also use these flags:
   selfUpdate`. 
 - `--shrc=<path>` path to your shell config (for example
   `--shrc=~/.bash_profile` or `--shrc=~/.zshrc`). Without this flag
-  `~/.profile`, `~/.bash_profile` and `~/.zshrc` will be updated automatically.
+  `~/.profile`, `~/.bash_profile` and `~/.zshrc` will be updated automatically
+  on unix systems and no files will be updated on Windows.
 - `--notouch` this flag will not touch any config file on your system. If you
   use this flag you should be sure that `EERIEDIR` environment variable is set
   to Eerie directory and is available during sessions, otherwise Eerie will not
