@@ -2,42 +2,73 @@
 
 Importer addSearchPath("io/")
 
-eeriePath := method(
+# Parse arguments
+
+if(System args size > 4, 
+        "Error: wrong number of arguments" println
+        return 1)
+
+isDev := System args contains("-dev")
+
+eeriePackageUrl := if(isDev,
+        Directory currentWorkingDirectory,
+        "https://github.com/IoLanguage/eerie.git")
+
+isNotouch := System args contains("-notouch")
+
+shrc := block(
+        path := System args detect(v, v beginsWithSeq("-shrc=")) ?afterSeq("=")
+
+        if((path), 
+            list(path),
+            # FIXME: it's unix only
+            list( "~/.profile", "~/.bash_profile", "~/.zshrc"))
+        ) call
+
+
+eeriePath := block(
     platform := System platform
     if(platform containsAnyCaseSeq("windows") or(platform containsAnyCaseSeq("mingw")),
         return System installPrefix .. "/eerie"
         ,
         return ("~/.eerie" stringByExpandingTilde)
     )
-)
-eerieDir  := Directory with(eeriePath)
+) call
+
+eerieDir := Directory with(eeriePath)
 
 System setEnvironmentVariable("EERIEDIR", eeriePath)
+System setEnvironmentVariable("PATH", 
+        "#{System getEnvironmentVariable(\"PATH\")}:#{eeriePath}/base/bin:#{eeriePath}/activeEnv/bin" interpolate)
+
+shellScript := """
+# Eerie config
+EERIEDIR=#{eeriePath}
+PATH=$PATH:$EERIEDIR/base/bin:$EERIEDIR/activeEnv/bin
+export EERIEDIR PATH
+# End Eerie config""" interpolate
 
 appendEnvVariables := method(
-  bashScript := """|
-    |# Eerie config
-    |EERIEDIR=#{eeriePath}
-    |PATH=$PATH:$EERIEDIR/base/bin:$EERIEDIR/activeEnv/bin
-    |export EERIEDIR PATH
-    |# End Eerie config""" fixMultiline interpolate
-  bashFile := if(System args at(1) != "-dev", System args at(1))
+        if(isNotouch, 
+            "----" println
+            "Make sure to update your shell's environment variables before using Eerie." println
+            "Here's a sample code you could use:" println
+            shellScript println
+            return 0)
 
-  if(bashFile,
-    bashFile = File with(bashFile)
-    bashFile exists ifFalse(
-      bashFile create
-      Eerie log("Created #{bashFile path}"))
-    
-    bashFile contents containsSeq("EERIEDIR") ifFalse(
-      bashFile appendToContents(bashScript)
-      Eerie log("Added new environment variables to #{bashFile path}")
-      Eerie log("Make sure to run \"source #{bashFile path}\""))
-  ,
-    "----" println
-    "Make sure to update your shell's environment variables before using Eerie." println
-    "Here's a sample code you could use:" println
-    bashScript println))
+        shrc foreach(shfile,
+
+            shfile := File with(shfile stringByExpandingTilde)
+            shfile exists ifFalse(
+                shfile create
+                Eerie log("Created #{shfile path}"))
+
+            shfile contents containsSeq("EERIEDIR") ifFalse(
+                shfile appendToContents(shellScript)
+                Eerie log("Added new environment variables to #{shfile path}")
+                )
+            )
+)
 
 createDirectories := method(
   eerieDir createIfAbsent
@@ -56,39 +87,33 @@ createDefaultEnvs := method(
   Eerie saveConfig)
 
 installEeriePkg := method(
-  packageUri := "https://github.com/IoLanguage/eerie.git"
-  if(System args at(1) == "-dev",
-    packageUri = Directory currentWorkingDirectory
-  )
-  Eerie Transaction clone install(Eerie Package fromUri(packageUri)) run
+  Eerie Transaction clone install(Eerie Package fromUri(eeriePackageUrl)) run
 )
 
 activateDefaultEnv := method(
   Eerie Env named("default") activate)
 
-Sequence fixMultiline := method(
-  self splitNoEmpties("\n") map(split("|") last) join("\n") strip)
-
 # Run the process
 if(eerieDir exists,
-  Exception raise(eerieDir path .. " already exists.")
-  ,
-  createDirectories
-
-  Eerie do(
-      _log := getSlot("log")
-      _allowedModes := list("info", "error", "transaction", "install")
-
-      log = method(str, mode,
-          (mode == nil or self _allowedModes contains(mode)) ifTrue(
-              call delegateToMethod(self, "_log")
-          )
-      )
+  "Error: Eerie is already installed at #{eerieDir path}" interpolate println
+  return 1
   )
-  
-  createDefaultEnvs
-  installEeriePkg
-  appendEnvVariables
-  activateDefaultEnv
-  " --- Done! --- " println
-)
+
+createDirectories
+
+Eerie do(
+        _log := getSlot("log")
+        _allowedModes := list("info", "error", "transaction", "install")
+
+        log = method(str, mode,
+            (mode == nil or self _allowedModes contains(mode)) ifTrue(
+                call delegateToMethod(self, "_log")
+                )
+            )
+        )
+
+createDefaultEnvs
+installEeriePkg
+appendEnvVariables
+activateDefaultEnv
+" --- Done! --- " println

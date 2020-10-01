@@ -39,11 +39,11 @@ PackageInstaller := Object clone do(
   //doc PackageInstaller install
   install := method(false)
 
-  //doc PackageInstaller fileNamed(name) Returns an File relative to root directory.
+  //doc PackageInstaller fileNamed(name) Returns a File relative to root directory.
   fileNamed := method(name,
     self root fileNamed(name))
 
-  //doc PackageInstaller dirNamed(name) Returns an Directory relative to root directory.
+  //doc PackageInstaller dirNamed(name) Returns a Directory relative to root directory.
   dirNamed := method(name,
     self root directoryNamed(name))
 

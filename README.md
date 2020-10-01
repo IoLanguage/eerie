@@ -25,19 +25,29 @@ file or:
 
 ## Installing
 
-If you installed Io and didn't use `-DWITHOUT_EERIE` flag, Eerie is already
-installed in your system. So these instructions are for Eerie developers.
+Firstly, make sure you didn't install it when you're installing Io. If you
+didn't:
 
 ```shell
 $ git clone https://github.com/IoLanguage/eerie.git
 $ cd eerie
-$ io setup.io ~/.path_to_your_shell_startup_script
-$ source ~/.path_to_your_shell_startup_script
+$ io setup.io
+$ source /path/to/your/shell/config
 ```
 
-For development purposes you need to install Eerie from a local directory, so
-Eerie will remember the path for its sources and you'll be able to update it
-easily calling `eerie selfUpdate`. 
+You can also use these flags:
+
+- `-dev` to install Eerie from a local directory, so Eerie will remember the
+  path for its sources and you'll be able to update it easily calling `eerie
+  selfUpdate`. 
+- `-shrc=<path>` path to your shell config (for example `-shrc=~/.bash_profile`
+  or `-shrc=~/.zshrc`). Without this flag `~/.profile`, `~/.bash_profile` and
+  `~/.zshrc` will be updated automatically.
+- `-notouch` this flag will not touch any config file on your system. If you use
+  this flag you should be sure that `EERIEDIR` environment variable is set to
+  Eerie directory and is available during sessions, otherwise Eerie will not
+  work. It should be also in your `PATH` variable as well as
+  `$EERIEDIR/base/bin` and `$EERIEDIR/activeEnv/bin`.
 
 Use `-dev` flag for this:
 
