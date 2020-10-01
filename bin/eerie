@@ -288,4 +288,4 @@ e := try(Kano run)
 e catch(Exception, 
         "Error: #{e error}" interpolate println
         Eerie _isVerbose ifTrue(e coroutine backTraceString println)
-        return 1)
+        System exit(1))

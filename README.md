@@ -36,15 +36,15 @@ $ io setup.io
 
 You can also use these flags:
 
-- `-dev` to install Eerie from a local directory, so Eerie will remember the
+- `--dev` to install Eerie from a local directory, so Eerie will remember the
   path for its sources and you'll be able to update it easily calling `eerie
   selfUpdate`. 
-- `-shrc=<path>` path to your shell config (for example `-shrc=~/.bash_profile`
-  or `-shrc=~/.zshrc`). Without this flag `~/.profile`, `~/.bash_profile` and
-  `~/.zshrc` will be updated automatically.
-- `-notouch` this flag will not touch any config file on your system. If you use
-  this flag you should be sure that `EERIEDIR` environment variable is set to
-  Eerie directory and is available during sessions, otherwise Eerie will not
+- `--shrc=<path>` path to your shell config (for example
+  `--shrc=~/.bash_profile` or `--shrc=~/.zshrc`). Without this flag
+  `~/.profile`, `~/.bash_profile` and `~/.zshrc` will be updated automatically.
+- `--notouch` this flag will not touch any config file on your system. If you
+  use this flag you should be sure that `EERIEDIR` environment variable is set
+  to Eerie directory and is available during sessions, otherwise Eerie will not
   work. It should be also in your `PATH` variable as well as
   `$EERIEDIR/base/bin` and `$EERIEDIR/activeEnv/bin`.
 

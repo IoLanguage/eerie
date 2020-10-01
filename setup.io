@@ -6,33 +6,35 @@ Importer addSearchPath("io/")
 
 if(System args size > 4, 
         "Error: wrong number of arguments" println
-        return 1)
+        System exit(1))
 
-isDev := System args contains("-dev")
+options := System getOptions(System args)
+
+isDev := options hasKey("dev")
 
 eeriePackageUrl := if(isDev,
         Directory currentWorkingDirectory,
         "https://github.com/IoLanguage/eerie.git")
 
-isNotouch := System args contains("-notouch")
+isNotouch := options hasKey("notouch")
 
 shrc := block(
-        path := System args detect(v, v beginsWithSeq("-shrc=")) ?afterSeq("=")
+        if(options hasKey("shrc"), return list(options at("shrc")))
 
-        if((path), 
-            list(path),
-            # FIXME: it's unix only
+        if(System platform containsAnyCaseSeq("windows") 
+            or(System platform containsAnyCaseSeq("mingw")),
+            list(),
             list( "~/.profile", "~/.bash_profile", "~/.zshrc"))
         ) call
 
-
 eeriePath := block(
     platform := System platform
-    if(platform containsAnyCaseSeq("windows") or(platform containsAnyCaseSeq("mingw")),
+    if(platform containsAnyCaseSeq("windows")
+        or(platform containsAnyCaseSeq("mingw")),
         return System installPrefix .. "/eerie"
         ,
         return ("~/.eerie" stringByExpandingTilde)
-    )
+      )
 ) call
 
 eerieDir := Directory with(eeriePath)
@@ -49,12 +51,12 @@ export EERIEDIR PATH
 # End Eerie config""" interpolate
 
 appendEnvVariables := method(
-        if(isNotouch, 
+        if(isNotouch or(shrc size == 0), 
             "----" println
             "Make sure to update your shell's environment variables before using Eerie." println
             "Here's a sample code you could use:" println
             shellScript println
-            return 0)
+            return)
 
         shrc foreach(shfile,
 
@@ -95,9 +97,8 @@ activateDefaultEnv := method(
 
 # Run the process
 if(eerieDir exists,
-  "Error: Eerie is already installed at #{eerieDir path}" interpolate println
-  return 1
-  )
+        "Error: Eerie is already installed at #{eerieDir path}" interpolate println
+        System exit(1))
 
 createDirectories
 
