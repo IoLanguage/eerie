@@ -32,7 +32,6 @@ didn't:
 $ git clone https://github.com/IoLanguage/eerie.git
 $ cd eerie
 $ io setup.io
-$ source /path/to/your/shell/config
 ```
 
 You can also use these flags:
