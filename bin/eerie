@@ -273,9 +273,7 @@ Namespaces Options do(
     """Prints Eerie version."""
     name := Eerie Env named("_base") packageNamed("Eerie") info at("name")
     version := Eerie Env named("_base") packageNamed("Eerie") info at("version")
-    description := Eerie Env named("_base") packageNamed("Eerie") info \
-        at("description")
-    "#{name}, #{description} v#{version}" interpolate println
+    "#{name}, v#{version}" interpolate println
   )
 )
 
