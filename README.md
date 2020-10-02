@@ -23,18 +23,21 @@ file or:
 
 
 
-## Installing
+## Installation
 
-Firstly, make sure you didn't install it when you're installing Io. If you
-didn't:
+There's a big chance you already install it with Io. If for some reason you
+didn't, follow the instructions below.
+
+
+### Linux, macOS
 
 ```shell
 $ git clone https://github.com/IoLanguage/eerie.git
 $ cd eerie
-$ io setup.io
+$ ./install-unix.sh
 ```
 
-You can also use these flags:
+The next options are available:
 
 - `--dev` to install Eerie from a local directory, so Eerie will remember the
   path for its sources and you'll be able to update it easily calling `eerie
@@ -52,7 +55,7 @@ You can also use these flags:
 
 
 
-## Usage
+## Getting Started
 
 To open documentation in your browser:
 

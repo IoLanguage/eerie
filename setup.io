@@ -5,8 +5,8 @@ Importer addSearchPath("io/")
 # Parse arguments
 
 if(System args size > 4, 
-    "Error: wrong number of arguments" println
-    System exit(1))
+        "Error: wrong number of arguments" println
+        System exit(1))
 
 options := System getOptions(System args)
 
@@ -41,9 +41,8 @@ System setEnvironmentVariable("PATH",
 
 shellScript := """
 # Eerie config
-EERIEDIR=#{eeriePath}
-PATH=$PATH:$EERIEDIR/base/bin:$EERIEDIR/activeEnv/bin
-export EERIEDIR PATH
+export EERIEDIR=#{eeriePath}
+export PATH=$PATH:$EERIEDIR/base/bin:$EERIEDIR/activeEnv/bin
 # End Eerie config""" interpolate
 
 appendEnvVariables := method(
@@ -108,15 +107,15 @@ if(eerieDir exists,
 createDirectories
 
 Eerie do(
-        _log := getSlot("log")
-        _allowedModes := list("info", "error", "transaction", "install")
+    _log := getSlot("log")
+    _allowedModes := list("info", "error", "transaction", "install")
 
-        log = method(str, mode,
-            (mode == nil or self _allowedModes contains(mode)) ifTrue(
-                call delegateToMethod(self, "_log")
-                )
+    log = method(str, mode,
+        (mode == nil or self _allowedModes contains(mode)) ifTrue(
+            call delegateToMethod(self, "_log")
             )
         )
+)
 
 createDefaultEnvs
 installEeriePkg
