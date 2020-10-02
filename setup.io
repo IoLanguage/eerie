@@ -34,6 +34,15 @@ eeriePath := if(isWindows, System installPrefix .. "/eerie",
 
 eerieDir := Directory with(eeriePath)
 
+writePath := method(eeriePath,
+    # we write eeriePath into a file and then read this file inside
+    # install_unix.sh
+    # this allows us to update current session with $EERIEDIR
+    path := Directory currentWorkingDirectory .. "/__install_path"
+    file := File with(path) create
+    file setContents(eeriePath)
+)
+
 System setEnvironmentVariable("EERIEDIR", eeriePath)
 
 System setEnvironmentVariable("PATH", 
@@ -121,4 +130,5 @@ createDefaultEnvs
 installEeriePkg
 appendEnvVariables
 activateDefaultEnv
+writePath(eeriePath)
 " --- Done! --- " println
