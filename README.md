@@ -46,10 +46,10 @@ The next options are available:
   `--shrc=~/.bash_profile` or `--shrc=~/.zshrc`). Without this flag
   `~/.profile`, `~/.bash_profile` and `~/.zshrc` will be updated automatically
   on unix systems and no files will be updated on Windows.
-- `--notouch` this flag will not touch any config file on your system. If you
-  use this flag you should be sure that `EERIEDIR` environment variable is set
-  to Eerie directory and is available during sessions, otherwise Eerie will not
-  work. It should be also in your `PATH` variable as well as
+- `--notouch` with this flag the script will not touch any config file on your
+  system. If you use it you should be sure that `EERIEDIR` environment variable
+  is set to Eerie directory and is available during sessions, otherwise Eerie
+  will not work. It should be also in your `PATH` variable as well as
   `$EERIEDIR/base/bin` and `$EERIEDIR/activeEnv/bin`.
 
 
