@@ -34,7 +34,7 @@ didn't, follow the instructions below.
 ```shell
 $ git clone https://github.com/IoLanguage/eerie.git
 $ cd eerie
-$ ./install-unix.sh
+$ ./install_unix.sh
 ```
 
 The next options are available:
