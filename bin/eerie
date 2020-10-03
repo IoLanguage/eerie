@@ -277,15 +277,6 @@ Namespaces Options do(
   )
 )
 
-// Autorelease transaction lock on any exception
-raiseMethod := Exception clone getSlot("raise")
-Exception do(
-    raise := method(error, nestedException,
-        Eerie Transaction releaseLock
-        raiseMethod(error, nestedException)
-    )
-)
-
 e := try(Kano run)
 e catch(Exception, 
         "Error: #{e error}" interpolate println
