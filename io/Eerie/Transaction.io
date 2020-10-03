@@ -9,22 +9,48 @@ Transaction := Object clone do(
     self items = List clone
     self depsCheckedFor = List clone
     self acquireLock)
- 
+
+  /*doc Transaction lockFile A file with current Eerie process ID. Eerie checks
+  for existence of this file to make it sure that only one instance of Eerie is
+  ranning.
+  */
   lockFile := File with(Eerie root .. "/.transaction_lock")
 
-  //doc Transaction acquireLock
+  //doc Transaction acquireLock Creates transaction lock.
   acquireLock := method(
-    processPid := if(lockFile exists, lockFile openForReading contents, nil)
-    if(processPid == System thisProcessPid asString,
+    pid := if(lockFile exists, lockFile openForReading contents, nil)
+    (pid == System thisProcessPid asString) ifTrue(
       Eerie log("Trying to acquire lock but its already present.", "debug")
       return(true))
 
+    _checkAbandonedLock
+
     while(self lockFile exists,
-      Eerie log("[#{Date now}] Process #{processPid} has lock. Waiting for process to finish...", "error")
+      Eerie log("[#{Date now}] Process #{pid} has lock. Waiting for process to finish...", "error")
       System sleep(5))
 
     self lockFile close openForUpdating write(System thisProcessPid asString) close
     true)
+  
+  # remove the lock if it exists, but the process isn't running
+  _checkAbandonedLock := method(
+    if(self lockFile exists not, return)
+    pid := self lockFile contents
+    if(_isProcessRunning(pid) not, self lockFile remove)
+  )
+
+  _isProcessRunning := method(pid,
+    isWindows := (System platform containsAnyCaseSeq("windows") or(
+                System platform containsAnyCaseSeq("mingw")))
+
+    cmd := if(isWindows,
+          "TASKLIST /FI \"PID eq #{pid}\" 2>NUL | find \"#{pid}\" >NUL" \
+              interpolate ,
+          "ps -p #{pid} > /dev/null" interpolate
+        )
+
+    return System system(cmd) == 0
+  )
 
   //doc Transaction releaseLock
   releaseLock := method(
