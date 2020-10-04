@@ -4,7 +4,7 @@
   "description": "The Io package manager.",
   "author": "Josip Lisec",
   "readme": "README.md",
-  "website": "http://josip.github.com/eerie",
+  "website": "https://iolanguage.github.io/eerie",
   "categories": ["utility", "system"],
   "protos": ["Eerie"],
   "dependencies": {

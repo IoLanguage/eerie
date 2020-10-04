@@ -1,5 +1,3 @@
-#!/usr/local/bin io
-
 Importer addSearchPath("io/")
 
 # Parse arguments

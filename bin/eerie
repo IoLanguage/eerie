@@ -176,7 +176,7 @@ Namespaces Pkg := Namespace clone do(
         pkgInfo := """|
         |{
         |  "name":         "#{name}",
-        |  "version":      "0.1",
+        |  "version":      "0.1.0",
         |  "description":  "",
         |  "author":       "",
         |  "website":      "",
