@@ -15,7 +15,7 @@ IoAddonInstaller := Eerie PackageInstaller clone do(
 
     binDir := self dirNamed("bin")
     if(binDir exists and(binDir files isEmpty not),
-      self copyBinaries,
+      self installBinaries,
       binDir create)
 
     true)
