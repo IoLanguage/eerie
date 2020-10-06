@@ -44,7 +44,7 @@ Package := Object clone do(
             "uri",  nil,
             "path", nil))
 
-    /*doc Package with(name, uri[, env]) Creates new package with provided name
+    /*doc Package with(name, uri) Creates new package with provided name
     and URI.*/
     with := method(name_, uri_,
         (uri_ exSlice(-1) == "/") ifTrue(

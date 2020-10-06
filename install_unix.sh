@@ -3,6 +3,6 @@
 io setup.io "$@"
 
 export EERIEDIR=$(cat __install_path)
-export PATH="$PATH:$EERIEDIR/base/bin:$EERIEDIR/activeEnv/bin"
+export PATH="$PATH:$EERIEDIR/bin"
 
 rm -f __install_path

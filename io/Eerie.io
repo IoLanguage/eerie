@@ -10,11 +10,17 @@ System userInterruptHandler := method(
 
 Eerie := Object clone do(
     //doc Eerie tmpDir Get path to temp directory.
-    tmpDir ::= System getEnvironmentVariable("EERIEDIR") .. "/tmp"
+    globalEerieDir := System getEnvironmentVariable("EERIEDIR")
+    tmpDir ::= globalEerieDir .. "/tmp"
     addonsJson :=  nil
     addonsMap ::= nil
     addonsJsonBackup ::= nil
     _isGlobal := false
+
+    init := method(
+        envvar := globalEerieDir
+        if(envvar isNil or envvar == "", 
+            Exception raise("Error: EERIEDIR is not set")))
 
     //doc Eerie isGlobal Whether the global environment in use.
     isGlobal := method(self _isGlobal)
@@ -34,10 +40,7 @@ Eerie := Object clone do(
 
     /*doc Eerie root Current working directory or value of `EERIEDIR` system's 
     environment variable if `isGlobal` is `true`.*/
-    root := method(
-        if (isGlobal, 
-            System getEnvironmentVariable("EERIEDIR"),
-            ".")
+    root := method(if (isGlobal, globalEerieDir, ".")
 
     /*doc Eerie sh(cmd[, logFailure=true, dir=cwd])
     Executes system command. If `logFailure` is `true` and command exists with
@@ -120,13 +123,13 @@ Eerie := Object clone do(
     appendPackage := method(package,
         self addonsMap at("packages") appendIfAbsent(package config)
         self packages appendIfAbsent(package)
-        self saveConfig)
+        self saveAddonsJson)
 
     //doc Eerie removePackage(package) Removes the given package.
     removePackage := method(package,
         self addonsMap at("packages") remove(package config)
         self packages remove(package)
-        self saveConfig)
+        self saveAddonsJson)
 
     //doc Eerie updatePackage(package)
     updatePackage := method(package,
@@ -137,7 +140,7 @@ Eerie := Object clone do(
         self addonsMap at("packages") removeAt(package name) atPut(
             package name, package config)
         self packages remove(old) append(package)
-        self saveConfig)
+        self saveAddonsJson)
 
     //doc Eerie packages Returns list of installed packages .
     packages := method(

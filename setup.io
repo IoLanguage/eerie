@@ -39,8 +39,7 @@ shrc := block(
 
     if(isWindows,
         list(),
-        list("~/.profile", "~/.bash_profile", "~/.zshrc"))
-) call
+        list("~/.profile", "~/.bash_profile", "~/.zshrc"))) call
 
 eeriePath := if(isWindows, System installPrefix .. "\\eerie",
     ("~/.eerie" stringByExpandingTilde))
@@ -53,8 +52,7 @@ writePath := method(eeriePath,
     # this allows us to update current session with $EERIEDIR
     path := Directory currentWorkingDirectory .. "/__install_path"
     file := File with(path) create
-    file setContents(eeriePath)
-)
+    file setContents(eeriePath))
 
 System setEnvironmentVariable("EERIEDIR", eeriePath)
 
@@ -91,28 +89,23 @@ appendEnvVariables := method(
     # set envvars permanently on Windows
     if(isWindows and(shrc size == 0),
         Eerie sh("setx EERIEDIR #{eeriePath}" interpolate, true)
-        Eerie sh("setx PATH \"%PATH%;#{eeriePath}\\bin\"" interpolate, true))
-)
+        Eerie sh("setx PATH \"%PATH%;#{eeriePath}\\bin\"" interpolate, true)))
 
 createDirectoryStructure := method(
     if(eerieDir exists,
         "Error: Eerie is already installed at #{eerieDir path}" \
-            interpolate println
+        interpolate println
         System exit(1))
 
     eerieDir create
-    eerieDir directoryNamed("addons") create
     eerieDir directoryNamed("bin") create
-    eerieDir directoryNamed("plugins") create
     eerieDir directoryNamed("tmp") create
 
-    eerieDir fileNamed("/config.json") open setContents("{}") close
-)
+    eerieDir fileNamed("/config.json") open setContents("{}") close)
 
 installEeriePkg := method(
     Eerie Transaction clone install_global(
-        Eerie Package fromUri(eeriePackageUrl)) run
-)
+        Eerie Package fromUri(eeriePackageUrl)) run)
 
 # Run the process
 
@@ -122,8 +115,7 @@ Eerie do(
 
     log = method(str, mode,
         (mode == nil or self _allowedModes contains(mode)) ifTrue(
-            call delegateToMethod(self, "_log"))
-    )
+            call delegateToMethod(self, "_log")))
 )
 
 createDirectoryStructure
