@@ -2,7 +2,7 @@ InstallAction := Eerie TransactionAction clone do(
   asVerb := "Installing"
 
   prepare := method(
-      if(Eerie usedEnv packages detect(name asLowercase == self pkg name asLowercase),
+      if(Eerie packages detect(name asLowercase == self pkg name asLowercase),
           Eerie log("Package with name #{self pkg name} already installed in #{Eerie usedEnv name}." interpolate, "info")
           return(false)
       )

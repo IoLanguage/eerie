@@ -4,21 +4,40 @@
 SystemCommand
 
 System userInterruptHandler := method(
-    Eerie log("Reverting config before interrupt.")
-    Eerie revertConfig
+    Eerie log("Reverting addons.json before interrupt.")
+    Eerie revertAddonsJson
     Eerie Transaction releaseLock)
 
 Eerie := Object clone do(
-    //doc Eerie root Value of EERIEDIR system's environment variable.
-    root ::= System getEnvironmentVariable("EERIEDIR")
     //doc Eerie tmpDir Get path to temp directory.
-    tmpDir ::= root .. "/tmp"
-    /*doc Eerie isGlobal Whether the global environment in use. Default to
-    `false`.*/
-    isGlobal ::= false
-    configFile :=  nil
-    config ::= nil
-    configBackup ::= nil
+    tmpDir ::= System getEnvironmentVariable("EERIEDIR") .. "/tmp"
+    addonsJson :=  nil
+    addonsMap ::= nil
+    addonsJsonBackup ::= nil
+    _isGlobal := false
+
+    //doc Eerie isGlobal Whether the global environment in use.
+    isGlobal := method(self _isGlobal)
+
+    //doc Eerie setIsGlobal Set whether the global environment in use. 
+    setIsGlobal := method(value, 
+        self _isGlobal = value
+        self initConfig)
+
+    initConfig := method(
+        self addonsJson ?close
+        self addonsJson := File with((self root) .. "/addons.json") 
+        self addonsJson openForUpdating
+        self setConfig(self addonsJson contents parseJson)
+        self setConfigBackup(self addonsJson contents)
+        self)
+
+    /*doc Eerie root Current working directory or value of `EERIEDIR` system's 
+    environment variable if `isGlobal` is `true`.*/
+    root := method(
+        if (isGlobal, 
+            System getEnvironmentVariable("EERIEDIR"),
+            ".")
 
     /*doc Eerie sh(cmd[, logFailure=true, dir=cwd])
     Executes system command. If `logFailure` is `true` and command exists with
@@ -67,28 +86,40 @@ Eerie := Object clone do(
         mode ifNil(mode = "info")
         ((self _logMods at(mode)) .. str) interpolate(call sender) println)
 
-    init := method(
-        self configFile := File with((self root) .. "/config.json") 
-        self configFile openForUpdating
-        self setConfig(self configFile contents parseJson)
-        self setConfigBackup(self configFile contents)
+    /*doc Eerie updateAddonsJson(key, value) Updates addons.json with given key
+    and value.*/
+    updateAddonsJson := method(key, value,
+        self addonsMap atPut(key, value)
+        self saveAddonsJson)
+
+    //doc Eerie saveAddonsJson
+    saveAddonsJson := method(
+        self addonsJson close remove openForUpdating write(self addonsMap \
+            asJson)
         self)
 
-    //doc Eerie updateConfig(key, value) Updates config Map.
-    updateConfig := method(key, value,
-        self config atPut(key, value)
-        self saveConfig)
+    /*doc Eerie revertAddonsJson Reverts addons.json to the state it was in
+    before executing this script.*/
+    revertAddonsJson := method(
+        self addonsJson close remove openForUpdating write(
+            self addonsJsonBackup)
+        self setConfig(self addonsJsonBackup parseJson))
 
-    //doc Eerie saveConfig
-    saveConfig := method(
-        self configFile close remove openForUpdating write(self config asJson)
-        self)
+    //doc Eerie packages Returns list of installed packages .
+    packages := method(
+        self addonsMap at("packages") map(pkgConfig,
+            (pkgConfig type == "Map") ifFalse(pkgConfig = pkgConfig parseJson)
+            Eerie Package withConfig(pkgConfig)))
 
-    /*doc Eerie revertConfig Reverts config to the state it was in before 
-    executing this script.*/
-    revertConfig := method(
-        self configFile close remove openForUpdating write(self configBackup)
-        self setConfig(self configBackup parseJson))
+    /*doc Eerie packageNamed(name) Returns package with provided name if it 
+    exists, `nil` otherwise.*/
+    packageNamed := method(pkgName,
+        self packages detect(pkg, pkg name == pkgName))
+    
+    /*doc Eerie generatePackagePath Return path for addon with the given name
+    independently of its existence.*/
+    generatePackagePath := method(name,
+        self root .. "/_addons/#{name}" interpolate)
 )
 
 Eerie clone = Eerie do(

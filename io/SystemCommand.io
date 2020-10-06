@@ -2,8 +2,7 @@ SystemCommand := Object clone do(
     getPlatformName := method(return System platform asLowercase)
 
     _isWindows := method(
-        (self getPlatformName == "windows") or(
-            self getPlatformName == "mingw"))
+        (self getPlatformName == "windows") or(self getPlatformName == "mingw"))
 
     # make symbolic link for a file
     lnFile := method(sourcePath, linkPath,

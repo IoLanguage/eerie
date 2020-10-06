@@ -44,7 +44,7 @@ Namespaces Pkg := Namespace clone do(
     # unless we modify it - as we do for plugins.
     update := task(name,
         """Updates the package and all of its dependencies."""
-        pkg := Eerie usedEnv packageNamed(name)
+        pkg := Eerie packageNamed(name)
         pkg isNil ifTrue(
             Eerie MissingPackageException raise(name)
         )
@@ -55,7 +55,7 @@ Namespaces Pkg := Namespace clone do(
     updateAll := task(
         """Updates all packages within current env."""
         t := Eerie Transaction clone
-        Eerie usedEnv packages foreach(pkg,
+        Eerie packages foreach(pkg,
             t update(pkg)
         )
         t run
@@ -64,7 +64,7 @@ Namespaces Pkg := Namespace clone do(
     remove := task(name,
         """Removes the package."""
 
-        pkg := Eerie usedEnv packageNamed(name)
+        pkg := Eerie packageNamed(name)
         pkg isNil ifTrue(
             Exception raise("missingPackage", name)
         )
@@ -74,7 +74,7 @@ Namespaces Pkg := Namespace clone do(
 
     info := task(name,
         """Shows description of a package."""
-        pkg := Eerie usedEnv packageNamed(name)
+        pkg := Eerie packageNamed(name)
         pkg isNil ifTrue(
             Eerie MissingPackageException raise(name)
         )
@@ -102,7 +102,7 @@ Namespaces Pkg := Namespace clone do(
 
     list := task(
         """Lists all packages installed within current env."""
-        Eerie usedEnv packages foreach(pkg,
+        Eerie packages foreach(pkg,
             website := pkg info at("website")
             website = if(website isNil, "", " (" .. website .. ")")
 
@@ -113,7 +113,7 @@ Namespaces Pkg := Namespace clone do(
 
     hook := task(hookName, packageName,
         """Runs a hook with name at first argument for the package with name at the second one."""
-        pkg := Eerie usedEnv packageNamed(name)
+        pkg := Eerie packageNamed(name)
         pkg isNil ifTrue(
             Eerie MissingPackageException raise(name)
         )
@@ -176,7 +176,7 @@ Namespaces Default do(
     Eerie Env named("_base") use
 
     t := Eerie Transaction clone
-    Eerie usedEnv packages foreach(pkg, t update(pkg))
+    Eerie packages foreach(pkg, t update(pkg))
     t run)
 )
 
@@ -193,8 +193,8 @@ Namespaces Options do(
 
   v := option(
     """Prints Eerie version."""
-    name := Eerie Env named("_base") packageNamed("Eerie") info at("name")
-    version := Eerie Env named("_base") packageNamed("Eerie") info at("version")
+    name := Eerie packageNamed("Eerie") info at("name")
+    version := Eerie packageNamed("Eerie") info at("version")
     "#{name}, v#{version}" interpolate println
   )
 )

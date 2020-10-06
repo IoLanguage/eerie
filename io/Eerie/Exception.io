@@ -3,7 +3,7 @@
 To check what type of error has been raise you can use:
 <pre><code class="language-io">install := try(Eerie Transaction do(
   begin
-  install(Eerie Env packageNamed("fakePackage"))
+  install(Eerie packageNamed("fakePackage"))
   run
 ))
 install catch(

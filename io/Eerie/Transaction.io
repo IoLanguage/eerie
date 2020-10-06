@@ -128,7 +128,7 @@ Transaction := Object clone do(
         toInstall := list()
         deps at("packages") ?foreach(uri,
             self depsCheckedFor contains(uri) ifTrue(continue)
-            if(Eerie usedEnv packages detect(pkg, pkg uri == uri) isNil,
+            if(Eerie packages detect(pkg, pkg uri == uri) isNil,
                 toInstall appendIfAbsent(Eerie Package fromUri(uri))
             )
         )
