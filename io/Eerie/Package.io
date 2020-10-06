@@ -7,31 +7,28 @@ Package := Object clone do(
   config ::= nil
 
   //doc Package name
-  name := method(
-    self config at("name"))
+  name := method(self config at("name"))
 
   //doc Package setName(name)
   setName := method(v,
-    self config atPut("name", v)
-    self)
+      self config atPut("name", v)
+      self)
 
   //doc Package uri
-  uri := method(
-    self config at("uri"))
+  uri := method(self config at("uri"))
 
   //doc Package setUri
   setUri := method(v,
-    self config atPut("uri", v)
-    self)
+      self config atPut("uri", v)
+      self)
 
   //doc Package path
-  path := method(
-    self config at("path"))
+  path := method(self config at("path"))
 
   //doc Package setPath(path)
   setPath := method(v,
-    self config atPut("path", v)
-    self)
+      self config atPut("path", v)
+      self)
 
   //doc Package installer Instace of [[PackageInstaller]] for this package.
   installer ::= nil
@@ -39,17 +36,13 @@ Package := Object clone do(
   downloader ::= nil
   
   //doc Package info Contains all the data provided in package.json
-  info := method(
-    self loadInfo)
-
-  //doc Package env Environment in which package is installed.
-  env ::= nil
+  info := method(self loadInfo)
 
   init := method(
-    self config = Map with(
-      "name", nil,
-      "uri",  nil,
-      "path", nil))
+      self config = Map with(
+          "name", nil,
+          "uri",  nil,
+          "path", nil))
 
   //doc Package with(name, uri[, env]) Creates new package with provided name and URI.
   with := method(name_, uri_, env_,
@@ -147,6 +140,5 @@ Package := Object clone do(
     if(d isNil, list(), d))
 
   //doc Package asJson Returns config.
-  asJson := method(
-    self config)
+  asJson := method(self config)
 )

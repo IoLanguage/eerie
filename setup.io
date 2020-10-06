@@ -59,12 +59,12 @@ writePath := method(eeriePath,
 System setEnvironmentVariable("EERIEDIR", eeriePath)
 
 System setEnvironmentVariable("PATH", 
-    "#{System getEnvironmentVariable(\"PATH\")}:#{eeriePath}/base/bin:#{eeriePath}/activeEnv/bin" interpolate)
+    "#{System getEnvironmentVariable(\"PATH\")}:#{eeriePath}/bin" interpolate)
 
 shellScript := """
 # Eerie config
 export EERIEDIR=#{eeriePath}
-export PATH=$PATH:$EERIEDIR/base/bin:$EERIEDIR/activeEnv/bin
+export PATH=$PATH:$EERIEDIR/bin
 # End Eerie config""" interpolate
 
 appendEnvVariables := method(
@@ -91,41 +91,30 @@ appendEnvVariables := method(
     # set envvars permanently on Windows
     if(isWindows and(shrc size == 0),
         Eerie sh("setx EERIEDIR #{eeriePath}" interpolate, true)
-        Eerie sh("setx PATH \"%PATH%;#{eeriePath}\\base\\bin;#{eeriePath}\\activeEnv\\bin\"" \
-            interpolate,
-            true))
+        Eerie sh("setx PATH \"%PATH%;#{eeriePath}\\bin\"" interpolate, true))
 )
 
-createDirectories := method(
-    eerieDir createIfAbsent
-    eerieDir directoryNamed("env") create
+createDirectoryStructure := method(
+    if(eerieDir exists,
+        "Error: Eerie is already installed at #{eerieDir path}" \
+            interpolate println
+        System exit(1))
+
+    eerieDir create
+    eerieDir directoryNamed("addons") create
+    eerieDir directoryNamed("bin") create
+    eerieDir directoryNamed("plugins") create
     eerieDir directoryNamed("tmp") create
 
-    eerieDir fileNamed("/config.json") create \
-        openForUpdating write("{\"envs\": {}}") close
-)
-
-createDefaultEnvs := method(
-    baseEnv := Eerie Env with("_base") create activate use
-    SystemCommand lnDirectory(baseEnv path, eeriePath .. "/base")
-
-    Eerie Env with("_plugins") create
-    Eerie Env with("default") create
-    Eerie saveConfig
+    eerieDir fileNamed("/config.json") open setContents("{}") close
 )
 
 installEeriePkg := method(
-    Eerie Transaction clone install(Eerie Package fromUri(eeriePackageUrl)) run
+    Eerie Transaction clone install_global(
+        Eerie Package fromUri(eeriePackageUrl)) run
 )
 
-activateDefaultEnv := method(Eerie Env named("default") activate)
-
 # Run the process
-if(eerieDir exists,
-    "Error: Eerie is already installed at #{eerieDir path}" interpolate println
-    System exit(1))
-
-createDirectories
 
 Eerie do(
     _log := getSlot("log")
@@ -137,9 +126,8 @@ Eerie do(
     )
 )
 
-createDefaultEnvs
+createDirectoryStructure
 installEeriePkg
 appendEnvVariables
-activateDefaultEnv
 writePath(eeriePath)
 " --- Done! --- " println

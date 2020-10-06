@@ -13,46 +13,8 @@ Eerie do(
       call delegateToMethod(self, "_log")))
 )
 
-System systemInterruptHandler := method(
-  Eerie Transaction releaseLock)
+System systemInterruptHandler := method(Eerie Transaction releaseLock)
  
-Namespaces Env := Namespace clone do(
-  create := task(name,
-    """Creates a new environment."""
-    Eerie Env with(name) create
-    "Created #{name} env." interpolate println)
-
-  activate := task(name,
-    """Sets environment as default."""
-    Eerie Env named(name) activate
-    "Activated #{name} env." interpolate println)
-
-  remove := task(name,
-    """Removes an env with all its packages."""
-    env := Eerie Env named(name)
-    if(Eerie activeEnv == env,
-      "Can't remove active environment." println
-    ,
-      Eerie Env named(name) remove
-      "Env #{name} was removed." interpolate println))
-
-  active := task(
-    """Prints the name of active env."""
-    Eerie activeEnv name println)
-
-  list := task(
-    """Lists all envs. Active environment has an asterisk before its name."""
-
-    activeEnv := Eerie activeEnv name
-    Eerie envs map(name) sort foreach(env,
-      if(env exSlice(0, 1) == "_",
-        Eerie log(env, "debug")
-      ,
-        active := if(activeEnv == env, " * ", " - ")
-        (active .. env) println
-      )))
-)
-
 Namespaces Pkg := Namespace clone do(
     install := task(uri,
         """Installs a new package."""
@@ -69,7 +31,9 @@ Namespaces Pkg := Namespace clone do(
             # Allows user to abort with Control+C
             System sleep(4)
 
-            openCommand := if(System platform == "Darwin", "open", System getEnvironmentVariable("EDITOR"))
+            openCommand := if(System platform == "Darwin",
+                "open",
+                System getEnvironmentVariable("EDITOR"))
             openCommand isNil ifTrue(openCommand = "more")
 
             System system(openCommand .. " " .. readmeFile path)
@@ -199,38 +163,8 @@ Namespaces Pkg := Namespace clone do(
 
 )
 
-Namespaces Plugin := Namespace clone do(
-
-    _before := method(
-        Eerie Env named("_plugins") use
-    )
-
-    install := task(uri,
-        """Installs a new plugin."""
-        Namespaces Pkg clone install(uri)
-    )
-
-    remove := task(name,
-        """Removes a plugin."""
-        Namespaces Pkg clone remove(name)
-    )
-
-    update := task(name,
-        """Updates the plugin."""
-        Namespaces Pkg clone update(name)
-    )
-
-    list := task(
-        """Lists all installed plugins."""
-        Namespaces Pkg list
-    )
-
-)
-
 Namespaces Default do(
   # Aliases
-  envs     := Namespaces Env getSlot("list")
-  activate := Namespaces Env getSlot("activate")
   pkgs     := Namespaces Pkg getSlot("list")
   install  := Namespaces Pkg getSlot("install")
   remove   := Namespaces Pkg getSlot("remove")
@@ -244,18 +178,6 @@ Namespaces Default do(
     t := Eerie Transaction clone
     Eerie usedEnv packages foreach(pkg, t update(pkg))
     t run)
-  
-  releaseLock := task(
-    """Removes transaction lock.
-    Use only if you are sure that process which placed the lock isn't running."""
-    lockFile := Eerie Transaction lockFile
-    lockFile exists ifFalse(
-      return("There was no lock at all." println))
-
-    # TODO: Check if process which has lock exists and kill it.
-
-    Eerie Transaction lockFile close remove
-    "Transaction lock has been removed." println)
 )
 
 Namespaces Options do(
