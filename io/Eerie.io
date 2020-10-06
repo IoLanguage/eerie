@@ -105,21 +105,45 @@ Eerie := Object clone do(
             self addonsJsonBackup)
         self setConfig(self addonsJsonBackup parseJson))
 
-    //doc Eerie packages Returns list of installed packages .
-    packages := method(
-        self addonsMap at("packages") map(pkgConfig,
-            (pkgConfig type == "Map") ifFalse(pkgConfig = pkgConfig parseJson)
-            Eerie Package withConfig(pkgConfig)))
+    /*doc Eerie generatePackagePath Return path for addon with the given name
+    independently of its existence.*/
+    generatePackagePath := method(name,
+        self root .. "/_addons/#{name}" interpolate)
 
     /*doc Eerie packageNamed(name) Returns package with provided name if it 
     exists, `nil` otherwise.*/
     packageNamed := method(pkgName,
         self packages detect(pkg, pkg name == pkgName))
-    
-    /*doc Eerie generatePackagePath Return path for addon with the given name
-    independently of its existence.*/
-    generatePackagePath := method(name,
-        self root .. "/_addons/#{name}" interpolate)
+
+    /*doc Eerie appendPackage(package) Saves package's configuration into
+    addons.json.*/
+    appendPackage := method(package,
+        self addonsMap at("packages") appendIfAbsent(package config)
+        self packages appendIfAbsent(package)
+        self saveConfig)
+
+    //doc Eerie removePackage(package) Removes the given package.
+    removePackage := method(package,
+        self addonsMap at("packages") remove(package config)
+        self packages remove(package)
+        self saveConfig)
+
+    //doc Eerie updatePackage(package)
+    updatePackage := method(package,
+        self addonsMap at("packages") detect(name == package name) isNil ifTrue(
+            Eerie log("Tried to update package which is not yet installed. (#{self name}/#{package name})", "debug")
+            return(false))
+
+        self addonsMap at("packages") removeAt(package name) atPut(
+            package name, package config)
+        self packages remove(old) append(package)
+        self saveConfig)
+
+    //doc Eerie packages Returns list of installed packages .
+    packages := method(
+        self addonsMap at("packages") map(pkgConfig,
+            (pkgConfig type == "Map") ifFalse(pkgConfig = pkgConfig parseJson)
+            Eerie Package withConfig(pkgConfig)))
 )
 
 Eerie clone = Eerie do(

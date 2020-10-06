@@ -12,7 +12,7 @@ RemoveAction := Eerie TransactionAction clone do(
       )
 
       Directory with(self pkg path) remove
-      self pkg env removePackage(self pkg)
+      Eerie removePackage(self pkg)
 
       true
   )

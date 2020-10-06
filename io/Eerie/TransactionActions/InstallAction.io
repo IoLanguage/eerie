@@ -36,7 +36,7 @@ InstallAction := Eerie TransactionAction clone do(
       loadInfo      
     )
 
-    self pkg env appendPackage(self pkg)
+    Eerie appendPackage(self pkg)
     self pkg runHook("afterInstall")
 
     true)
