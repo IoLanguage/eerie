@@ -95,7 +95,7 @@ Eerie := Object clone do(
     /*doc Eerie generatePackagePath Return path for addon with the given name
     independently of its existence.*/
     generatePackagePath := method(name,
-        self root .. "/_addons/#{name}" interpolate)
+        self addonsDir path .. "/#{name}" interpolate)
 
     /*doc Eerie packageNamed(name) Returns package with provided name if it 
     exists, `nil` otherwise.*/
@@ -106,21 +106,19 @@ Eerie := Object clone do(
     appendPackage := method(package, self packages appendIfAbsent(package))
 
     //doc Eerie removePackage(package) Removes the given package.
-    removePackage := method(package,
-        self packages remove(package))
+    removePackage := method(package, self packages remove(package))
 
     //doc Eerie updatePackage(package)
-    # FIXME
     updatePackage := method(package,
-        self addonsMap at("packages") detect(name == package name) isNil ifTrue(
+        old := self packages detect(p, p name == package name)
+        old isNil ifTrue(
             msg := "Tried to update package which is not yet installed."
-            msg = msg .. " (#{self name}/#{package name})"
+            msg = msg .. " (#{package name})"
             Eerie log(msg, "debug")
             return false)
 
-        self addonsMap at("packages") removeAt(package name) atPut(
-            package name, package config)
-        self packages remove(old) append(package))
+        self packages remove(old) append(package)
+        true)
 
 )
 

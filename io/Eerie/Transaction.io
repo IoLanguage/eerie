@@ -100,7 +100,7 @@ Transaction := Object clone do(
 
     resolveDeps := method(package,
         Eerie log("Resolving dependencies for #{package name}")
-        deps := package info at("dependencies")
+        deps := package config at("dependencies")
         if(deps == nil or deps ?keys ?isEmpty,
             return(true))
 

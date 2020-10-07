@@ -18,6 +18,11 @@ EerieTest := UnitTest clone do(
         expected := Eerie root .. "/_addons"
         assertEquals(Eerie addonsDir path, expected))
 
+    testGeneratePackagePath := method(
+        packageName := "FakePackageName"
+        expected := Eerie addonsDir path .. "/#{packageName}" interpolate
+        assertEquals(Eerie generatePackagePath(packageName), expected))
+
     testReloadPackagesList := method(
         Eerie
         Eerie setIsGlobal(true)

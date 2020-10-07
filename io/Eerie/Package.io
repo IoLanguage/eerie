@@ -44,48 +44,24 @@ Package := Object clone do(
             "uri",  nil,
             "path", nil))
 
-    /*doc Package with(name, uri) Creates new package with provided name and 
-    URI.*/
-    with := method(name_, uri_,
-        (uri_ exSlice(-1) == "/") ifTrue(
-            uri_ = uri_ exSlice(0, -1))
+    //doc Package providesProtos Returns list of protos this package provides.
+    providesProtos := method(
+        p := self config at("protos")
+        if(p isNil, list(), p))
 
-        uri_ = Path absoluteIfNeeded(uri_)
-        self clone setConfig(Map with(
-            "name", name_,
-            "uri",  uri_,
-            "path", Eerie generatePackagePath(name_)))) 
+    /*doc Package dependencies([category])
+    Returns list of dependencies this package has. <code>category</code> can be 
+    <code>protos</code>, <code>packages</code>, <code>headers</code> or 
+    <code>libs</code>.*/
+    dependencies := method(category,
+        d := self config at("dependencies")
+        if(category and d and d isEmpty not, d = d at(category))
+        if(d isNil, list(), d))
 
     /*doc Package withConfig(config) Creates new package from provided config.*/
     withConfig := method(config,
         klone := self clone setConfig(config)
-# 
-        # klone config at("installer") isNil ifFalse(
-            # klone installer = Eerie PackageInstaller instances \
-                # getSlot(klone config at("installer")) \
-                # with(klone config at("path")))
-        # klone config at("downloader") isNil ifFalse(
-            # klone downloader = Eerie PackageDownloader instances \
-                # getSlot(klone config at("downloader")) \
-                # with(klone config at("uri"), klone config at("path")))
-
         klone)
-
-    /*doc Package fromUri(uri) Creates a new package from provided uri.
-    Name is determined with [[Package guessName]].*/
-    fromUri := method(uri_, self with(self guessName(uri_), uri_))
-
-    /*doc Package guessName(uri) Guesses name from provide URI. Usually it is
-    just file's basename.*/
-    guessName := method(uri_,
-        (uri_ exSlice(-1) == "/") ifTrue(
-            uri_ = uri_ exSlice(0, -1))
-
-        f := File with(uri_)
-        # We can't use baseName here because it returns nil for directories
-        if(f exists,
-            f name split("."),
-            uri_ split("/") last split(".")) first makeFirstCharacterUppercase)
 
     //doc Package setInstaller(packageInstaller)
     setInstaller := method(inst,
@@ -111,30 +87,6 @@ Package := Object clone do(
                 Eerie log("#{hook} failed.", "error")
                 Eerie log(e message, "debug"))
             f close))
-
-    //doc Package loadInfo Loads eerie.json file.
-    loadInfo := method(
-        pkgInfo := File with((self path) .. "/eerie.json")
-        self info = if(pkgInfo exists,
-            pkgInfo openForReading contents parseJson,
-            Map clone)
-
-        pkgInfo close
-        self info)
-
-    //doc Package providesProtos Returns list of protos this package provides.
-    providesProtos := method(
-        p := self info at("protos")
-        if(p isNil, list(), p))
-
-    /*doc Package dependencies([category])
-    Returns list of dependencies this package has. <code>category</code> can be 
-    <code>protos</code>, <code>packages</code>, <code>headers</code> or 
-    <code>libs</code>.*/
-    dependencies := method(category,
-        d := self info at("dependencies")
-        if(category and d and d isEmpty not, d = d at(category))
-        if(d isNil, list(), d))
 
     //doc Package asJson Returns config.
     asJson := method(self config)

@@ -193,3 +193,47 @@ Plugin:
   update <name>
     Updates the plugin.
 ```
+
+
+
+## Manifest Format
+
+The manifest file (`eerie.json`) is required for each Eerie package. The table
+contains fields and their descriptions.
+
+| Field                              | Type            | Description                                                                  | Presence                             |
+| -----                              | ----            | -----------                                                                  | --------                             |
+| `name`                             | `string`        | The name of the package.                                                     | **REQUIRED**                         |
+| `version`                          | `string`        | The semantic version of the package.                                         | **REQUIRED**                         |
+|                                    |                 | The format is `A.B.C-D.E`, where:                                            |                                      |
+|                                    |                 | `A` - major version number (required)                                        |                                      |
+|                                    |                 | `B` - minor version number (required)                                        |                                      |
+|                                    |                 | `C` - patch number (required)                                                |                                      |
+|                                    |                 | `D` and `E` are optinal and come after `-` sign.                             |                                      |
+|                                    |                 | `D` - case-insensitive pre-release status (`alpha`, `beta`, `rc`)            |                                      |
+|                                    |                 | `E` - pre-release version number                                             |                                      |
+| `description`                      | `string`        | A short description of the package.                                          | **OPTIONAL**                         |
+| `author`                           | `string`        | The author name.                                                             | **REQUIRED**                         |
+| `readme`                           | `string`        | Path to the README file.                                                     | **REQUIRED** for published packages  |
+| `website`                          | `string`        | Package's website address.                                                   | **OPTIONAL**                         |
+| `path`                             | `object`        | The object, which describes from where to install package.                   | **REQUIRED**                         |
+| `path.dir`                         | `string`        | Path to local directory.                                                     | **REQUIRED** if none other specified |
+| `path.git`                         | `object`        | Git details.                                                                 | **REQUIRED** if none other specified |
+| `path.git.url`                     | `string`        | The git link to the package.                                                 | **REQUIRED**                         |
+| `path.git.branch`                  | `string`        | Git branch.                                                                  | **OPTIONAL**                         |
+| `path.git.tag`                     | `string`        | Git tag.                                                                     | **OPTIONAL**                         |
+| `categories`                       | `array<string>` | Categories to which the package applies.                                     | **OPTIONAL**                         |
+| `protos`                           | `array<string>` | Protos which the package exposes.                                            | **REQUIRED**                         |
+| `dependencies`                     | `object`        | Dependencies of the package.                                                 | **OPTIONAL**                         |
+| `dependencies.packages`            | `array<object>` | List of Eerie packages on which the package is dependent.                    | **OPTIONAL**                         |
+| `dependencies.packages[n].name`    | `string`        | Name of the package.                                                         | **REQUIRED**                         |
+| `dependencies.packages[n].version` | `string`        | The version of the package. Can be shortened.                                |                                      |
+|                                    |                 | The value `"0.1"`, for example, includes all `"0.1"` patches until `"0.2.0"` | **REQUIRED**                         |
+| `dependencies.packages[n].path`    | `object`        | See `path`.                                                                  | **REQUIRED**                         |
+
+
+
+
+
+
+

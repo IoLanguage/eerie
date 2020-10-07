@@ -5,6 +5,11 @@
     "author": "Josip Lisec",
     "readme": "README.md",
     "website": "https://iolanguage.github.io/eerie",
+    "path": {
+        "git": {
+            "url": "https://github.com/IoLanguage/eerie.git"
+        }
+    },
     "categories": [
         "utility",
         "system"
@@ -17,15 +22,19 @@
             {
                 "name": "Docio",
                 "version": "0.1",
-                "git": {
-                    "url": "https://github.com/IoLanguage/docio.git"
+                "path": {
+                    "git": {
+                        "url": "https://github.com/IoLanguage/docio.git"
+                    }
                 }
             },
             {
                 "name": "Kano",
                 "version": "0.1",
-                "git": {
-                    "url": "https://github.com/IoLanguage/kano.git"
+                "path": {
+                    "git": {
+                        "url": "https://github.com/IoLanguage/kano.git"
+                    }
                 }
             }
         ]
