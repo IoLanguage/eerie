@@ -7,7 +7,7 @@ PackageInstaller := Object clone do(
         "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
 
     //doc PackageInstaller path Path to at which package is located.
-    path  ::= nil
+    path ::= nil
 
     //doc PackageInstaller root Directory with PackageInstallers' path.
     root := method(self root = Directory with(self path))
@@ -35,7 +35,9 @@ PackageInstaller := Object clone do(
     canInstall := method(path, false)
 
     //doc PackageInstaller install
-    install := method(false)
+    install := method(
+        Eerie addonsDir createIfAbsent
+        false)
 
     /*doc PackageInstaller fileNamed(name) Returns a File relative to root
     directory.*/

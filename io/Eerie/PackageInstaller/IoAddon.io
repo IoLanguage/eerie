@@ -6,6 +6,8 @@ IoAddonInstaller := Eerie PackageInstaller clone do(
         _pathDir exists and(ioDir exists))
 
     install := method(
+        super(install)
+
         self loadConfig
 
         sourceDir := self dirNamed("source") createIfAbsent

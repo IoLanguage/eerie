@@ -10,14 +10,10 @@ PackageDownloader := Object clone do(
 
     /*doc PackageDownloader root Directory object pointing to
     [[PackageDownloader path]].*/
-    root := method(
-        self root = Directory with(self path)
-    )
+    root := method(self root = Directory with(self path))
 
     //doc PackageDownloader with(uri, path) Creates a new [[PackgeDownloader]].
-    with := method(uri_, path_,
-        self clone setUri(uri_) setPath(path_)
-    )
+    with := method(uri_, path_, self clone setUri(uri_) setPath(path_))
 
     /*doc PackageDownloader with(uri, path)
     Looks for [[PackageDownloader]] which understands provided URI. If suitable
@@ -28,14 +24,11 @@ PackageDownloader := Object clone do(
         self instances foreachSlot(slotName, downloader,
             downloader canDownload(uri_) ifTrue(
                 Eerie log("Using #{slotName} for #{uri_}", "debug")
-                return(downloader with(uri_, path_))
-            )
-        )
+                return(downloader with(uri_, path_))))
 
         Eerie revertAddonsJson
         Exception raise(
-            "Don't know how to download package from #{uri_}" interpolate)
-    )
+            "Don't know how to download package from #{uri_}" interpolate))
 
     /*doc PackageDownloader canDownload(uri) Returns `true` if it understands
     provided URI. `false` otherwise.*/
@@ -52,13 +45,12 @@ PackageDownloader := Object clone do(
     update := method(true)
 
     /*doc PackageDownloader createSkeleton Creates required directories, `io`,
-    `bin` and `hooks`.*/
+    `bin`, `hooks` and `source`.*/
     createSkeleton := method(
         self root createSubdirectory("io")
         self root createSubdirectory("bin")
         self root createSubdirectory("hooks")
-        self root createSubdirectory("source")
-    )
+        self root createSubdirectory("source"))
 )
 
 //doc PackageDownloader instances Contains all PackageDownloader clones

@@ -11,19 +11,23 @@ System userInterruptHandler := method(
 Eerie := Object clone do(
     //doc Eerie tmpDir Get path to temp directory.
     globalEerieDir := System getEnvironmentVariable("EERIEDIR")
-    tmpDir ::= globalEerieDir .. "/tmp"
+    tmpDir ::= globalEerieDir .. "/_tmp"
     addonsJson :=  nil
     addonsMap ::= nil
     addonsJsonBackup ::= nil
+    /*doc Eerie root Current working directory or value of `EERIEDIR` system's 
+    environment variable if `isGlobal` is `true`.*/
+    root := method(if (isGlobal, globalEerieDir, "."))
+    //doc Eerie addonsDir Path to directory where addons are installed.
+    addonsDir := method(Directory with("${self root}/_addons" interpolate))
+    //doc Eerie isGlobal Whether the global environment in use.
+    isGlobal := method(self _isGlobal)
     _isGlobal := false
 
     init := method(
         envvar := globalEerieDir
         if(envvar isNil or envvar == "", 
             Exception raise("Error: EERIEDIR is not set")))
-
-    //doc Eerie isGlobal Whether the global environment in use.
-    isGlobal := method(self _isGlobal)
 
     //doc Eerie setIsGlobal Set whether the global environment in use. 
     setIsGlobal := method(value, 
@@ -33,14 +37,15 @@ Eerie := Object clone do(
     initConfig := method(
         self addonsJson ?close
         self addonsJson := File with((self root) .. "/addons.json") 
+        if (self addonsJson exists not, self _generateAddonsJson)
         self addonsJson openForUpdating
         self setConfig(self addonsJson contents parseJson)
         self setConfigBackup(self addonsJson contents)
         self)
 
-    /*doc Eerie root Current working directory or value of `EERIEDIR` system's 
-    environment variable if `isGlobal` is `true`.*/
-    root := method(if (isGlobal, globalEerieDir, ".")
+    _generateAddonsJson := method(
+        # TODO
+    )
 
     /*doc Eerie sh(cmd[, logFailure=true, dir=cwd])
     Executes system command. If `logFailure` is `true` and command exists with
@@ -134,8 +139,10 @@ Eerie := Object clone do(
     //doc Eerie updatePackage(package)
     updatePackage := method(package,
         self addonsMap at("packages") detect(name == package name) isNil ifTrue(
-            Eerie log("Tried to update package which is not yet installed. (#{self name}/#{package name})", "debug")
-            return(false))
+            msg := "Tried to update package which is not yet installed."
+            msg = msg .. " (#{self name}/#{package name})"
+            Eerie log(msg, "debug")
+            return false)
 
         self addonsMap at("packages") removeAt(package name) atPut(
             package name, package config)

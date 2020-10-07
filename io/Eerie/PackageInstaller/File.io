@@ -7,7 +7,9 @@ FileInstaller := Eerie PackageInstaller clone do(
         self providesProto = self root filesWithExtension("io") first baseName \
         makeFirstCharacterUppercase)
 
-    install := method(self loadConfig)
+    install := method(
+        super(install)
+        self loadConfig)
 
     buildPackageJson := method(
         self fileNamed("package.json") remove create openForUpdating write(
