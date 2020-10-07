@@ -1,7 +1,7 @@
 DirectoryInstaller := Eerie PackageInstaller clone do(
     canInstall := method(_path,
         dir := Directory with(_path)
-        packageJson := File with(_path .. "/package.json")
+        packageJson := File with(_path .. "/eerie.json")
         dir exists and(dir filesWithExtension("io") isEmpty not) and(
             packageJson exists not))
 
@@ -22,7 +22,7 @@ DirectoryInstaller := Eerie PackageInstaller clone do(
         return true)
 
     buildPackageJson := method(
-        pkgInfo := self fileNamed("package.json")
+        pkgInfo := self fileNamed("eerie.json")
         if(pkgInfo exists not,
             pkgInfo create openForUpdating write(Map with(
                 "author", User name,

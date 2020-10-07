@@ -12,7 +12,7 @@ PackageInstaller := Object clone do(
     //doc PackageInstaller root Directory with PackageInstallers' path.
     root := method(self root = Directory with(self path))
 
-    //doc PackageInstaller config Contains contents of a package.json
+    //doc PackageInstaller config Contains contents of a eerie.json
     config ::= nil
 
     init := method(self config = Map clone)
@@ -27,7 +27,6 @@ PackageInstaller := Object clone do(
             installer canInstall(_path) ifTrue(
                 return(installer with(_path))))
 
-        Eerie revertAddonsJson
         Exception raise(
             "Don't know how to install package at #{_path}" interpolate))
 
@@ -48,20 +47,20 @@ PackageInstaller := Object clone do(
     dirNamed := method(name, self root directoryNamed(name))
 
     /*doc PackageInstaller loadConfig Looks for configuration data (in
-    <code>protos</code> and <code>deps</code>) and then loads package.json.*/
+    <code>protos</code> and <code>deps</code>) and then loads eerie.json.*/
     loadConfig := method(
         if(self fileNamed("protos") exists,
             self buildPackageJson,
             self extractDataFromPackageJson)
 
-        configFile := self fileNamed("package.json")
+        configFile := self fileNamed("eerie.json")
         configFile exists ifTrue(
             self setConfig(configFile openForReading contents parseJson)
             configFile close))
 
     /*doc PackageInstaller extractDataFromPackageJson
     Creates <code>protos</code>, <code>deps</code> and <code>build.io</code>
-    files from <code>package.json</code>*/
+    files from <code>eerie.json</code>*/
     extractDataFromPackageJson := method(
         providedProtos  := self config at("protos") ?join(" ")
         providedProtos isNil ifTrue(
@@ -109,7 +108,7 @@ PackageInstaller := Object clone do(
                 package at("dependencies") append(pd strip)))
         protoDeps close
 
-        pJson := self fileNamed("package.json")
+        pJson := self fileNamed("eerie.json")
         pJson exists ifFalse(pJson create openForUpdating write(package asJson))
         pJson close
 

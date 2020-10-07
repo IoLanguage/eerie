@@ -12,7 +12,7 @@ FileInstaller := Eerie PackageInstaller clone do(
         self loadConfig)
 
     buildPackageJson := method(
-        self fileNamed("package.json") remove create openForUpdating write(
+        self fileNamed("eerie.json") remove create openForUpdating write(
             Map with(
                 "author", User name,
                 "dependencies", list(),

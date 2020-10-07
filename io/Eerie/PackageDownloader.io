@@ -15,10 +15,10 @@ PackageDownloader := Object clone do(
     //doc PackageDownloader with(uri, path) Creates a new [[PackgeDownloader]].
     with := method(uri_, path_, self clone setUri(uri_) setPath(path_))
 
-    /*doc PackageDownloader with(uri, path)
+    /*doc PackageDownloader detect(uri, path)
     Looks for [[PackageDownloader]] which understands provided URI. If suitable
-    downloader is found, a clone with provided URI and path is returned,
-    otherwise [[Eerie revertAddonsJson]] is called and an exception is thrown.
+    downloader is found, a clone with provided URI and path is returned an
+    exception is thrown.
     */
     detect := method(uri_, path_,
         self instances foreachSlot(slotName, downloader,
@@ -26,7 +26,6 @@ PackageDownloader := Object clone do(
                 Eerie log("Using #{slotName} for #{uri_}", "debug")
                 return(downloader with(uri_, path_))))
 
-        Eerie revertAddonsJson
         Exception raise(
             "Don't know how to download package from #{uri_}" interpolate))
 

@@ -35,7 +35,7 @@ Package := Object clone do(
     //doc Package downloader Instance of [[PackageDownloader]] for this package.
     downloader ::= nil
 
-    //doc Package info Contains all the data provided in package.json
+    //doc Package info Contains all the data provided in eerie.json
     info := method(self loadInfo)
 
     init := method(
@@ -59,15 +59,15 @@ Package := Object clone do(
     /*doc Package withConfig(config) Creates new package from provided config.*/
     withConfig := method(config,
         klone := self clone setConfig(config)
-
-        klone config at("installer") isNil ifFalse(
-            klone installer = Eerie PackageInstaller instances \
-                getSlot(klone config at("installer")) \
-                with(klone config at("path")))
-        klone config at("downloader") isNil ifFalse(
-            klone downloader = Eerie PackageDownloader instances \
-                getSlot(klone config at("downloader")) \
-                with(klone config at("uri"), klone config at("path")))
+# 
+        # klone config at("installer") isNil ifFalse(
+            # klone installer = Eerie PackageInstaller instances \
+                # getSlot(klone config at("installer")) \
+                # with(klone config at("path")))
+        # klone config at("downloader") isNil ifFalse(
+            # klone downloader = Eerie PackageDownloader instances \
+                # getSlot(klone config at("downloader")) \
+                # with(klone config at("uri"), klone config at("path")))
 
         klone)
 
@@ -112,9 +112,9 @@ Package := Object clone do(
                 Eerie log(e message, "debug"))
             f close))
 
-    //doc Package loadInfo Loads package.json file.
+    //doc Package loadInfo Loads eerie.json file.
     loadInfo := method(
-        pkgInfo := File with((self path) .. "/package.json")
+        pkgInfo := File with((self path) .. "/eerie.json")
         self info = if(pkgInfo exists,
             pkgInfo openForReading contents parseJson,
             Map clone)
