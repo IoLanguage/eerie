@@ -227,8 +227,8 @@ contains fields and their descriptions.
 | `dependencies`                     | `object`        | Dependencies of the package.                                                 | **OPTIONAL**                         |
 | `dependencies.packages`            | `array<object>` | List of Eerie packages on which the package is dependent.                    | **OPTIONAL**                         |
 | `dependencies.packages[n].name`    | `string`        | Name of the package.                                                         | **REQUIRED**                         |
-| `dependencies.packages[n].version` | `string`        | The version of the package. Can be shortened.                                |                                      |
-|                                    |                 | The value `"0.1"`, for example, includes all `"0.1"` patches until `"0.2.0"` | **REQUIRED**                         |
+| `dependencies.packages[n].version` | `string`        | The version of the package. Can be shortened.                                | **REQUIRED**                         |
+|                                    |                 | The value `"0.1"`, for example, includes all `"0.1"` patches until `"0.2.0"` |                                      |
 | `dependencies.packages[n].path`    | `object`        | See `path`.                                                                  | **REQUIRED**                         |
 
 
