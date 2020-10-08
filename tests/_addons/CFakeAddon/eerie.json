@@ -1,0 +1,33 @@
+{
+    "name": "CFakeAddon",
+    "version": "0.1.0",
+    "description": "A fake addon for testing.",
+    "author": "Test",
+    "readme": "",
+    "website": "https://iolanguage.github.io/eerie",
+    "path": {
+        "dir": "tests/_addons/CFakeAddon"
+    },
+    "categories": [ ],
+    "protos": [
+        "CFakeAddon"
+    ],
+    "dependencies": {
+        "packages": [
+            {
+                "name": "BFakeAddon",
+                "version": "0.1",
+                "path": {
+                    "dir": "tests/_addons/BFakeAddon"
+                }
+            },
+            {
+                "name": "AFakeAddon",
+                "version": "0.1",
+                "path": {
+                    "dir": "tests/_addons/AFakeAddon"
+                }
+            }
+        ]
+    }
+}

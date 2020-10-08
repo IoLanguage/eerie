@@ -1,4 +1,6 @@
-_addons
+./_addons
+.transaction_lock
+__install_path
 _build
 _tmp
 docs
