@@ -230,6 +230,9 @@ contains fields and their descriptions.
 | `dependencies.packages[n].version` | `string`        | The version of the package. Can be shortened.                                | **REQUIRED**                         |
 |                                    |                 | The value `"0.1"`, for example, includes all `"0.1"` patches until `"0.2.0"` |                                      |
 | `dependencies.packages[n].path`    | `object`        | See `path`.                                                                  | **REQUIRED**                         |
+| `dependencies.protos`              | `array<string>` | Protos on which the package is depending.                                    | **OPTIONAL**                         |
+| `dependencies.headers`             | `array<string>` | Headers on which the package is depending.                                   | **OPTIONAL**                         |
+| `dependencies.libs`                | `array<string>` | Native libraries on which the package is depending .                         | **OPTIONAL**                         |
 
 
 

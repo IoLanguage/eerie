@@ -1,6 +1,6 @@
 Importer addSearchPath("io")
 
-EerieTest := UnitTest clone do(
+EerieTest := UnitTest clone do (
 
     setUp := method(
         # this way we set global addons directory

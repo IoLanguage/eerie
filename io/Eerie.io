@@ -6,6 +6,8 @@ SystemCommand
 System userInterruptHandler := method(Eerie Transaction releaseLock)
 
 Eerie := Object clone do(
+    //doc Eerie manifestName The name of the manifest file.
+    manifestName := "eerie.json"
     //doc Eerie globalEerieDir Returns value of EERIEDIR environment variable.
     globalEerieDir := method(
         System getEnvironmentVariable("EERIEDIR"))
@@ -30,15 +32,12 @@ Eerie := Object clone do(
     packages := method(
         # this way we do lazy loading. When the user asks `self packages` for
         # the first time, they will be fetched and type will change to List
-        # instead of method
+        # instead of method, but we still be able to reload packages list using
+        # `_reloadPackagesList` method.
         _reloadPackagesList)
 
     _reloadPackagesList := method(
-        self packages = self addonsDir directories map(d,
-            pkgConfig := File with(d path .. "/eerie.json") 
-            if(pkgConfig exists not, continue)
-            pkgConfig = pkgConfig contents parseJson
-            Package withConfig(pkgConfig)))
+        self packages = self addonsDir directories map(d, Package with(d)))
 
     init := method(
         if(globalEerieDir isNil or globalEerieDir isEmpty,

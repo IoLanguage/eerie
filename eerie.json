@@ -2,7 +2,7 @@
     "name": "Eerie",
     "version": "0.3.0",
     "description": "The Io package manager.",
-    "author": "Josip Lisec",
+    "author": "Josip Lisec, Ales Tsurko",
     "readme": "README.md",
     "website": "https://iolanguage.github.io/eerie",
     "path": {

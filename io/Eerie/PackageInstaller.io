@@ -1,7 +1,7 @@
 //metadoc PackageInstaller category API
-//metadoc PackageInstaller description
+//metadoc PackageInstaller description This object is used to install packages.
 
-PackageInstaller := Object clone do(
+PackageInstaller := Object clone do (
     compileFlags := if(System platform split first asLowercase == "windows",
         "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
         "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
@@ -12,31 +12,31 @@ PackageInstaller := Object clone do(
     //doc PackageInstaller root Directory with PackageInstallers' path.
     root := method(self root = Directory with(self path))
 
-    //doc PackageInstaller config Contains contents of a eerie.json
+    //doc PackageInstaller config Contains contents of the manifest.
     config ::= nil
 
     init := method(self config = Map clone)
 
+    /*doc PackageInstaller package Returns `Package`, which this installer
+    installs.*/
+    package ::= nil
+
     //doc PackageInstaller with(path)
-    with := method(_path, self clone setPath(_path))
-
-    /*doc PackageInstaller detect(path) Returns first PackageInstaller which 
-    can install package at provided path.*/
-    detect := method(_path,
-        self instances foreachSlot(slotName, installer,
-            installer canInstall(_path) ifTrue(
-                return(installer with(_path))))
-
-        Exception raise(
-            "Don't know how to install package at #{_path}" interpolate))
-
-    //doc PackageInstaller canInstall(path)
-    canInstall := method(path, false)
+    with := method(self clone setPackage)
 
     //doc PackageInstaller install
     install := method(
         Eerie addonsDir createIfAbsent
-        false)
+
+        self loadConfig
+
+        sourceDir := self dirNamed("source") createIfAbsent
+        if(sourceDir files isEmpty not, self compile)
+
+        binDir := self dirNamed("bin") createIfAbsent
+        if(Eerie isGlobal and binDir files isEmpty not, self installBinaries)
+
+        true)
 
     /*doc PackageInstaller fileNamed(name) Returns a File relative to root
     directory.*/
@@ -47,20 +47,20 @@ PackageInstaller := Object clone do(
     dirNamed := method(name, self root directoryNamed(name))
 
     /*doc PackageInstaller loadConfig Looks for configuration data (in
-    <code>protos</code> and <code>deps</code>) and then loads eerie.json.*/
+    <code>protos</code> and <code>deps</code>) and then loads the manifest.*/
     loadConfig := method(
         if(self fileNamed("protos") exists,
             self buildPackageJson,
             self extractDataFromPackageJson)
 
-        configFile := self fileNamed("eerie.json")
+        configFile := self fileNamed(Eerie manifestName)
         configFile exists ifTrue(
             self setConfig(configFile openForReading contents parseJson)
             configFile close))
 
     /*doc PackageInstaller extractDataFromPackageJson
     Creates <code>protos</code>, <code>deps</code> and <code>build.io</code>
-    files from <code>eerie.json</code>*/
+    files from the manifest.*/
     extractDataFromPackageJson := method(
         providedProtos  := self config at("protos") ?join(" ")
         providedProtos isNil ifTrue(
@@ -108,7 +108,7 @@ PackageInstaller := Object clone do(
                 package at("dependencies") append(pd strip)))
         protoDeps close
 
-        pJson := self fileNamed("eerie.json")
+        pJson := self fileNamed(Eerie manifestName)
         pJson exists ifFalse(pJson create openForUpdating write(package asJson))
         pJson close
 
@@ -156,15 +156,4 @@ PackageInstaller := Object clone do(
         link := File with(Eerie globalEerieDir .. "/bin/" .. bin name)
         link exists ifFalse(SystemCommand lnFile(bin path, link path))
         link close)
-)
-
-//doc PackageInstaller instances
-PackageInstaller instances := Object clone do(
-    //doc PackageInstaller File Installs single files.
-    doRelativeFile("PackageInstaller/File.io")
-    //doc PackageInstaller Directory Installs whole directories.
-    doRelativeFile("PackageInstaller/Directory.io")
-    /*doc PackageInstaller IoAddon Installs directories structured as an Io
-    addon.*/
-    doRelativeFile("PackageInstaller/IoAddon.io")
 )

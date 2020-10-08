@@ -106,7 +106,9 @@ SemVerTest := UnitTest clone do(
         assertTrue(SemVer fromSeq("1.1.1-beta") < SemVer fromSeq("1.1.1-rc"))
         assertTrue(SemVer fromSeq("1.1.1-rc") > SemVer fromSeq("1.1.1-rc.99"))
         assertTrue(SemVer fromSeq("1.1.1-rc.2") > SemVer fromSeq("1.1.1-rc.1"))
-    )
+        assertTrue(SemVer fromSeq("1.1.1-rc.1") > SemVer fromSeq("1.1.1-beta"))
+        assertTrue(
+            SemVer fromSeq("1.1.1-rc.1") != SemVer fromSeq("1.1.1-rc.2")))
 
     testPreComparison := method(
         assertEquals(

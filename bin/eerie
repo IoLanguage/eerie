@@ -111,7 +111,7 @@ Namespaces Pkg := Namespace clone do(
         |}""" splitNoEmpties("\n") map(split("|") last) join("\n") strip \
             interpolate
 
-        root fileNamed("eerie.json") create openForUpdating write(
+        root fileNamed(Eerie manifestName) create openForUpdating write(
             pkgInfo) close
         root fileNamed("README.md") create openForUpdating write(
             "# " .. name .. " \nDon't forget to update this doc.\n") close

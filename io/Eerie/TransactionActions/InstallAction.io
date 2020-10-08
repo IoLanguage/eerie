@@ -25,8 +25,6 @@ InstallAction := Eerie TransactionAction clone do(
 
     execute := method(
         self pkg do(
-            if(installer isNil, setInstaller(Eerie PackageInstaller detect(path)))
-
             runHook("beforeInstall")
             installer install
             loadInfo)
