@@ -35,15 +35,6 @@ Package := Object clone do(
     //doc Package downloader Instance of [[PackageDownloader]] for this package.
     downloader ::= nil
 
-    //doc Package info Contains all the data provided in eerie.json
-    info := method(self loadInfo)
-
-    init := method(
-        self config = Map with(
-            "name", nil,
-            "uri",  nil,
-            "path", nil))
-
     //doc Package providesProtos Returns list of protos this package provides.
     providesProtos := method(
         p := self config at("protos")
@@ -88,6 +79,4 @@ Package := Object clone do(
                 Eerie log(e message, "debug"))
             f close))
 
-    //doc Package asJson Returns config.
-    asJson := method(self config)
 )
