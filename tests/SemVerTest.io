@@ -4,28 +4,28 @@ SemVerTest := UnitTest clone do(
 
     testIlligible := method(
         e := try (SemVer fromSeq(""))
-        assertEquals(e error type, ErrorNotRecognised type)
+        assertEquals(e error type, SemVer ErrorNotRecognised type)
 
         e = try (SemVer fromSeq("-"))
-        assertEquals(e error type, ErrorNotRecognised type)
+        assertEquals(e error type, SemVer ErrorNotRecognised type)
 
         e = try (SemVer fromSeq("-beta"))
-        assertEquals(e error type, ErrorNotRecognised type)
+        assertEquals(e error type, SemVer ErrorNotRecognised type)
 
         e = try (SemVer fromSeq("-beta.1"))
-        assertEquals(e error type, ErrorNotRecognised type)
+        assertEquals(e error type, SemVer ErrorNotRecognised type)
 
         e = try (SemVer fromSeq("beta.1"))
-        assertEquals(e error type, ErrorNotRecognised type)
+        assertEquals(e error type, SemVer ErrorNotRecognised type)
 
         e = try (SemVer fromSeq("1-beta"))
-        assertEquals(e error type, ErrorIlligibleVersioning type)
+        assertEquals(e error type, SemVer ErrorIlligibleVersioning type)
 
         e = try (SemVer fromSeq("1.0-beta.1"))
-        assertEquals(e error type, ErrorIlligibleVersioning type)
+        assertEquals(e error type, SemVer ErrorIlligibleVersioning type)
 
         e = try (SemVer fromSeq("1.0.0-gamma.1"))
-        assertEquals(e error type, ErrorParsePre type))
+        assertEquals(e error type, SemVer ErrorParsePre type))
 
     testParse := method(
         ver := SemVer fromSeq("1")
@@ -80,7 +80,7 @@ SemVerTest := UnitTest clone do(
 
     testComparisons := method(
         e := try (SemVer fromSeq("1") == 1)
-        assertEquals(e error type, ErrorWrongType type)
+        assertEquals(e error type, SemVer ErrorWrongType type)
 
         assertTrue(SemVer fromSeq("1") == SemVer fromSeq("1"))
         assertTrue(SemVer fromSeq("1") > SemVer fromSeq("1.1"))

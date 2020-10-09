@@ -36,10 +36,9 @@ Package := Object clone do (
     downloader ::= nil
 
     /*doc Package with(dir) 
-    Creates new package from provided `Directory`. Raises `NotPackageException`
+    Creates new package from provided `Directory`. Raises `NotPackageError`
     if the directory is not an Eerie package. Use this to init a `Package`.*/
     with := method(dir,
-        Eerie log("Init package with dir #{dir}", "debug")
         _checkDirectoryPackage(dir)
 
         klone := self clone setDir(dir)
@@ -49,16 +48,14 @@ Package := Object clone do (
         klone)
 
     _checkDirectoryPackage := method(dir,
-        Eerie log("Checking directory package #{dir}", "debug")
         ioDir := dir directoryNamed("io")
         manifest := File with(dir path .. "/#{Eerie manifestName}" interpolate)
         if ((dir exists and manifest exists and ioDir exists) not,
-            Eerie NotPackageException raise(dir path))
+            Exception raise(Eerie NotPackageError with(dir path)))
 
         self _validateManifest(manifest))
 
     _validateManifest := method(manifest,
-        Eerie log("Validating manifest #{manifest path}", "debug")
         parsed := manifest contents parseJson
 
         # we don't check 'version' field `isEmpty` because it's checked better
@@ -133,7 +130,8 @@ Package := Object clone do (
     # argument.
     # The third argument is the manifest path.
     _checkField := method(test, msg, path,
-        test ifTrue(Eerie InsufficientManifestException raise(list(path, msg))))
+        test ifTrue(Exception raise(
+            Eerie InsufficientManifestError with(path, msg))))
 
 
     //doc Package providesProtos Returns list of protos this package provides.

@@ -123,7 +123,7 @@ Eerie := Object clone do(
 
 Eerie clone = Eerie do(
     //doc Eerie Exception [Exception](exception.html)
-    doRelativeFile("Eerie/Exception.io")
+    doRelativeFile("Eerie/Error.io")
     //doc Eerie Package [Package](package.html)
     doRelativeFile("Eerie/Package.io")
     //doc Eerie PackageDownloader [PackageDownloader](packagedownloader.html)

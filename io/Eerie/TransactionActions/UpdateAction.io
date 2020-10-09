@@ -9,7 +9,7 @@ UpdateAction := Eerie TransactionAction clone do(
             runHook("beforeUpdate")
 
             downloader canDownload(downloader uri) ifFalse(
-                Eerie FailedDownloadException raise(downloader uri))
+                Exception raise(Eerie FailedDownloadError with(downloader uri)))
 
             downloader update
             installer install

@@ -4,23 +4,23 @@ PackageTest := UnitTest clone do (
 
     testDirectoryValidation := method(
         e := try (Package with(Directory with("tests/_faddons/NotAddon")))
-        assertEquals(e type, Eerie NotPackageException type))
+        assertEquals(e error type, Eerie NotPackageError type))
 
     testManifestValidation := method(
         manifest := File with("tests/deleteme") setContents("{}")
         e := try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{"name": "Test"}""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
             "version": "0.1.0"
             }""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -28,7 +28,7 @@ PackageTest := UnitTest clone do (
             "author": "Test"
             }""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -37,7 +37,7 @@ PackageTest := UnitTest clone do (
             "path": {}
             }""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -48,7 +48,7 @@ PackageTest := UnitTest clone do (
                 }
             }""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -59,7 +59,7 @@ PackageTest := UnitTest clone do (
                 }
             }""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -71,7 +71,7 @@ PackageTest := UnitTest clone do (
             "protos": ""
             }""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -84,7 +84,7 @@ PackageTest := UnitTest clone do (
             "dependencies": ""
             }""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -97,7 +97,7 @@ PackageTest := UnitTest clone do (
             "dependencies": { "packages": [ { } ] }
             }""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -115,7 +115,7 @@ PackageTest := UnitTest clone do (
                 ]
             }}""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -134,7 +134,7 @@ PackageTest := UnitTest clone do (
                 ]
             }}""")
         e = try (Package _validateManifest(manifest))
-        assertEquals(e type, Eerie InsufficientManifestException type)
+        assertEquals(e error type, Eerie InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 

@@ -148,16 +148,18 @@ SemVer := Object clone do(
         Exception raise(ErrorUnreachable clone))
 )
 
-ErrorNotRecognised := Error with(
-    "The sequence is not recognised as semantic version.")
+SemVer do (
+    ErrorNotRecognised := Error with(
+        "The sequence is not recognised as semantic version.")
 
-ErrorParsePre := Error with("""The pre-release status is either 'alpha', 'beta' 
-    or 'rc' and optinaly contains version number after '.' symbol.""")
+    ErrorParsePre := Error with("The pre-release status is either 'alpha', " ..
+        "'beta' or 'rc' and optinaly contains version number after '.' symbol.")
 
-ErrorIlligibleVersioning := Error with("""The version is illigible. Please, read
-    the docs for rules.""")
+    ErrorIlligibleVersioning := Error with("The version is illigible. " ..
+        "Please, read the docs for rules.")
 
-ErrorUnreachable := Error with("""The code is supposed to be unreachable.
-    It's a bug if you see this message.""")
+    ErrorUnreachable := Error with("The code is supposed to be unreachable." ..
+        "It's a bug if you see this message.")
 
-ErrorWrongType := Error with("Wrong type used in operation.")
+    ErrorWrongType := Error with("Wrong type used in operation.")
+)
