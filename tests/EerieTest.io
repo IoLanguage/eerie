@@ -27,7 +27,7 @@ EerieTest := UnitTest clone do (
         Eerie
         Eerie setIsGlobal(true)
         expected := list("AFakeAddon", "BFakeAddon", "CFakeAddon")
-        names := Eerie packages map(name) sort
+        names := Eerie installedPackages map(name) sort
         assertEquals(expected, names))
 
     testExceptionWithoutEeridir := method(

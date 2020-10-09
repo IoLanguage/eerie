@@ -32,7 +32,7 @@ Namespaces Pkg := Namespace clone do(
     updateAll := task(
         """Updates all packages within current env."""
         t := Eerie Transaction clone
-        Eerie packages foreach(pkg, t update(pkg))
+        Eerie installedPackages foreach(pkg, t update(pkg))
         t run)
 
     remove := task(name,
@@ -66,7 +66,7 @@ Namespaces Pkg := Namespace clone do(
 
     list := task(
         """Lists all packages installed within current env."""
-        Eerie packages foreach(pkg,
+        Eerie installedPackages foreach(pkg,
             website := pkg info at("website")
             website = if(website isNil, "", " (" .. website .. ")")
 
@@ -136,7 +136,7 @@ Namespaces Default do(
         Eerie Env named("_base") use
 
         t := Eerie Transaction clone
-        Eerie packages foreach(pkg, t update(pkg))
+        Eerie installedPackages foreach(pkg, t update(pkg))
         t run)
     )
 

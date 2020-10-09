@@ -12,8 +12,8 @@ Transaction := Object clone do(
 
     /*doc Transaction lockFile A file with current Eerie process ID. Eerie
     checks for existence of this file to make it sure that only one instance of
-    Eerie is running.*/
-    lockFile := File with(Eerie globalEerieDir .. "/.transaction_lock")
+    Eerie is running per package.*/
+    lockFile := File with(Eerie addonsDir .. "/.transaction_lock")
 
     //doc Transaction acquireLock Creates transaction lock.
     acquireLock := method(
@@ -107,7 +107,7 @@ Transaction := Object clone do(
         toInstall := list()
         deps at("packages") ?foreach(uri,
             self depsCheckedFor contains(uri) ifTrue(continue)
-            if(Eerie packages detect(pkg, pkg uri == uri) isNil,
+            if(Eerie installedPackages detect(pkg, pkg uri == uri) isNil,
                 toInstall appendIfAbsent(Eerie Package fromUri(uri))))
 
         deps at("protos") ?foreach(protoName,

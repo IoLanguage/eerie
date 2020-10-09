@@ -18,7 +18,6 @@ Eerie := Object clone do(
     root := method(if (self isGlobal, globalEerieDir, "."))
     //doc Eerie addonsDir Path to directory where addons are installed.
     addonsDir := method(Directory with("#{self root}/_addons" interpolate))
-    //doc Eerie packages Returns list of installed packages .
     //doc Eerie isGlobal Whether the global environment in use.
     isGlobal := method(self _isGlobal)
     _isGlobal := false
@@ -29,15 +28,17 @@ Eerie := Object clone do(
         self _reloadPackagesList
         self)
 
-    packages := method(
-        # this way we do lazy loading. When the user asks `self packages` for
-        # the first time, they will be fetched and type will change to List
-        # instead of method, but we still be able to reload packages list using
-        # `_reloadPackagesList` method.
+    //doc Eerie installedPackages Returns list of installed packages .
+    installedPackages := method(
+        # this way we do lazy loading. When the user asks `self
+        # installedPackages` for the first time, they will be fetched and type
+        # will change to List instead of method, but we still be able to reload
+        # packages list using `_reloadPackagesList` method.
         _reloadPackagesList)
 
     _reloadPackagesList := method(
-        self packages = self addonsDir directories map(d, Package with(d)))
+        self installedPackages = self addonsDir directories map(d,
+            Package with(d)))
 
     init := method(
         if(globalEerieDir isNil or globalEerieDir isEmpty,
@@ -99,24 +100,26 @@ Eerie := Object clone do(
     /*doc Eerie packageNamed(name) Returns package with provided name if it 
     exists, `nil` otherwise.*/
     packageNamed := method(pkgName,
-        self packages detect(pkg, pkg name == pkgName))
+        self installedPackages detect(pkg, pkg name == pkgName))
 
-    //doc Eerie appendPackage(package) Append a package to the packages list.
-    appendPackage := method(package, self packages appendIfAbsent(package))
+    /*doc Eerie appendPackage(package) Append a package to the installedPackages
+    list.*/
+    appendPackage := method(package,
+        self installedPackages appendIfAbsent(package))
 
     //doc Eerie removePackage(package) Removes the given package.
-    removePackage := method(package, self packages remove(package))
+    removePackage := method(package, self installedPackages remove(package))
 
     //doc Eerie updatePackage(package)
     updatePackage := method(package,
-        old := self packages detect(p, p name == package name)
+        old := self installedPackages detect(p, p name == package name)
         old isNil ifTrue(
             msg := "Tried to update package which is not yet installed."
             msg = msg .. " (#{package name})"
             Eerie log(msg, "debug")
             return false)
 
-        self packages remove(old) append(package)
+        self installedPackages remove(old) append(package)
         true)
 
 )
