@@ -28,7 +28,7 @@ PackageInstaller := Object clone do (
 
         self compile
 
-        # TODO copy content of `Package dir` to `self destination`
+        Directory cp(self package dir, self destination)
 
         if(Eerie isGlobal, self installBinaries)
 

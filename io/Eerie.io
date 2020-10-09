@@ -142,3 +142,18 @@ Eerie clone = Eerie do(
 
     init
 )
+
+//doc Directory cp Copy the content of source `Directory` to a `Destination`.
+Directory cp := method(source, destination,
+    destination createIfAbsent
+
+    source walk(item,
+        newPath := destination path .. "/" .. item path
+        if (item type == File type) then (
+            Directory with(newPath pathComponent) createIfAbsent 
+            # `File copyToPath` has rights issues, `File setPath` too, so we
+            # just create a new file here and copy the content of the source
+            # into it
+            File with(newPath) create setContents(item contents) close
+        ) else (
+            Directory createIfAbsent(newPath)))
