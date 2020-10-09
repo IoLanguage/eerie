@@ -10,28 +10,84 @@ PackageInstaller := Object clone do (
     installs.*/
     package := nil
 
-    //doc PackageInstaller with(package) Init `PackageInstaller` with `Package`.
-    with := method(pkg, self clone package = pkg)
-
     /*doc PackageInstaller destination Directory where `Package` will be
     installed.*/
     destination := method(
         Eerie addonsDir .. "/#{self package name}" interpolate)
 
+    //doc PackageInstaller with(package) Init `PackageInstaller` with `Package`.
+    with := method(pkg, self clone package = pkg)
+
     //doc PackageInstaller install Installs the `PackageInstaller package`.
     install := method(
-        self destination createIfAbsent
-        # TODO check existence and raise an exception if it's installed
+        if (self destination exists, 
+            Exception raise(DirectoryExistsError with(
+                self package name, self destination path)))
+
+        self destination create
+
+        self compile
 
         # TODO copy content of `Package dir` to `self destination`
 
-        sourceDir := self dirNamed("source") createIfAbsent
-        if(sourceDir files isEmpty not, self compile)
-
-        binDir := self dirNamed("bin") createIfAbsent
-        if(Eerie isGlobal and binDir files isEmpty not, self installBinaries)
+        if(Eerie isGlobal, self installBinaries)
 
         true)
+
+    //doc PackageInstaller compile Compiles the package if it has native code.
+    compile := method(
+        sourceDir := self package dir createSubdirectory("source")
+        if(sourceDir items isEmpty, 
+            Eerie log(
+                "There is nothing to compile. The 'source' directory " ..
+                "('#{sourceDir path}') is empty.")
+            return self)
+
+        buildio := File with(self package dir path .. "/build.io")
+        if (buildio exists not, 
+            Exception raise(BuildioMissingError with(self package name)))
+
+        builderContext := Object clone
+        builderContext doRelativeFile("AddonBuilder.io")
+
+        self package dir createSubdirectory("_build")
+
+        addon := builderContext doFile(self package dir path .. "/build.io")
+        addon folder := self package dir
+        addon build(self compileFlags)
+
+        self)
+
+    /*doc PackageInstaller installBinaries For global packages, creates symlinks 
+    (UNIX-like) or .cmd files (Windows) for files of the package's `bin`
+    directory in `Eerie globalBinDir`.*/
+    installBinaries := method(
+        binDir := self destination createSubdirectory("bin")
+        if (binDir files isEmpty, return)
+
+        isWindows := System platform containsAnyCaseSeq("windows") or(
+            System platform containsAnyCaseSeq("mingw"))
+
+        binDir files foreach(f, if(isWindows, 
+            self _createCmdForBin(f),
+            self _createLinkForBin(f))))
+
+    # This method is used on Windows to create .cmd file to be able to execute a
+    # package binary as a normal command (i.e. `eerie` instead of
+    # `io /path/to/eerie/bin`)
+    _createCmdForBin := method(bin,
+        cmd := Eerie globalBinDir fileNamed(bin name .. ".cmd")
+        cmd open setContents("io #{bin path} %*" interpolate) close)
+
+    # We just create a link for binary on unix-like system
+    _createLinkForBin := method(bin,
+        # make sure it's executable
+        Eerie sh(
+            "chmod u+x #{self destination path}/bin/#{bin name}" interpolate)
+        # create the link
+        link := Eerie globalBinDir fileNamed(bin name)
+        link exists ifFalse(SystemCommand lnFile(bin path, link path))
+        link close)
 
     /*doc PackageInstaller fileNamed(name) Returns a File relative to root
     directory.*/
@@ -108,47 +164,14 @@ PackageInstaller := Object clone do (
         pJson close
 
         self)
+)
 
-    //doc PackageInstaller compile Compiles the package.
-    compile := method(
-        builderContext := Object clone
-        builderContext doRelativeFile("AddonBuilder.io")
-        prevPath := Directory currentWorkingDirectory
-        Directory setCurrentWorkingDirectory(self path)
+# Errors
+PackageInstaller do (
+    DirectoryExistsError := Eerie Error clone setErrorMsg("Can't install " ..
+        "the package #{call evalArgAt(0)}. The destination directory " ..
+        "'#{call evalArgAt}' already exists.")
 
-        Directory with(self path .. "/_build") createIfAbsent
-
-        addon := builderContext doFile((self path) .. "/build.io")
-        addon folder := Directory with(self path)
-        addon build(self compileFlags)
-
-        Directory setCurrentWorkingDirectory(prevPath)
-        self)
-
-    /*doc PackageInstaller installBinaries For global packages, creates symlinks 
-    (UNIX-like) or .cmd files (Windows) for files of the package's `bin`
-    directory in `$EERIEDIR/bin`.*/
-    installBinaries := method(
-        isWindows := System platform containsAnyCaseSeq("windows") or(
-            System platform containsAnyCaseSeq("mingw"))
-
-        self dirNamed("bin") files foreach(f, if(isWindows, 
-            self _createCmdForBin(f),
-            self _createLinkForBin(f))))
-
-    # This method is used on Windows to create .cmd file to be able to execute a
-    # package binary as a normal command (i.e. `eerie` instead of
-    # `io /path/to/eerie/bin`)
-    _createCmdForBin := method(bin,
-        cmd := File with(Eerie globalEerieDir .. "/bin/" .. bin name .. ".cmd")
-        cmd open setContents("io #{bin path} %*" interpolate) close)
-
-    # We just create a link for binary on unix-like system
-    _createLinkForBin := method(bin,
-        # make sure it's executable
-        Eerie sh("chmod u+x #{self path}/bin/#{bin name}" interpolate)
-        # create the link
-        link := File with(Eerie globalEerieDir .. "/bin/" .. bin name)
-        link exists ifFalse(SystemCommand lnFile(bin path, link path))
-        link close)
+    BuildioMissingError := Eerie Error clone setErrorMsg("Don't know how to " ..
+        "compile #{call evalArgAt(0)}. The 'build.io' file is missing.")
 )

@@ -8,16 +8,18 @@ System userInterruptHandler := method(Eerie Transaction releaseLock)
 Eerie := Object clone do(
     //doc Eerie manifestName The name of the manifest file.
     manifestName := "eerie.json"
-    //doc Eerie globalEerieDir Returns value of EERIEDIR environment variable.
-    globalEerieDir := method(
-        System getEnvironmentVariable("EERIEDIR"))
-    //doc Eerie tmpDir Get path to temp directory.
-    tmpDir ::= globalEerieDir .. "/_tmp"
     /*doc Eerie root Current working directory or value of `EERIEDIR` system's 
     environment variable if `isGlobal` is `true`.*/
-    root := method(if (self isGlobal, globalEerieDir, "."))
-    //doc Eerie addonsDir Path to directory where addons are installed.
+    root := method(if (self isGlobal, globalRoot, "."))
+    //doc Eerie globalRoot Returns value of EERIEDIR environment variable.
+    globalRoot := method(
+        System getEnvironmentVariable("EERIEDIR"))
+    //doc Eerie tmpDir Get temp `Directory`.
+    tmpDir ::= Directory with(globalRoot .. "/_tmp")
+    //doc Eerie addonsDir `Directory` where addons are installed.
     addonsDir := method(Directory with("#{self root}/_addons" interpolate))
+    //doc Eerie globalBinDir `Directory` where global binaries are installed.
+    globalBinDir := Directory with(globalRoot .. "/_bin")
     //doc Eerie isGlobal Whether the global environment in use.
     isGlobal := method(self _isGlobal)
     _isGlobal := false
@@ -41,7 +43,7 @@ Eerie := Object clone do(
             Package with(d)))
 
     init := method(
-        if(globalEerieDir isNil or globalEerieDir isEmpty,
+        if(globalRoot isNil or globalRoot isEmpty,
             Exception raise("Error: EERIEDIR is not set")))
 
 

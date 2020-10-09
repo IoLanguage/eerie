@@ -1,6 +1,7 @@
 ./_addons
+./_bin
+./_build
+./_tmp
 .transaction_lock
 __install_path
-_build
-_tmp
 docs

@@ -57,12 +57,12 @@ writePath := method(eeriePath,
 System setEnvironmentVariable("EERIEDIR", eeriePath)
 
 System setEnvironmentVariable("PATH", 
-    "#{System getEnvironmentVariable(\"PATH\")}:#{eeriePath}/bin" interpolate)
+    "#{System getEnvironmentVariable(\"PATH\")}:#{eeriePath}/_bin" interpolate)
 
 shellScript := """
 # Eerie config
 export EERIEDIR=#{eeriePath}
-export PATH=$PATH:$EERIEDIR/bin
+export PATH=$PATH:$EERIEDIR/_bin
 # End Eerie config""" interpolate
 
 appendEnvVariables := method(
