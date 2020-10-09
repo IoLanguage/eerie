@@ -6,29 +6,24 @@ PackageInstaller := Object clone do (
         "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
         "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
 
-    //doc PackageInstaller path Path to at which package is located.
-    path ::= nil
-
-    //doc PackageInstaller root Directory with PackageInstallers' path.
-    root := method(self root = Directory with(self path))
-
-    //doc PackageInstaller config Contains contents of the manifest.
-    config ::= nil
-
-    init := method(self config = Map clone)
-
     /*doc PackageInstaller package Returns `Package`, which this installer
     installs.*/
-    package ::= nil
+    package := nil
 
-    //doc PackageInstaller with(path)
-    with := method(self clone setPackage)
+    //doc PackageInstaller with(package) Init `PackageInstaller` with `Package`.
+    with := method(pkg, self clone package = pkg)
 
-    //doc PackageInstaller install
+    /*doc PackageInstaller destination Directory where `Package` will be
+    installed.*/
+    destination := method(
+        Eerie addonsDir .. "/#{self package name}" interpolate)
+
+    //doc PackageInstaller install Installs the `PackageInstaller package`.
     install := method(
-        Eerie addonsDir createIfAbsent
+        self destination createIfAbsent
+        # TODO check existence and raise an exception if it's installed
 
-        self loadConfig
+        # TODO copy content of `Package dir` to `self destination`
 
         sourceDir := self dirNamed("source") createIfAbsent
         if(sourceDir files isEmpty not, self compile)

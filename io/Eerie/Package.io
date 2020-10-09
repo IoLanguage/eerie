@@ -7,14 +7,14 @@ Package := Object clone do (
     //doc Package config Package's config file (the manifest) as a `Map`.
     config ::= nil
 
-    //doc Package path
-    path ::= nil
-
-    //doc Package name
-    name := method(self config at("name"))
+    //doc Package dir Directory of this package.
+    dir ::= nil
 
     //doc Package version Returns parsed version (`SemVer`) of the package.
     version ::= nil
+    
+    //doc Package name
+    name := method(self config at("name"))
 
     //doc Package setName(name)
     setName := method(v,
@@ -23,8 +23,11 @@ Package := Object clone do (
 
     /*doc Package uri Either local path or git url. Parsed from `path` field of
     the manifest.*/
-    # TODO
-    uri := method(self config at("uri"))
+    uri := method(
+        dir := self config at("path") at("dir")
+        if (dir isNil not, 
+            dir,
+            self config at("path") at("git") at("url")))
 
     //doc Package installer Instace of [[PackageInstaller]] for this package.
     installer := method(self installer = PackageInstaller with(self))
@@ -36,15 +39,17 @@ Package := Object clone do (
     Creates new package from provided `Directory`. Raises `NotPackageException`
     if the directory is not an Eerie package. Use this to init a `Package`.*/
     with := method(dir,
+        Eerie log("Init package with dir #{dir}", "debug")
         _checkDirectoryPackage(dir)
 
-        klone := self clone setPath(dir path)
+        klone := self clone setDir(dir)
         manifest := File with(dir path .. "/#{Eerie manifestName}" interpolate) 
-        klone setConfig(manifest contents parseJson) setPath(dir path)
+        klone setConfig(manifest contents parseJson)
         klone setVersion(SemVer fromSeq(klone config at("version")))
         klone)
 
     _checkDirectoryPackage := method(dir,
+        Eerie log("Checking directory package #{dir}", "debug")
         ioDir := dir directoryNamed("io")
         manifest := File with(dir path .. "/#{Eerie manifestName}" interpolate)
         if ((dir exists and manifest exists and ioDir exists) not,
@@ -53,6 +58,7 @@ Package := Object clone do (
         self _validateManifest(manifest))
 
     _validateManifest := method(manifest,
+        Eerie log("Validating manifest #{manifest path}", "debug")
         parsed := manifest contents parseJson
 
         # we don't check 'version' field `isEmpty` because it's checked better
@@ -144,15 +150,10 @@ Package := Object clone do (
         if(category and d and d isEmpty not, d = d at(category))
         if(d isNil, list(), d))
 
-    //doc Package setDownloader(packageDownloader)
-    setDownloader := method(downl,
-        self downloader := downl
-        self)
-
     /*doc Package runHook(hookName) Runs Io script with hookName in package's
     `hooks` directory if it exists.*/
     runHook := method(hook,
-        f := File with("#{self path}/hooks/#{hook}.io" interpolate)
+        f := File with("#{self dir}/hooks/#{hook}.io" interpolate)
         f exists ifTrue(
             Eerie log("Launching #{hook} hook for #{self name}", "debug")
             ctx := Object clone
@@ -161,5 +162,4 @@ Package := Object clone do (
                 Eerie log("#{hook} failed.", "error")
                 Eerie log(e message, "debug"))
             f close))
-
 )

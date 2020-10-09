@@ -160,7 +160,7 @@ Namespaces Options do(
 )
 
 e := try(Kano run)
-e catch(Exception, 
-        Error withShow(e error)
-        Eerie _isVerbose ifTrue(e coroutine backTraceString println)
-        System exit(1))
+e catch(Exception,
+    e error message println
+    Eerie _isVerbose ifTrue(e coroutine backTraceString println)
+    System exit(1))
