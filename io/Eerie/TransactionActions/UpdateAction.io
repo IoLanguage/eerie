@@ -5,17 +5,20 @@ UpdateAction := Eerie TransactionAction clone do(
     prepare := method(self pkg downloader hasUpdates)
 
     execute := method(
-        self pkg do(
-            runHook("beforeUpdate")
+        self pkg runHook("beforeUpdate")
 
-            downloader canDownload(downloader uri) ifFalse(
-                Exception raise(Eerie FailedDownloadError with(downloader uri)))
+        self pkg downloader canDownload(downloader uri) ifFalse(
+            Exception raise(Eerie FailedDownloadError with(downloader uri)))
 
-            downloader update
-            installer install
-            loadInfo
+        self pkg downloader update
+        installer := PackageInstaller clone \
+            setDestination(Eerie addonsDir) \
+                setDestBinName(Eerie globalBinDirName)
 
-            runHook("afterUpdate"))
+        installer install(self, Eerie isGlobal)
+        # self pkg loadInfo
+
+        self pkg runHook("afterUpdate")
 
         true)
 )

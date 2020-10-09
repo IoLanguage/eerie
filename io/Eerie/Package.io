@@ -29,9 +29,6 @@ Package := Object clone do (
             dir,
             self config at("path") at("git") at("url")))
 
-    //doc Package installer Instace of [[PackageInstaller]] for this package.
-    installer := method(self installer = PackageInstaller with(self))
-
     //doc Package downloader Instance of [[PackageDownloader]] for this package.
     downloader ::= nil
 

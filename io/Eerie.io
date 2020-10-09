@@ -18,8 +18,9 @@ Eerie := Object clone do(
     tmpDir ::= Directory with(globalRoot .. "/_tmp")
     //doc Eerie addonsDir `Directory` where addons are installed.
     addonsDir := method(Directory with("#{self root}/_addons" interpolate))
-    //doc Eerie globalBinDir `Directory` where global binaries are installed.
-    globalBinDir := Directory with(globalRoot .. "/_bin")
+    /*doc Eerie globalBinDirName The name of the directory where binaries from
+    the packages will be installed globally. Default to `"_bin"`.*/
+    globalBinDirName := "_bin"
     //doc Eerie isGlobal Whether the global environment in use.
     isGlobal := method(self _isGlobal)
     _isGlobal := false
