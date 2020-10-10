@@ -1,21 +1,21 @@
-//metadoc PackageInstaller category API
-/*metadoc PackageInstaller description 
+//metadoc Installer category API
+/*metadoc Installer description 
 This object is used to install and compile packages. Use `Installer
 with(package)` to initialize it. You should `setDestination` right after
 initialization, otherwise it will raise an exception when you'll try to install
 a package. You should also `setDestBinName` if you install a `Package` with
 binaries.*/
 
-PackageInstaller := Object clone do (
+Installer := Object clone do (
     _compileFlags := if(System platform split first asLowercase == "windows",
         "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
         "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
 
-    /*doc PackageInstaller destination The root `Directory` where `Package` will
+    /*doc Installer destination The root `Directory` where `Package` will
     be installed.*/
     destination ::= nil
 
-    /* PackageInstaller destBinName The name of the directory, where binaries
+    /* Installer destBinName The name of the directory, where binaries
     (if any) will be installed.*/
     destBinName ::= nil
 
@@ -25,7 +25,7 @@ PackageInstaller := Object clone do (
     //doc Installer with(package) Initializes installer with the given package.
     with := method(pkg, self clone setPackage(pkg))
 
-    /*doc PackageInstaller install(installBin)
+    /*doc Installer install(installBin)
     Installs `Installer package` into `Installer destination`/`package name`. If
     `installBin` is `true`, the binaries from the package's `bin` directory will
     also be installed. 
@@ -63,7 +63,7 @@ PackageInstaller := Object clone do (
     _packageDestination := method(
         self destination directoryNamed(self package name))
 
-    /*doc PackageInstaller compile(package) Compiles the `Package` if it has
+    /*doc Installer compile(package) Compiles the `Package` if it has
     native code. Returns `self`.*/
     compile := method(
         self _checkPackageSet
@@ -134,24 +134,24 @@ PackageInstaller := Object clone do (
 )
 
 # Errors
-PackageInstaller do (
+Installer do (
     //doc Installer PackageNotSetError
     PackageNotSetError := Eerie Error clone setErrorMsg("Package didn't set.")
 
-    //doc PackageInstaller DirectoryExistsError
+    //doc Installer DirectoryExistsError
     DirectoryExistsError := Eerie Error clone setErrorMsg("Can't install " ..
         "the package #{call evalArgAt(0)}. The destination directory " ..
         "'#{call evalArgAt(1)}' already exists.")
 
-    //doc PackageInstaller BuildioMissingError
+    //doc Installer BuildioMissingError
     BuildioMissingError := Eerie Error clone setErrorMsg("Don't know how to " ..
         "compile #{call evalArgAt(0)}. The 'build.io' file is missing.")
 
-    //doc PackageInstaller DestinationNotSetError
+    //doc Installer DestinationNotSetError
     DestinationNotSetError := Eerie Error clone setErrorMsg(
         "Package installer destination directory didn't set.")
 
-    //doc PackageInstaller DestinationBinNameNotSetError
+    //doc Installer DestinationBinNameNotSetError
     DestinationBinNameNotSetError := Eerie Error clone setErrorMsg(
         "Name of the destination directory where binaries will be installed " ..
         "didn't set.")

@@ -1,25 +1,25 @@
 Importer addSearchPath("io")
 Importer addSearchPath("io/Eerie")
 
-PackageInstallerTest := UnitTest clone do (
+InstallerTest := UnitTest clone do (
 
     testValidation := method(
-        installer := PackageInstaller clone
+        installer := Installer clone
         e := try (installer _checkDestinationSet)
-        assertEquals(e error type, PackageInstaller DestinationNotSetError type)
+        assertEquals(e error type, Installer DestinationNotSetError type)
 
         e := try (installer _checkPackageSet)
-        assertEquals(e error type, PackageInstaller PackageNotSetError type)
+        assertEquals(e error type, Installer PackageNotSetError type)
 
         e := try (installer _checkDestBinNameSet)
         assertEquals(e error type, 
-            PackageInstaller DestinationBinNameNotSetError type)
+            Installer DestinationBinNameNotSetError type)
 
         package := Package with(Directory with("tests/_addons/AFakeAddon"))
-        installer = PackageInstaller with(package)
+        installer = Installer with(package)
         e := try (installer install)
         assertEquals(
-            e error type, PackageInstaller DestinationNotSetError type))
+            e error type, Installer DestinationNotSetError type))
 
     testInstall := method(
         package := Package with(Directory with("tests/_addons/AFakeAddon"))
@@ -27,7 +27,7 @@ PackageInstallerTest := UnitTest clone do (
         destination := Directory with("tests/installer") 
         if(destination exists, destination remove)
 
-        installer := PackageInstaller with(package) setDestination(destination)
+        installer := Installer with(package) setDestination(destination)
 
         installer install
 
@@ -36,7 +36,7 @@ PackageInstallerTest := UnitTest clone do (
 
         # installing it again should raise an exception
         e := try (installer install)
-        assertEquals(e error type, PackageInstaller DirectoryExistsError type)
+        assertEquals(e error type, Installer DirectoryExistsError type)
         destination remove)
 
     testCompile := method()

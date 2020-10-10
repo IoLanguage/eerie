@@ -12,7 +12,7 @@ UpdateAction := Eerie TransactionAction clone do(
                 PackageDownloader FailedDownloadError with(downloader uri)))
 
         self pkg downloader update
-        installer := PackageInstaller with(self pkg) \
+        installer := Installer with(self pkg) \
             setDestination(Eerie addonsDir) \
                 setDestBinName(Eerie globalBinDirName)
 
