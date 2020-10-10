@@ -7,7 +7,7 @@ Action := Object clone do(
             (slotName == name_) ifTrue(
                 return(action)))
 
-        Eerie MissingTransactionException raise(name_))
+        Exception raise(UnknownActionError with(name_)))
 
     exists := method(name_, self named(name_) != nil)
 
@@ -25,6 +25,13 @@ Action := Object clone do(
 
     //doc Action execute
     execute := method(false)
+)
+
+# Error types
+Action do (
+    //doc Action UnknownActionError
+    UnknownActionError := Eerie Error clone setErrorMsg(
+        "The '#{call evalArgAt(0)}' action is unknown.")
 )
 
 Action instances := Object clone do(

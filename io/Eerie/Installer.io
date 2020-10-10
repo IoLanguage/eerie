@@ -1,10 +1,10 @@
 //metadoc Installer category API
 /*metadoc Installer description 
-This object is used to install and compile packages. Use `Installer
+This object is used to install and build packages. Use `Installer
 with(package)` to initialize it. You should `setDestination` right after
 initialization, otherwise it will raise an exception when you'll try to install
-a package. You should also `setDestBinName` if you install a `Package` with
-binaries.*/
+a package. You should also `setDestBinName` if you to install binaries from the
+`Package`.*/
 
 Installer := Object clone do (
     _compileFlags := if(System platform split first asLowercase == "windows",
@@ -40,7 +40,7 @@ Installer := Object clone do (
             Exception raise(DirectoryExistsError with(
                 self package name, pkgDestination path)))
 
-        self compile
+        self build
 
         pkgDestination createIfAbsent
 
@@ -63,23 +63,31 @@ Installer := Object clone do (
     _packageDestination := method(
         self destination directoryNamed(self package name))
 
-    /*doc Installer compile(package) Compiles the `Package` if it has
-    native code. Returns `self`.*/
-    compile := method(
+    /*doc Installer build(package) Compiles the `Package` if it has
+    native code. Returns `true` if the package was compiled and `false`
+    otherwise. Note, the return value doesn't mean whether the compilation was
+    successful or not, it's just about whether it's went through the compilation
+    process.*/
+    build := method(
         self _checkPackageSet
         sourceDir := self package dir createSubdirectory("source")
         if(sourceDir files isEmpty and sourceDir directories isEmpty, 
             Eerie log(
                 "There is nothing to compile. The 'source' directory " ..
                 "('#{sourceDir path}') is empty.")
-            return self)
+            return false)
 
         buildio := self package dir fileNamed("build.io")
         if (buildio exists not, 
             Exception raise(BuildioMissingError with(self package name)))
 
+        Eerie log("Compiling #{self package name}")
+
+        # FIXME cd into package's directory and return back, when the
+        # compilation is finished
+
         builderContext := Object clone
-        builderContext doRelativeFile("AddonBuilder.io")
+        builderContext doRelativeFile("Builder.io")
 
         self package dir createSubdirectory("_build")
 
@@ -87,7 +95,7 @@ Installer := Object clone do (
         addon folder := self package dir
         addon build(self _compileFlags)
 
-        self)
+        true)
 
     # For global packages, creates symlinks (UNIX-like) or .cmd files (Windows)
     # for files of the package's `bin` directory in destination's `destBinName`
@@ -145,7 +153,7 @@ Installer do (
 
     //doc Installer BuildioMissingError
     BuildioMissingError := Eerie Error clone setErrorMsg("Don't know how to " ..
-        "compile #{call evalArgAt(0)}. The 'build.io' file is missing.")
+        "build #{call evalArgAt(0)}. The 'build.io' file is missing.")
 
     //doc Installer DestinationNotSetError
     DestinationNotSetError := Eerie Error clone setErrorMsg(

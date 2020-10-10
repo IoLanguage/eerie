@@ -39,7 +39,12 @@ InstallerTest := UnitTest clone do (
         assertEquals(e error type, Installer DirectoryExistsError type)
         destination remove)
 
-    testCompile := method()
+    testBuild := method(
+        package := Package with(Directory with("tests/_addons/CFakeAddon"))
+        installer := Installer with(package)
+
+        installer build
+    )
 
     testInstallBinaries := method()
 )

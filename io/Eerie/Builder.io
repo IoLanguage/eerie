@@ -1,10 +1,32 @@
-# AddonBuilder is part of standard Io package, (c) Steve Dekorte
+//metadoc Builder category API
+/*metadoc Builder description Builder for native packages. This proto knows how
+to build a `Package` with native code. You can provide additional information
+like platform-dependent steps or dependencies inside `build.io` file at the root
+of the package. If your package has native code, the `build.io` is required and
+the bare minimum of it is:
+
+```Io
+Builder clone do ()
+```
+
+For more information of what you can put inside `build.io` see the methods of
+this proto. To add a header dependency for example you'd use `Builder
+dependsOnHeader` like so:
+
+```Io
+Builder clone do (
+    dependsOnHeader("header.h")
+)
+```
+
+Usually, you don't need this directly. Use `Installer build` instead.*/
+
 Sequence prepend := method(s, s .. self)
 Directory fileNamedOrNil := method(path,
   f := self fileNamed(path)
   if(f exists, f, nil))
 
-AddonBuilder := Object clone do(
+Builder := Object clone do(
   isDisabled := false
   disable := method(isDisabled = true)
   dontGenerateInit ::= false

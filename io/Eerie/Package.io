@@ -1,5 +1,5 @@
 //metadoc Package category API
-//metadoc Package description Reprsents an Eerie package.
+//metadoc Package description Represents an Eerie package.
 doRelativeFile("Path.io")
 doRelativeFile("SemVer.io")
 
@@ -33,8 +33,8 @@ Package := Object clone do (
     downloader ::= nil
 
     /*doc Package with(dir) 
-    Creates new package from provided `Directory`. Raises `NotPackageError`
-    if the directory is not an Eerie package. Use this to init a `Package`.*/
+    Creates new package from provided `Directory`. Raises `NotPackageError` if
+    the directory is not an Eerie package. Use this to initialize a `Package`.*/
     with := method(dir,
         _checkDirectoryPackage(dir)
 
