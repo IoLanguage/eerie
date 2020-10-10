@@ -1,4 +1,4 @@
-ArchiveDownloader := Eerie PackageDownloader clone do(
+ArchiveDownloader := Eerie Downloader clone do(
     formats := Object clone do(
         doRelativeFile("archives/targz.io")
         doRelativeFile("archives/tarbz2.io")
@@ -32,7 +32,7 @@ ArchiveDownloader := Eerie PackageDownloader clone do(
             URL with(self uri) fetchToFile(tmpFile)
             tmpFile exists ifFalse(
                 Exception raise(
-                    PackageDownloader FailedDownloadError with(self uri)))
+                    Downloader FailedDownloadError with(self uri)))
             self uri = tmpFile path)
 
         Eerie sh(self format cmd interpolate) # TODO: does it compatible with Windows?

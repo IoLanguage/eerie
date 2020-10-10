@@ -91,7 +91,7 @@ Namespaces Pkg := Namespace clone do(
             Exception raise (Eerie AlreadyInstalledError with(path))
 
         root create
-        Eerie PackageDownloader clone setPath(path) createSkeleton
+        Eerie Downloader clone setPath(path) createSkeleton
 
         pkgInfo := """|
         |{

@@ -1,4 +1,4 @@
-DirectoryDownloader := Eerie PackageDownloader clone do(
+DirectoryDownloader := Eerie Downloader clone do(
     canDownload := method(uri,
         Directory with(uri) exists
     )

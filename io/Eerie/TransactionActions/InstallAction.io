@@ -10,7 +10,7 @@ InstallAction := Eerie TransactionAction clone do(
 
        self pkg do(
            if(downloader isNil, 
-               setDownloader(Eerie PackageDownloader detect(uri, path)))
+               setDownloader(Eerie Downloader detect(uri, path)))
 
            runHook("beforeDownload")
 
@@ -18,7 +18,7 @@ InstallAction := Eerie TransactionAction clone do(
 
            if(downloader canDownload(downloader uri) not,
                Exception raise(
-                   PackageDownloader FailedDownloadError with(downloader uri)))
+                   Downloader FailedDownloadError with(downloader uri)))
 
            downloader download
 

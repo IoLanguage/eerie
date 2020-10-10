@@ -1,4 +1,4 @@
-FileDownloader := Eerie PackageDownloader clone do(
+FileDownloader := Eerie Downloader clone do(
   canDownload := method(uri,
     f := File with(uri)
     f exists and(f name containsSeq(".io"))

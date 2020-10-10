@@ -29,7 +29,7 @@ Package := Object clone do (
             dir,
             self config at("path") at("git") at("url")))
 
-    //doc Package downloader Instance of [[PackageDownloader]] for this package.
+    //doc Package downloader Instance of [[Downloader]] for this package.
     downloader ::= nil
 
     /*doc Package with(dir) 

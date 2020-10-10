@@ -1,22 +1,22 @@
-//metadoc PackageDownloader category API
-//metadoc PackageDownloader description
+//metadoc Downloader category API
+//metadoc Downloader description
 
-PackageDownloader := Object clone do(
-    //doc PackageDownloader uri 
+Downloader := Object clone do(
+    //doc Downloader uri 
     uri ::= nil
 
-    //doc PackageDownloader path
+    //doc Downloader path
     path ::= nil
 
-    /*doc PackageDownloader root Directory object pointing to
-    [[PackageDownloader path]].*/
+    /*doc Downloader root Directory object pointing to
+    [[Downloader path]].*/
     root := method(self root = Directory with(self path))
 
-    //doc PackageDownloader with(uri, path) Creates a new [[PackgeDownloader]].
+    //doc Downloader with(uri, path) Creates a new [[Downloader]].
     with := method(uri_, path_, self clone setUri(uri_) setPath(path_))
 
-    /*doc PackageDownloader detect(uri, path)
-    Looks for [[PackageDownloader]] which understands provided URI. If suitable
+    /*doc Downloader detect(uri, path)
+    Looks for [[Downloader]] which understands provided URI. If suitable
     downloader is found, a clone with provided URI and path is returned an
     exception is thrown.
     */
@@ -29,21 +29,21 @@ PackageDownloader := Object clone do(
         Exception raise(
             "Don't know how to download package from #{uri_}" interpolate))
 
-    /*doc PackageDownloader canDownload(uri) Returns `true` if it understands
+    /*doc Downloader canDownload(uri) Returns `true` if it understands
     provided URI. `false` otherwise.*/
     canDownload := method(uri, false)
 
-    /*doc PackageDownloader download Downloads package from `self uri` to 
+    /*doc Downloader download Downloads package from `self uri` to 
     `self path`.*/
     download := method(false)
 
-    //doc PackageDownloader hasUpdates
+    //doc Downloader hasUpdates
     hasUpdates := method(false)
 
-    //doc PackageDownloader update Updates the package.
+    //doc Downloader update Updates the package.
     update := method(true)
 
-    /*doc PackageDownloader createSkeleton Creates required directories, `io`,
+    /*doc Downloader createSkeleton Creates required directories, `io`,
     `bin`, `hooks` and `source`.*/
     createSkeleton := method(
         self root createSubdirectory("io")
@@ -53,16 +53,16 @@ PackageDownloader := Object clone do(
 )
 
 # Error types
-PackageDownloader do (
-    //doc PackageDownloader FailedDownloadError
+Downloader do (
+    //doc Downloader FailedDownloadError
     FailedDownloadError := Eerie Error clone setErrorMsg(
         "Fetching package from #{call evalArgAt(0)} failed.")
 )
 
-//doc PackageDownloader instances Contains all PackageDownloader clones
-PackageDownloader instances := Object clone do(
-    doRelativeFile("PackageDownloader/Vcs.io")
-    doRelativeFile("PackageDownloader/File.io")
-    doRelativeFile("PackageDownloader/Archive.io")
-    doRelativeFile("PackageDownloader/Directory.io")
+//doc Downloader instances Contains all Downloader clones
+Downloader instances := Object clone do(
+    doRelativeFile("Downloader/Vcs.io")
+    doRelativeFile("Downloader/File.io")
+    doRelativeFile("Downloader/Archive.io")
+    doRelativeFile("Downloader/Directory.io")
 )

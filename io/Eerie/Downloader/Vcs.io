@@ -1,4 +1,4 @@
-VcsDownloader := Eerie PackageDownloader clone do(
+VcsDownloader := Eerie Downloader clone do(
     vcs := Object clone do(
         doRelativeFile("vcs/git.io")
         doRelativeFile("vcs/svn.io")
@@ -21,7 +21,7 @@ VcsDownloader := Eerie PackageDownloader clone do(
         self setChosenVcs(self vcs getSlot(self whichVcs(self uri)))
     )
 
-    // Reimplementation of default PackageDownloader methods
+    // Reimplementation of default Downloader methods
     canDownload = method(_uri,
         self whichVcs(_uri) != nil
     )
