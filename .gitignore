@@ -2,6 +2,7 @@
 ./_bin
 ./_build
 ./_tmp
+./tests/_addons/CFakeAddon/_build
 ./tests/deleteme
 ./tests/installer
 .transaction_lock

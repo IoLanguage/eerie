@@ -41,10 +41,22 @@ InstallerTest := UnitTest clone do (
 
     testBuild := method(
         package := Package with(Directory with("tests/_addons/CFakeAddon"))
+        initf := package dir directoryNamed("source") \
+            fileNamed("IoCFakeAddonInit.c")
+        buildDir := package dir directoryNamed("_build")
+
+        if (initf exists, initf remove)
+        if (buildDir exists, buildDir remove)
+
         installer := Installer with(package)
 
         installer build
-    )
+
+        assertTrue(buildDir exists)
+        assertTrue(initf exists)
+
+        buildDir remove
+        initf remove)
 
     testInstallBinaries := method()
 )

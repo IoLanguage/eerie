@@ -15,7 +15,7 @@ Installer := Object clone do (
     be installed.*/
     destination ::= nil
 
-    /* Installer destBinName The name of the directory, where binaries
+    /*doc Installer destBinName The name of the directory, where binaries
     (if any) will be installed.*/
     destBinName ::= nil
 
@@ -63,13 +63,26 @@ Installer := Object clone do (
     _packageDestination := method(
         self destination directoryNamed(self package name))
 
-    /*doc Installer build(package) Compiles the `Package` if it has
+    /*doc Installer build(Package) Compiles the `Package` if it has
     native code. Returns `true` if the package was compiled and `false`
     otherwise. Note, the return value doesn't mean whether the compilation was
     successful or not, it's just about whether it's went through the compilation
-    process.*/
+    process.
+
+    To customize compilation you can modify `build.io` file at the root of your
+    package. This file is evaluated in the context of `Builder` so you can treat
+    it as an ancestor of `Builder`. If you want to link a library `foobar`, for
+    example, your `build.io` file would look like:
+
+    ```Io
+    dependsOnLib("foobar")
+    ```
+
+    Look `Builder`'s documentation for more methods you can use in `build.io`.
+    */
     build := method(
         self _checkPackageSet
+
         sourceDir := self package dir createSubdirectory("source")
         if(sourceDir files isEmpty and sourceDir directories isEmpty, 
             Eerie log(
@@ -78,22 +91,21 @@ Installer := Object clone do (
             return false)
 
         buildio := self package dir fileNamed("build.io")
-        if (buildio exists not, 
-            Exception raise(BuildioMissingError with(self package name)))
+        if (buildio exists not, buildio create)
+
+        # keep currentWorkingDirectory to return later
+        wd := Directory currentWorkingDirectory
+        Directory setCurrentWorkingDirectory(self package dir path)
 
         Eerie log("Compiling #{self package name}")
 
-        # FIXME cd into package's directory and return back, when the
-        # compilation is finished
+        builder := Builder with(self package)
+        builder doFile("build.io")
+        builder folder := Directory at(".")
+        builder build(self _compileFlags)
 
-        builderContext := Object clone
-        builderContext doRelativeFile("Builder.io")
-
-        self package dir createSubdirectory("_build")
-
-        addon := builderContext doFile(buildio path)
-        addon folder := self package dir
-        addon build(self _compileFlags)
+        # change directory back
+        Directory setCurrentWorkingDirectory(wd)
 
         true)
 
@@ -150,10 +162,6 @@ Installer do (
     DirectoryExistsError := Eerie Error clone setErrorMsg("Can't install " ..
         "the package #{call evalArgAt(0)}. The destination directory " ..
         "'#{call evalArgAt(1)}' already exists.")
-
-    //doc Installer BuildioMissingError
-    BuildioMissingError := Eerie Error clone setErrorMsg("Don't know how to " ..
-        "build #{call evalArgAt(0)}. The 'build.io' file is missing.")
 
     //doc Installer DestinationNotSetError
     DestinationNotSetError := Eerie Error clone setErrorMsg(

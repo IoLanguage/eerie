@@ -1,66 +1,91 @@
 //metadoc Builder category API
-/*metadoc Builder description Builder for native packages. This proto knows how
-to build a `Package` with native code. You can provide additional information
-like platform-dependent steps or dependencies inside `build.io` file at the root
-of the package. If your package has native code, the `build.io` is required and
-the bare minimum of it is:
+/*metadoc Builder description
+Builder for native packages. This proto knows how to build a `Package` with
+native code. 
 
-```Io
-Builder clone do ()
-```
-
-For more information of what you can put inside `build.io` see the methods of
-this proto. To add a header dependency for example you'd use `Builder
-dependsOnHeader` like so:
-
-```Io
-Builder clone do (
-    dependsOnHeader("header.h")
-)
-```
-
-Usually, you don't need this directly. Use `Installer build` instead.*/
+Normally, you shouldn't use this directly. Use `Installer build` instead. But
+here you'll find methods you can use inside your `build.io` script as it's
+evaluated in the context of `Builder` (i.e. it's its ancestor).*/
 
 Sequence prepend := method(s, s .. self)
 Directory fileNamedOrNil := method(path,
-  f := self fileNamed(path)
-  if(f exists, f, nil))
+    f := self fileNamed(path)
+    if(f exists, f, nil))
 
 Builder := Object clone do(
-  isDisabled := false
-  disable := method(isDisabled = true)
-  dontGenerateInit ::= false
-
+  //doc Builder platform Get the platform name as lowercase.
   platform := System platform split at(0) asLowercase
-  cflags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
-  if (platform == "windows",
-    cc := method(System getEnvironmentVariable("CC") ifNilEval(return "cl -nologo"))
-    cxx := method(System getEnvironmentVariable("CXX") ifNilEval(return "cl -nologo"))
-    ccOutFlag := "-Fo"
-    linkdll := "link -link -nologo"
-    linkDirPathFlag := "-libpath:"
-    linkLibFlag := ""
-    linkOutFlag := "-out:"
-    linkLibSuffix := ".lib"
-    ar := "link -lib -nologo"
-    arFlags := "-out:"
-    ranlib := nil
-  ,
-    cc := method(System getEnvironmentVariable("CC") ifNilEval(return "cc"))
-    cxx := method(System getEnvironmentVariable("CXX") ifNilEval(return "g++"))
-    ccOutFlag := "-o "
-    linkdll := cc
-    linkDirPathFlag := "-L"
-    linkLibFlag := "-l"
-    linkLibSuffix := ""
-    linkOutFlag := "-o "
-    linkLibSuffix := ""
-    ar := method(System getEnvironmentVariable("AR") ifNilEval(return "ar"))
-    arFlags := "rcu "
-    ranlib := method(System getEnvironmentVariable("RANLIB") ifNilEval(return "ranlib"))
-  )
 
-  supportedOnPlatform := true
+  if (platform == "windows") then (
+      ccOutFlag := "-Fo"
+      linkdll := "link -link -nologo"
+      linkDirPathFlag := "-libpath:"
+      linkLibFlag := ""
+      linkOutFlag := "-out:"
+      linkLibSuffix := ".lib"
+      ar := "link -lib -nologo"
+      arFlags := "-out:"
+      ranlib := nil
+
+      cc := method(
+          System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
+
+      cxx := method(
+          System getEnvironmentVariable("CXX") ifNilEval("cl -nologo"))
+  ) else (
+      cc := method(
+          System getEnvironmentVariable("CC") ifNilEval("cc"))
+
+      cxx := method(
+          System getEnvironmentVariable("CXX") ifNilEval("g++"))
+
+      ccOutFlag := "-o "
+      linkdll := cc
+      linkDirPathFlag := "-L"
+      linkLibFlag := "-l"
+      linkLibSuffix := ""
+      linkOutFlag := "-o "
+      linkLibSuffix := ""
+
+      ar := method(
+          System getEnvironmentVariable("AR") ifNilEval("ar"))
+      arFlags := "rcu "
+
+      ranlib := method(
+          System getEnvironmentVariable("RANLIB") ifNilEval("ranlib")))
+
+  /*doc Builder isGenerateInit Whether `Builder` should generate IoInit.c file
+  for your package. Default to `true`*/
+  isGenerateInit ::= true
+
+  //doc Builder package Get the package the `Builder` is building.
+  package := nil
+
+  cflags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
+
+  //doc Builder with(Package) Always use this to initialize `Builder`.
+  with := method(pkg, 
+      klone := self clone
+      klone package := pkg
+      klone)
+
+  init := method(
+    self folder := Directory clone
+
+    self depends := Object clone do(
+      headers := List clone
+      libs := List clone
+      frameworks := List clone
+      syslibs := List clone
+      includes := List clone
+      linkOptions := List clone
+      addons := List clone
+    )
+
+    self defines := List clone
+
+    setupPaths
+  )
 
   setupPaths := method(
     self frameworkSearchPaths := List clone
@@ -104,24 +129,6 @@ Builder := Object clone do(
   ebuilds := Map clone
   pkgs    := Map clone
   rpms    := Map clone
-
-  init := method(
-    self folder := Directory clone
-
-    self depends := Object clone do(
-      headers := List clone
-      libs := List clone
-      frameworks := List clone
-      syslibs := List clone
-      includes := List clone
-      linkOptions := List clone
-      addons := List clone
-    )
-
-    self defines := List clone
-
-    setupPaths
-  )
 
   mkdir := method(relativePath,
     path := Path with(folder path, relativePath)
@@ -221,12 +228,6 @@ Builder := Object clone do(
     commands
   )
 
-  with := method(path,
-    module := self clone
-    module folder setPath(path)
-    module
-  )
-
   systemCall := method(s,
       statusCode := trySystemCall(s)
       if(statusCode == 256, System exit(1))
@@ -270,7 +271,8 @@ Builder := Object clone do(
   pkgConfigCFlags := method(pkg, pkgConfig(pkg, "--cflags") splitNoEmpties("-I") map(strip))
   // ------------------------------------
 
-  name := method(folder name)
+  name := method(self package name)
+
   oldDate := Date clone setYear(1970)
 
   libName := method("libIo" .. self name ..  ".a")
@@ -297,8 +299,6 @@ Builder := Object clone do(
   )
 
   build := method(options,
-    Eerie log("Compiling source files...")
-
     mkdir("_build/headers")
     mkdir("source")
     
@@ -422,8 +422,9 @@ Builder := Object clone do(
 
   isStatic := false
 
+  # TODO encapsulate into IoInitGenerator
   generateInitFile := method(
-      if(dontGenerateInit, return)
+      if(isGenerateInit not, return)
     /* if(platform != "windows" and folder directoryNamed("source") filesWithExtension("m") size != 0, return) */
     initFile := folder fileNamed(initFileName) remove create open
     initFile write("#include \"IoState.h\"\n")
