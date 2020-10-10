@@ -48,7 +48,7 @@ Package := Object clone do (
         ioDir := dir directoryNamed("io")
         manifest := File with(dir path .. "/#{Eerie manifestName}" interpolate)
         if ((dir exists and manifest exists and ioDir exists) not,
-            Exception raise(Eerie NotPackageError with(dir path)))
+            Exception raise(NotPackageError with(dir path)))
 
         self _validateManifest(manifest))
 
@@ -127,8 +127,7 @@ Package := Object clone do (
     # argument.
     # The third argument is the manifest path.
     _checkField := method(test, msg, path,
-        test ifTrue(Exception raise(
-            Eerie InsufficientManifestError with(path, msg))))
+        test ifTrue(Exception raise(InsufficientManifestError with(path, msg))))
 
 
     //doc Package providesProtos Returns list of protos this package provides.
@@ -157,4 +156,19 @@ Package := Object clone do (
                 Eerie log("#{hook} failed.", "error")
                 Eerie log(e message, "debug"))
             f close))
+)
+
+# Error types
+Package do (
+    //doc Package NotPackageError
+    NotPackageError := Eerie Error clone setErrorMsg(
+        "The directory '#{call evalArgAt(0)}' is not recognised as an Eerie "..
+        "package.")
+
+    //doc Package InsufficientManifestError
+    InsufficientManifestError := Eerie Error clone \
+        setErrorMsg("The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
+            "all requirements." .. 
+            "#{if(call evalArgAt(1) isNil, " ..
+                "\"\", \"\\n\" .. call evalArgAt(1))}")
 )

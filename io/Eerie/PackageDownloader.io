@@ -52,6 +52,13 @@ PackageDownloader := Object clone do(
         self root createSubdirectory("source"))
 )
 
+# Error types
+PackageDownloader do (
+    //doc PackageDownloader FailedDownloadError
+    FailedDownloadError := Eerie Error clone setErrorMsg(
+        "Fetching package from #{call evalArgAt(0)} failed.")
+)
+
 //doc PackageDownloader instances Contains all PackageDownloader clones
 PackageDownloader instances := Object clone do(
     doRelativeFile("PackageDownloader/Vcs.io")

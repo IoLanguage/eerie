@@ -112,7 +112,7 @@ Transaction := Object clone do(
 
         deps at("protos") ?foreach(protoName,
             AddonLoader hasAddonNamed(protoName) ifFalse(
-                Exception raise(Eerie MissingProtoError with(list(
+                Exception raise(MissingProtoError with(list(
                     package name, protoName)))))
 
         self depsCheckedFor append(package uri)
@@ -120,4 +120,12 @@ Transaction := Object clone do(
         toInstall foreach(pkg, 
             Eerie Transaction clone install(pkg) run)
         true)
+)
+
+# Error types
+Transaction do (
+    //doc Transaction MissingProtoError
+    MissingProtoError := Eerie Error clone setErrorMsg(
+        "Package '#{call evalArgAt(0)}' required Proto '#{call evalArgAt(1)}" ..
+        " which is missing'.")
 )

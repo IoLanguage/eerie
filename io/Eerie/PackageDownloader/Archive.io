@@ -31,7 +31,8 @@ ArchiveDownloader := Eerie PackageDownloader clone do(
             tmpFile = Eerie tmpDir fileNamed(self uri split("/") last)
             URL with(self uri) fetchToFile(tmpFile)
             tmpFile exists ifFalse(
-                Exception raise(Eerie FailedDownloadError with(self uri)))
+                Exception raise(
+                    PackageDownloader FailedDownloadError with(self uri)))
             self uri = tmpFile path)
 
         Eerie sh(self format cmd interpolate) # TODO: does it compatible with Windows?
