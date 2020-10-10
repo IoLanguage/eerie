@@ -153,8 +153,8 @@ Eerie clone = Eerie do (
     doRelativeFile("Eerie/Installer.io")
     //doc Eerie Transaction [Transaction](transaction.html)
     doRelativeFile("Eerie/Transaction.io")
-    //doc Eerie TransactionAction [TransactionAction](transactionaction.html)
-    doRelativeFile("Eerie/TransactionAction.io")
+    //doc Eerie Action [Action](action.html)
+    doRelativeFile("Eerie/Action.io")
 
     init
 )

@@ -90,13 +90,13 @@ Transaction := Object clone do(
         self)
 
     install := method(package,
-        self addAction(Eerie TransactionAction named("Install") with(package)))
+        self addAction(Eerie Action named("Install") with(package)))
 
     update := method(package,
-        self addAction(Eerie TransactionAction named("Update") with(package)))
+        self addAction(Eerie Action named("Update") with(package)))
 
     remove := method(package,
-        self addAction(Eerie TransactionAction named("Remove") with(package)))
+        self addAction(Eerie Action named("Remove") with(package)))
 
     resolveDeps := method(package,
         Eerie log("Resolving dependencies for #{package name}")

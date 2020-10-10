@@ -1,4 +1,4 @@
-RemoveAction := Eerie TransactionAction clone do(
+Remove := Eerie Action clone do(
   name := "Remove"
   asVerb := "Removing"
 

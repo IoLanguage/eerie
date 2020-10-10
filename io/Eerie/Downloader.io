@@ -17,9 +17,8 @@ Downloader := Object clone do(
 
     /*doc Downloader detect(uri, path)
     Looks for [[Downloader]] which understands provided URI. If suitable
-    downloader is found, a clone with provided URI and path is returned an
-    exception is thrown.
-    */
+    downloader is found, a clone with provided URI and path is returned.
+    Otherwise an exception is thrown.*/
     detect := method(uri_, path_,
         self instances foreachSlot(slotName, downloader,
             downloader canDownload(uri_) ifTrue(
@@ -30,7 +29,7 @@ Downloader := Object clone do(
             "Don't know how to download package from #{uri_}" interpolate))
 
     /*doc Downloader canDownload(uri) Returns `true` if it understands
-    provided URI. `false` otherwise.*/
+    provided URI and `false` otherwise.*/
     canDownload := method(uri, false)
 
     /*doc Downloader download Downloads package from `self uri` to 
@@ -61,8 +60,8 @@ Downloader do (
 
 //doc Downloader instances Contains all Downloader clones
 Downloader instances := Object clone do(
-    doRelativeFile("Downloader/Vcs.io")
-    doRelativeFile("Downloader/File.io")
-    doRelativeFile("Downloader/Archive.io")
-    doRelativeFile("Downloader/Directory.io")
+    doRelativeFile("downloaders/Vcs.io")
+    doRelativeFile("downloaders/File.io")
+    doRelativeFile("downloaders/Archive.io")
+    doRelativeFile("downloaders/Directory.io")
 )

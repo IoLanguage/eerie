@@ -1,9 +1,8 @@
-//metadoc TransactionAction category API
-//metadoc TransactionAction description
+//metadoc Action category API
+//metadoc Action description
 
-TransactionAction := Object clone do(
+Action := Object clone do(
     named := method(name_,
-        name_ = name_ .. "Action"
         self instances foreachSlot(slotName, action,
             (slotName == name_) ifTrue(
                 return(action)))
@@ -16,20 +15,20 @@ TransactionAction := Object clone do(
 
     with := method(pkg_, self clone setPkg(pkg_))
 
-    //doc TransactionAction asVerb
+    //doc Action asVerb
     asVerb := method(self asVerb = self type makeFirstUppercase .. "ing")
 
     name := method(self name = self type exSlice(0, "Action" size + 1))
 
-    //doc TransactionAction prepare
+    //doc Action prepare
     prepare := method(false)
 
-    //doc TransactionAction execute
+    //doc Action execute
     execute := method(false)
 )
 
-TransactionAction instances := Object clone do(
-    doRelativeFile("TransactionActions/InstallAction.io")
-    doRelativeFile("TransactionActions/UpdateAction.io")
-    doRelativeFile("TransactionActions/RemoveAction.io")
+Action instances := Object clone do(
+    doRelativeFile("actions/Install.io")
+    doRelativeFile("actions/Update.io")
+    doRelativeFile("actions/Remove.io")
 )

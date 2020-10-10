@@ -1,4 +1,4 @@
-UpdateAction := Eerie TransactionAction clone do(
+Update := Eerie Action clone do(
     name := "Update"
     asVerb := "Updating"
 

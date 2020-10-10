@@ -1,4 +1,4 @@
-InstallAction := Eerie TransactionAction clone do(
+Install := Eerie Action clone do(
    asVerb := "Installing"
 
    prepare := method(
