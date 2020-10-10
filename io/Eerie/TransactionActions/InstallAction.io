@@ -25,11 +25,11 @@ InstallAction := Eerie TransactionAction clone do(
 
     execute := method(
         self pkg runHook("beforeInstall")
-        installer := PackageInstaller clone \
+        installer := PackageInstaller with(self pkg) \
             setDestination(Eerie addonsDir) \
                 setDestBinName(Eerie globalBinDirName)
 
-        installer install(self pkg, Eerie isGlobal)
+        installer install(Eerie isGlobal)
         # self pkg loadInfo
 
         Eerie appendPackage(self pkg)

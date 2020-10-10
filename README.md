@@ -2,7 +2,7 @@
 
 The package manager for Io.
 
-Eerie may install packages from a specifically structured directory, a single
+Eerie can install packages from a specifically structured directory, a single
 file or:
 
 #### Archive
@@ -25,9 +25,8 @@ file or:
 
 ## Installation
 
-There's a big chance you already install it with Io. If for some reason you
-didn't, follow the instructions below.
-
+There's a big chance you already installed it with Io. Follow the below
+instructions only if you're sure you didn't.
 
 ### Linux, macOS
 

@@ -3,13 +3,21 @@ Importer addSearchPath("io/Eerie")
 
 PackageInstallerTest := UnitTest clone do (
 
-    testCheckDestination := method(
+    testValidation := method(
         installer := PackageInstaller clone
-        e := try (installer _checkDestination)
+        e := try (installer _checkDestinationSet)
         assertEquals(e error type, PackageInstaller DestinationNotSetError type)
 
+        e := try (installer _checkPackageSet)
+        assertEquals(e error type, PackageInstaller PackageNotSetError type)
+
+        e := try (installer _checkDestBinNameSet)
+        assertEquals(e error type, 
+            PackageInstaller DestinationBinNameNotSetError type)
+
         package := Package with(Directory with("tests/_addons/AFakeAddon"))
-        e := try (installer install(package))
+        installer = PackageInstaller with(package)
+        e := try (installer install)
         assertEquals(
             e error type, PackageInstaller DestinationNotSetError type))
 
@@ -19,14 +27,15 @@ PackageInstallerTest := UnitTest clone do (
         destination := Directory with("tests/installer") 
         if(destination exists, destination remove)
 
-        installer := PackageInstaller clone setDestination(destination)
+        installer := PackageInstaller with(package) setDestination(destination)
 
-        installer install(package)
+        installer install
 
         # validate that what we installed is a package
         Package with(Directory with(destination path .. "/AFakeAddon"))
 
-        e := try (installer install(package))
+        # installing it again should raise an exception
+        e := try (installer install)
         assertEquals(e error type, PackageInstaller DirectoryExistsError type)
         destination remove)
 

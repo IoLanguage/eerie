@@ -1,8 +1,10 @@
 //metadoc PackageInstaller category API
-/*metadoc PackageInstaller description This object is used to install packages.
-You should `setDestination` right after initialization, otherwise it will raise
-an exception when you'll try to install a package. You should also
-`setDestBinName` if you install a `Package` with binaries.*/
+/*metadoc PackageInstaller description 
+This object is used to install and compile packages. Use `Installer
+with(package)` to initialize it. You should `setDestination` right after
+initialization, otherwise it will raise an exception when you'll try to install
+a package. You should also `setDestBinName` if you install a `Package` with
+binaries.*/
 
 PackageInstaller := Object clone do (
     _compileFlags := if(System platform split first asLowercase == "windows",
@@ -17,69 +19,72 @@ PackageInstaller := Object clone do (
     (if any) will be installed.*/
     destBinName ::= nil
 
-    /*doc PackageInstaller install(package, installBin)
-    Installs the given `Package` into `PackageInstaller destination`/`package
-    name`. If the second argument is `true`, the binaries from the package's
-    `bin` directory will also be installed. 
+    //doc Installer package `Package` which the `Installer` will install.
+    package ::= nil
+
+    //doc Installer with(package) Initializes installer with the given package.
+    with := method(pkg, self clone setPackage(pkg))
+
+    /*doc PackageInstaller install(installBin)
+    Installs `Installer package` into `Installer destination`/`package name`. If
+    `installBin` is `true`, the binaries from the package's `bin` directory will
+    also be installed. 
 
     Returns `true` if the package installed successfully.*/
-    install := method(pkg, includeBin,
-        self _checkDestination
+    install := method(includeBin,
+        self _checkPackageSet
+        self _checkDestinationSet
 
-        pkgDestination := self _packageDestination(pkg)
+        pkgDestination := self _packageDestination
         if (pkgDestination exists, 
             Exception raise(DirectoryExistsError with(
-                pkg name, pkgDestination path)))
+                self package name, pkgDestination path)))
 
-        self compile(pkg)
+        self compile
 
         pkgDestination createIfAbsent
 
-        Directory cp(pkg dir, pkgDestination)
+        Directory cp(self package dir, pkgDestination)
 
-        if(includeBin, self _installBinaries(pkg))
+        if(includeBin, self _installBinaries)
 
         true)
 
-    _checkDestination := method(
+    _checkPackageSet := method(
+        if (self package isNil,
+            Exception raise(PackageNotSetError clone)))
+
+    _checkDestinationSet := method(
         if (self destination isNil, 
             Exception raise(DestinationNotSetError clone)))
 
     # this is the directory inside `destination` which represents the package
     # and contains its sources
-    _packageDestination := method(pkg, 
-        self destination directoryNamed(pkg name))
-
-    _checkDestBinName := method(
-        if (self destBinName isNil or self destBinName isEmpty,
-            Exception raise(DestinationBinNameNotSetError clone)))
-
-    # binaries will be installed in this directory
-    _binDestination := method(pkg,
-        self destination directoryNamed(pkg name) directoryNamed(
-            self binDestName))
+    _packageDestination := method(
+        self destination directoryNamed(self package name))
 
     /*doc PackageInstaller compile(package) Compiles the `Package` if it has
     native code. Returns `self`.*/
-    compile := method(pkg,
-        sourceDir := pkg dir createSubdirectory("source")
+    compile := method(
+        self _checkPackageSet
+        sourceDir := self package dir createSubdirectory("source")
         if(sourceDir files isEmpty and sourceDir directories isEmpty, 
             Eerie log(
                 "There is nothing to compile. The 'source' directory " ..
                 "('#{sourceDir path}') is empty.")
             return self)
 
-        buildio := File with(pkg dir path .. "/build.io")
+        buildio := self package dir fileNamed("build.io")
         if (buildio exists not, 
-            Exception raise(BuildioMissingError with(pkg name)))
+            Exception raise(BuildioMissingError with(self package name)))
 
         builderContext := Object clone
         builderContext doRelativeFile("AddonBuilder.io")
 
-        pkg dir createSubdirectory("_build")
+        self package dir createSubdirectory("_build")
 
-        addon := builderContext doFile(pkg dir path .. "/build.io")
-        addon folder := pkg dir
+        addon := builderContext doFile(buildio path)
+        addon folder := self package dir
         addon build(self _compileFlags)
 
         self)
@@ -87,19 +92,29 @@ PackageInstaller := Object clone do (
     # For global packages, creates symlinks (UNIX-like) or .cmd files (Windows)
     # for files of the package's `bin` directory in destination's `destBinName`
     # directory.
-    _installBinaries := method(pkg,
-        self _checkDestBinName
-        pkgDestination := self _packageDestination(pkg)
+    _installBinaries := method(
+        self _checkPackageSet
+        self _checkDestBinNameSet
+        pkgDestination := self _packageDestination
         binDir := pkgDestination createSubdirectory("bin")
         if (binDir files isEmpty, return)
 
         isWindows := System platform containsAnyCaseSeq("windows") or(
             System platform containsAnyCaseSeq("mingw"))
 
-        binDest := self _binDestination(pkg)
+        binDest := self _binDestination
         binDir files foreach(f, if(isWindows, 
             self _createCmdForBin(f, binDest),
             self _createLinkForBin(f, binDest))))
+
+    _checkDestBinNameSet := method(
+        if (self destBinName isNil or self destBinName isEmpty,
+            Exception raise(DestinationBinNameNotSetError clone)))
+
+    # binaries will be installed in this directory
+    _binDestination := method(
+        self destination directoryNamed(self package name) directoryNamed(
+            self binDestName))
 
     # This method is used on Windows to create .cmd file to be able to execute a
     # package binary as a normal command (i.e. `eerie` instead of
@@ -120,6 +135,9 @@ PackageInstaller := Object clone do (
 
 # Errors
 PackageInstaller do (
+    //doc Installer PackageNotSetError
+    PackageNotSetError := Eerie Error clone setErrorMsg("Package didn't set.")
+
     //doc PackageInstaller DirectoryExistsError
     DirectoryExistsError := Eerie Error clone setErrorMsg("Can't install " ..
         "the package #{call evalArgAt(0)}. The destination directory " ..
