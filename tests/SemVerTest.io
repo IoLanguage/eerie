@@ -1,3 +1,4 @@
+# Importer addSearchPath("io")
 Importer addSearchPath("io/Eerie")
 
 SemVerTest := UnitTest clone do(

@@ -3,7 +3,6 @@ if(System args size > 1) then(
     System args slice(1) foreach(name,
         try(
             if(name endsWithSeq(".io"),
-                # FIXME: This is platform dependent!
                 Lobby doFile(System launchPath .. "/" ..  name)
             ,
                 Lobby doString(name)

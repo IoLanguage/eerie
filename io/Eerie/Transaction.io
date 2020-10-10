@@ -13,7 +13,7 @@ Transaction := Object clone do(
     /*doc Transaction lockFile A file with current Eerie process ID. Eerie
     checks for existence of this file to make it sure that only one instance of
     Eerie is running per package.*/
-    lockFile := File with(Eerie addonsDir .. "/.transaction_lock")
+    lockFile := Eerie addonsDir fileNamed(".transaction_lock")
 
     //doc Transaction acquireLock Creates transaction lock.
     acquireLock := method(

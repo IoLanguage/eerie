@@ -5,7 +5,7 @@ an exception when you'll try to install a package. You should also
 `setDestBinName` if you install a `Package` with binaries.*/
 
 PackageInstaller := Object clone do (
-    compileFlags := if(System platform split first asLowercase == "windows",
+    _compileFlags := if(System platform split first asLowercase == "windows",
         "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
         "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
 
@@ -31,9 +31,9 @@ PackageInstaller := Object clone do (
             Exception raise(DirectoryExistsError with(
                 pkg name, pkgDestination path)))
 
-        pkgDestination create
-
         self compile(pkg)
+
+        pkgDestination createIfAbsent
 
         Directory cp(pkg dir, pkgDestination)
 
@@ -63,7 +63,7 @@ PackageInstaller := Object clone do (
     native code. Returns `self`.*/
     compile := method(pkg,
         sourceDir := pkg dir createSubdirectory("source")
-        if(sourceDir items isEmpty, 
+        if(sourceDir files isEmpty and sourceDir directories isEmpty, 
             Eerie log(
                 "There is nothing to compile. The 'source' directory " ..
                 "('#{sourceDir path}') is empty.")
@@ -80,7 +80,7 @@ PackageInstaller := Object clone do (
 
         addon := builderContext doFile(pkg dir path .. "/build.io")
         addon folder := pkg dir
-        addon build(self compileFlags)
+        addon build(self _compileFlags)
 
         self)
 
@@ -120,17 +120,45 @@ PackageInstaller := Object clone do (
 
 # Errors
 PackageInstaller do (
+    //doc PackageInstaller DirectoryExistsError
     DirectoryExistsError := Eerie Error clone setErrorMsg("Can't install " ..
         "the package #{call evalArgAt(0)}. The destination directory " ..
-        "'#{call evalArgAt}' already exists.")
+        "'#{call evalArgAt(1)}' already exists.")
 
+    //doc PackageInstaller BuildioMissingError
     BuildioMissingError := Eerie Error clone setErrorMsg("Don't know how to " ..
         "compile #{call evalArgAt(0)}. The 'build.io' file is missing.")
 
+    //doc PackageInstaller DestinationNotSetError
     DestinationNotSetError := Eerie Error clone setErrorMsg(
         "Package installer destination directory didn't set.")
 
+    //doc PackageInstaller DestinationBinNameNotSetError
     DestinationBinNameNotSetError := Eerie Error clone setErrorMsg(
         "Name of the destination directory where binaries will be installed " ..
         "didn't set.")
 )
+
+//doc Directory cp Copy the content of source `Directory` to a `Destination`.
+Directory cp := method(source, destination,
+    destination createIfAbsent
+    absoluteDest := Path absolute(destination path)
+
+    # keep path to the current directory to return when we're done
+    wd := Directory currentWorkingDirectory
+    # change directory, to copy only what's inside the source
+    Directory setCurrentWorkingDirectory(source path)
+
+
+    Directory at(".") walk(item,
+        newPath := absoluteDest .. "/" .. item path
+        if (item type == File type) then (
+            Directory with(newPath pathComponent) createIfAbsent 
+            # `File copyToPath` has rights issues, `File setPath` too, so we
+            # just create a new file here and copy the content of the source
+            # into it
+            File with(newPath) create setContents(item contents) close
+        ) else (
+            Directory createIfAbsent(newPath)))
+
+    Directory setCurrentWorkingDirectory(wd))

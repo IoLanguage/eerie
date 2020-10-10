@@ -53,6 +53,15 @@ The next options are available:
   `$EERIEDIR/base/bin` and `$EERIEDIR/activeEnv/bin`.
 
 
+### Tests
+
+To run the tests you should be inside the source root directory. Then:
+
+```shell
+$ io tests/run.io
+```
+
+
 
 
 ## Getting Started

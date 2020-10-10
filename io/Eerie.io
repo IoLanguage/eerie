@@ -1,9 +1,11 @@
 //metadoc Eerie category API
-//metadoc Eerie author Josip Lisec
-//metadoc Eerie description Eerie is the package manager for Io.
+//metadoc Eerie author Josip Lisec, Ales Tsurko
+//metadoc Eerie description Eerie is the Io package manager.
 SystemCommand
 
-System userInterruptHandler := method(Eerie Transaction releaseLock)
+System userInterruptHandler := method(
+    Eerie Transaction releaseLock
+    super(userInterruptHandler))
 
 Eerie := Object clone do(
     //doc Eerie manifestName The name of the manifest file.
@@ -127,9 +129,47 @@ Eerie := Object clone do(
 
 )
 
-Eerie clone = Eerie do(
-    //doc Eerie Exception [Exception](exception.html)
-    doRelativeFile("Eerie/Error.io")
+//doc Eerie Error Eerie modules subclass this error for their error types.
+Eerie Error := Error clone do (
+    errorMsg ::= nil
+
+    with := method(msg,
+        Eerie Transaction releaseLock
+        super(with(self errorMsg interpolate)))
+)
+
+Eerie do (
+    //doc Eerie AlreadyInstalledError
+    AlreadyInstalledError := Error clone setErrorMsg(
+        "Package is already installed at #{call evalArgAt(0)}.")
+    
+    //doc Eerie FailedDownloadError
+    FailedDownloadError := Error clone setErrorMsg(
+        "Fetching package from #{call evalArgAt(0)} failed.")
+
+    //doc Eerie MissingProtoError
+    MissingProtoError := Error clone setErrorMsg(
+        "Package '#{call evalArgAt(0)}' required Proto '#{call evalArgAt(1)}" ..
+        " which is missing'.")
+
+    //doc Eerie MissingPackageError
+    MissingPackageError := Error clone setErrorMsg(
+        "Package '#{call evalArgAt(0)}' is missing.")
+
+    //doc Eerie NotPackageError
+    NotPackageError := Error clone setErrorMsg(
+        "The directory '#{call evalArgAt(0)}' is not recognised as an Eerie "..
+        "package.")
+
+    //doc Eerie InsufficientManifestError
+    InsufficientManifestError := Error clone \
+        setErrorMsg("The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
+            "all requirements." .. 
+            "#{if(call evalArgAt(1) isNil, " ..
+                "\"\", \"\\n\" .. call evalArgAt(1))}")
+)
+
+Eerie clone = Eerie do (
     //doc Eerie Package [Package](package.html)
     doRelativeFile("Eerie/Package.io")
     //doc Eerie PackageDownloader [PackageDownloader](packagedownloader.html)
@@ -143,18 +183,3 @@ Eerie clone = Eerie do(
 
     init
 )
-
-//doc Directory cp Copy the content of source `Directory` to a `Destination`.
-Directory cp := method(source, destination,
-    destination createIfAbsent
-
-    source walk(item,
-        newPath := destination path .. "/" .. item path
-        if (item type == File type) then (
-            Directory with(newPath pathComponent) createIfAbsent 
-            # `File copyToPath` has rights issues, `File setPath` too, so we
-            # just create a new file here and copy the content of the source
-            # into it
-            File with(newPath) create setContents(item contents) close
-        ) else (
-            Directory createIfAbsent(newPath)))
