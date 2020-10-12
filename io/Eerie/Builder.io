@@ -16,44 +16,6 @@ Builder := Object clone do(
     //doc Builder platform Get the platform name as lowercase.
     platform := System platform split at(0) asLowercase
 
-    if (platform == "windows") then (
-        ccOutFlag := "-Fo"
-        linkdll := "link -link -nologo"
-        linkDirPathFlag := "-libpath:"
-        linkLibFlag := ""
-        linkOutFlag := "-out:"
-        linkLibSuffix := ".lib"
-        ar := "link -lib -nologo"
-        arFlags := "-out:"
-        ranlib := nil
-
-        cc := method(
-            System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
-
-        cxx := method(
-            System getEnvironmentVariable("CXX") ifNilEval("cl -nologo"))
-    ) else (
-        cc := method(
-            System getEnvironmentVariable("CC") ifNilEval("cc"))
-
-        cxx := method(
-            System getEnvironmentVariable("CXX") ifNilEval("g++"))
-
-        ccOutFlag := "-o "
-        linkdll := cc
-        linkDirPathFlag := "-L"
-        linkLibFlag := "-l"
-        linkLibSuffix := ""
-        linkOutFlag := "-o "
-        linkLibSuffix := ""
-
-        ar := method(
-            System getEnvironmentVariable("AR") ifNilEval("ar"))
-        arFlags := "rcu "
-
-        ranlib := method(
-            System getEnvironmentVariable("RANLIB") ifNilEval("ranlib")))
-
     /*doc Builder isGenerateInit Whether `Builder` should generate IoInit.c file
     for your package. Default to `true`*/
     isGenerateInit ::= true
@@ -84,8 +46,7 @@ Builder := Object clone do(
 
         self defines := List clone
 
-        setupPaths
-    )
+        setupPaths)
 
     setupPaths := method(
         self frameworkSearchPaths := List clone
@@ -110,7 +71,8 @@ Builder := Object clone do(
 
         self headerSearchPaths := List clone
         self appendHeaderSearchPath := method(v, 
-            if(File clone setPath(v) exists, headerSearchPaths appendIfAbsent(v)))
+            if(File clone setPath(v) exists,
+                headerSearchPaths appendIfAbsent(v)))
 
         searchPrefixes foreach(searchPrefix,
             appendHeaderSearchPath(searchPrefix .. "/include"))
@@ -132,19 +94,6 @@ Builder := Object clone do(
 
         searchPrefixes foreach(searchPrefix, 
             appendLibSearchPath(searchPrefix .. "/lib")))
-
-    debs    := Map clone
-    ebuilds := Map clone
-    pkgs    := Map clone
-    rpms    := Map clone
-
-    mkdir := method(relativePath,
-        path := Path with(folder path, relativePath)
-        if(Directory exists(path) not,
-            writeln("mkdir -p ", relativePath)
-            Directory with(path) createIfAbsent
-        )
-    )
 
     pathForFramework := method(name,
         frameworkname := name .. ".framework"
@@ -176,6 +125,30 @@ Builder := Object clone do(
             pkgConfigCFlags(v) select(containsSeq("/")) foreach(p,
                 appendHeaderSearchPath(p))))
 
+    pkgConfigLibs := method(pkg,
+        pkgConfig(pkg, "--libs") splitNoEmpties(linkLibFlag) map(strip))
+    pkgConfigCFlags := method(pkg,
+        pkgConfig(pkg, "--cflags") splitNoEmpties("-I") map(strip))
+
+    pkgConfig := method(pkg, flags,
+        (platform == "windows") ifTrue(return(""))
+
+        date := Date now asNumber asHex
+        resFile := (folder path) .. "/_build/_pkg_config" .. date
+        # System runCommand (Eerie sh) not allows pipes (?), 
+        # so here we use System system instead
+        statusCode := System system(
+            "pkg-config #{pkg} #{flags} --silence-errors > #{resFile}" \
+                interpolate)
+
+        if(statusCode == 0) then (
+            resFile := File with(resFile) openForReading
+            flags := resFile contents asMutable strip
+            resFile close remove
+            return flags
+        ) else (
+            return ""))
+
     dependsOnFramework := method(v, depends frameworks appendIfAbsent(v))
     dependsOnInclude := method(v, depends includes appendIfAbsent(v))
     dependsOnLinkOption := method(v, depends linkOptions appendIfAbsent(v))
@@ -198,6 +171,11 @@ Builder := Object clone do(
         a := pathForFramework(v) != nil
         if(a, dependsOnFramework(v))
         a)
+
+    hasDepends := method(
+        (self missingFrameworks size + 
+            self missingLibs size + 
+            self missingHeaders size) == 0)
 
     missingFrameworks := method(
         missing := self depends frameworks select(p,
@@ -222,21 +200,6 @@ Builder := Object clone do(
 
         missing)
 
-    hasDepends := method(
-        self missingFrameworks size + 
-        self missingLibs size + 
-        self missingHeaders size == 0)
-
-    installCommands := method(
-        commands := Map clone
-        missingLibs foreach(p,
-            if(debs at(p),    commands atPut("aptget",  "apt-get install "  .. debs at(p) .. " && ldconfig"))
-            if(ebuilds at(p), commands atPut("emerge",  "emerge -DN1 "      .. ebuilds at(p)))
-            if(pkgs at(p),    commands atPut("brew",    "brew install "     .. pkgs at(p)))
-            if(rpms at(p),    commands atPut("urpmi",   "urpmi "            .. rpms at(p) .. " && ldconfig"))
-        )
-        commands)
-
     systemCall := method(s,
         statusCode := trySystemCall(s)
         if(statusCode == 256, System exit(1))
@@ -255,43 +218,19 @@ Builder := Object clone do(
 
         return result)
 
-    pkgConfig := method(pkg, flags,
-        (platform == "windows") ifTrue(return(""))
-
-        resFile := (folder path) .. "/_build/_pkg_config" .. (Date now asNumber asHex)
-        # System runCommand (Eerie sh) not allows pipes (?), 
-        # so here we use System system instead
-        statusCode := System system(
-            "pkg-config #{pkg} #{flags} --silence-errors > #{resFile}" interpolate)
-        if(statusCode == 0,
-            resFile := File with(resFile) openForReading
-            flags := resFile contents asMutable strip
-            resFile close remove
-
-            return(flags)
-            ,
-            return("")))
-
-    pkgConfigLibs := method(pkg,
-        pkgConfig(pkg, "--libs") splitNoEmpties(linkLibFlag) map(strip))
-    pkgConfigCFlags := method(pkg,
-        pkgConfig(pkg, "--cflags") splitNoEmpties("-I") map(strip))
-    // ------------------------------------
-
     name := method(self package name)
-
-    oldDate := Date clone setYear(1970)
 
     libName := method("libIo" .. self name ..  ".a")
 
-    libFile := method(folder fileNamedOrNil(libName))
     objsFolder := method(self objsFolder := folder createSubdirectory("_build/objs"))
-    sourceFolder := method(folder directoryNamed("source"))
+
     cFiles := method(
-        files := sourceFolder filesWithExtension("cpp") appendSeq(sourceFolder filesWithExtension("c"))
-        if(platform != "windows", files appendSeq(sourceFolder filesWithExtension("m")))
-        files select(f, f name beginsWithSeq("._") not)
-    )
+        sourceFolder := folder directoryNamed("source")
+        files := sourceFolder filesWithExtension("cpp") appendSeq(
+            sourceFolder filesWithExtension("c"))
+        if(platform != "windows", 
+            files appendSeq(sourceFolder filesWithExtension("m")))
+        files select(f, f name beginsWithSeq("._") not))
 
     libsFolder   := method(Directory with("libs"))
     addonsFolder := method(Directory with("addons"))
@@ -299,212 +238,270 @@ Builder := Object clone do(
     includePaths := method(
         includePaths := List clone
         if(libsFolder exists,
-            includePaths appendSeq(libsFolder directories map(path) map(p, Path with(p, "_build/headers")))
-        )
-        includePaths appendSeq(depends addons map(n, (Eerie usedEnv path) .. "/addons/" .. n .. "/_build/headers"))
-        includePaths
-    )
+            includePaths appendSeq(
+                libsFolder directories map(path) map(p, 
+                    Path with(p, "_build/headers"))))
 
-  build := method(options,
-    mkdir("_build/headers")
-    mkdir("source")
+        # FIXME there's no Eerie usedEnv anymore
+        includePaths appendSeq(
+            depends addons map(n, 
+                (Eerie usedEnv path) .. "/addons/" .. n .. "/_build/headers"))
+        includePaths)
+
+    build := method(options,
+        mkdir("_build/headers")
+        mkdir("source")
     
-    headers := Directory with(
-        Path with(folder path, "source")) filesWithExtension(".h")
-    if(headers size > 0,
-        destinationPath := Path with(self folder path, "_build/headers")
-        headers foreach(file, file copyToPath(destinationPath .. "/" .. file name))
-    )
+        headers := Directory with(
+            Path with(folder path, "source")) filesWithExtension(".h")
 
-    generateInitFile
+        if(headers size > 0,
+            destinationPath := Path with(self folder path, "_build/headers")
+            headers foreach(file,
+                file copyToPath(destinationPath .. "/" .. file name)))
 
-    options := options ifNilEval("") .. cflags .. " " .. defines map(d,
-        "-D" .. d) join(" ")
-    cFiles foreach(f,
-      obj := f name replaceSeq(".cpp", ".o") replaceSeq(".c", ".o") \
-          replaceSeq(".m", ".o")
-      objFile := objsFolder fileNamedOrNil(obj)
-      if((objFile == nil) or(objFile lastDataChangeDate < f lastDataChangeDate),
-        includes := includePaths
-        includes = includes appendSeq(headerSearchPaths) map(v, "-I" .. v)
+        self generateInitFile
 
-        _depends := depends includes join(" ")
-        _includes := includes join(" ")
-        s := "#{cc} #{options} #{_depends} #{_includes} -I." interpolate
-        if(list("cygwin", "mingw", "windows") contains(platform) not,
-            s = s .. " -fPIC "
+        options := options ifNilEval("") .. cflags .. " " .. defines map(d,
+            "-D" .. d) join(" ")
+
+        cFiles foreach(src,
+            obj := src name replaceSeq(".cpp", ".o") replaceSeq(".c", ".o") \
+                replaceSeq(".m", ".o")
+
+            objFile := objsFolder fileNamedOrNil(obj)
+
+            if(objFile == nil or(
+                objFile lastDataChangeDate < src lastDataChangeDate),
+                includes := includePaths
+                includes = includes appendSeq(headerSearchPaths) map(v,
+                    "-I" .. v)
+
+                _depends := depends includes join(" ")
+
+                _includes := includes join(" ")
+
+                command := "#{cc} #{options} #{_depends} #{_includes} -I." \
+                    interpolate
+
+                if(list("cygwin", "mingw", "windows") contains(platform) not,
+                    command = command .. " -fPIC "
+                    ,
+                    command = command .. \
+                        " -DBUILDING_#{self name asUppercase}_ADDON " \
+                            interpolate)
+
+                command = "#{command} -c #{ccOutFlag}_build/objs/#{obj} source/#{src name}" interpolate
+                systemCall(command)))
+
+        buildLib
+        buildDynLib
+        if(platform == "windows", embedManifest))
+
+    mkdir := method(relativePath,
+        path := Path with(folder path, relativePath)
+        if(Directory exists(path) not,
+            writeln("mkdir -p ", relativePath)
+            Directory with(path) createIfAbsent))
+
+    buildLib := method(
+        mkdir("_build/lib")
+        systemCall("#{ar} #{arFlags}_build/lib/#{libName} _build/objs/*.o" \
+            interpolate)
+        if(ranlib != nil,
+            systemCall("#{ranlib} _build/lib/#{libName}" interpolate)))
+
+    dllSuffix := method(
+        if(list("cygwin", "mingw", "windows") contains(platform), return "dll")
+        if(platform == "darwin", return "dylib")
+        "so")
+
+    dllNameFor := method(s, "lib" .. s .. "." .. dllSuffix)
+
+    dllCommand := method(
+        if(platform == "darwin",
+            "-dynamiclib -single_module"
             ,
-            s = s .. " -DBUILDING_#{self name asUppercase}_ADDON " interpolate
-        )
+            if (platform == "windows",
+                "-dll -debug"
+                ,
+                "-shared")))
 
-        s = "#{s} -c #{ccOutFlag}_build/objs/#{obj} source/#{f name}" interpolate
-        systemCall(s)
-      )
-    )
+    buildDynLib := method(
+        mkdir("_build/dll")
 
-    buildLib
-    buildDynLib
-    if(platform == "windows", embedManifest)
-  )
+        links := depends addons map(b, 
+            "#{linkDirPathFlag}../#{b}/_build/dll" interpolate)
 
-  buildLib := method(
-    mkdir("_build/lib")
-    systemCall("#{ar} #{arFlags}_build/lib/#{libName} _build/objs/*.o" interpolate)
-    if(ranlib != nil, systemCall("#{ranlib} _build/lib/#{libName}" interpolate))
-  )
+        links appendSeq(depends addons map(v,
+            "#{linkLibFlag}Io#{v}#{linkLibSuffix}" interpolate))
 
-  dllSuffix := method(
-    if(list("cygwin", "mingw", "windows") contains(platform), return "dll")
-    if(platform == "darwin", return "dylib")
-    "so"
-  )
+        if(platform == "windows",
+            links appendSeq(depends syslibs map(v, v .. ".lib")))
 
-  dllNameFor := method(s, "lib" .. s .. "." .. dllSuffix)
+        if(platform != "darwin" and platform != "windows",
+            links appendSeq(
+                depends addons map(v,
+                    "-Wl,--rpath -Wl,#{Eerie root}/activeEnv/addons/#{v}/_build/dll/" interpolate)))
 
-  dllCommand := method(
-    if(platform == "darwin",
-      "-dynamiclib -single_module"
-    ,
-      if (platform == "windows",
-        "-dll -debug"
-      ,
-        "-shared"
-      )
-    )
-  )
+        links appendSeq(libSearchPaths map(v, linkDirPathFlag .. v))
 
-  buildDynLib := method(
-    mkdir("_build/dll")
+        links appendSeq(depends libs map(v,
+            if(v at(0) asCharacter == "-", 
+                v,
+                linkLibFlag .. v .. linkLibSuffix)))
 
-    links := depends addons map(b, "#{linkDirPathFlag}../#{b}/_build/dll" interpolate)
+        links appendSeq(list(linkDirPathFlag .. (System installPrefix), 
+            linkLibFlag .. "iovmall" .. linkLibSuffix,
+            linkLibFlag .. "basekit" .. linkLibSuffix))
 
-    links appendSeq(depends addons map(v, "#{linkLibFlag}Io#{v}#{linkLibSuffix}" interpolate))
-    if(platform == "windows",
-      links appendSeq(depends syslibs map(v, v .. ".lib"))
-    )
-    if(platform != "darwin" and platform != "windows",
-      links appendSeq(depends addons map(v,
-        "-Wl,--rpath -Wl,#{Eerie root}/activeEnv/addons/#{v}/_build/dll/" interpolate))
-    )
-    links appendSeq(libSearchPaths map(v, linkDirPathFlag .. v))
-    links appendSeq(depends libs map(v, if(v at(0) asCharacter == "-", v, linkLibFlag .. v .. linkLibSuffix)))
-    links appendSeq(list(linkDirPathFlag .. (System installPrefix), 
-			linkLibFlag .. "iovmall" .. linkLibSuffix,
-			linkLibFlag .. "basekit" .. linkLibSuffix
-		)
-	)
+        links appendSeq(depends frameworks map(v, "-framework " .. v))
 
-    links appendSeq(depends frameworks map(v, "-framework " .. v))
-    links appendSeq(depends linkOptions)
+        links appendSeq(depends linkOptions)
 
-    libname := dllNameFor("Io" .. self name)
+        libname := dllNameFor("Io" .. self name)
 
-    s := ""
-    if(platform == "darwin",
-      links append("-flat_namespace")
-      s := " -install_name " .. (Eerie root) .. "/activeEnv/addons/" .. self name .. "/_build/dll/" .. libname
-    )
+        s := ""
 
-    linksJoined := links join(" ")
+        if(platform == "darwin",
+            links append("-flat_namespace")
+            # FIXME Eerie root /activeEnv/addons There's no such thing
+            s := " -install_name " .. (Eerie root) .. "/activeEnv/addons/" .. self name .. "/_build/dll/" .. libname)
 
-    linkCommand := "#{linkdll} #{cflags} #{dllCommand} #{s} #{linkOutFlag}_build/dll/#{libname} _build/objs/*.o #{linksJoined}" interpolate
-    systemCall(linkCommand)
-  )
+        linksJoined := links join(" ")
 
-  embedManifest := method(
-    dllFilePath := "_build/dll/" .. dllNameFor("Io" .. name)
-    manifestFilePath := dllFilePath .. ".manifest"
-      systemCall("mt.exe -manifest " .. manifestFilePath .. " -outputresource:" .. dllFilePath)
-    writeln("Removing manifest file: " .. manifestFilePath)
-    File with(folder path .. "/" .. manifestFilePath) remove
-  )
+        linkCommand := "#{linkdll} #{cflags} #{dllCommand} #{s} #{linkOutFlag}_build/dll/#{libname} _build/objs/*.o #{linksJoined}" interpolate
+        systemCall(linkCommand))
 
-  clean := method(
-    writeln(folder name, " clean")
-    trySystemCall("rm -rf _build")
-    trySystemCall("rm -f source/Io*Init.c")
-    self removeSlot("objsFolder")
-  )
+    embedManifest := method(
+        dllFilePath := "_build/dll/" .. dllNameFor("Io" .. name)
+        manifestFilePath := dllFilePath .. ".manifest"
+        systemCall("mt.exe -manifest " .. manifestFilePath .. \
+            " -outputresource:" .. dllFilePath)
+        writeln("Removing manifest file: " .. manifestFilePath)
+        File with(folder path .. "/" .. manifestFilePath) remove)
 
-  ioCodeFolder := method(folder directoryNamed("io"))
-  ioFiles      := method(ioCodeFolder filesWithExtension("io"))
-  initFileName := method("source/Io" .. self name .. "Init.c")
+    clean := method(
+        writeln(folder name, " clean")
+        trySystemCall("rm -rf _build")
+        trySystemCall("rm -f source/Io*Init.c")
+        self removeSlot("objsFolder"))
 
-  isStatic := false
+    ioCodeFolder := method(folder directoryNamed("io"))
+    ioFiles := method(ioCodeFolder filesWithExtension("io"))
+    initFileName := method("source/Io" .. self name .. "Init.c")
 
-  # TODO encapsulate into IoInitGenerator
+    isStatic := false
+
+  # TODO encapsulate into InitFileGenerator object
   generateInitFile := method(
       if(isGenerateInit not, return)
       Eerie log("Generating #{initFileName}")
-    /* if(platform != "windows" and folder directoryNamed("source") filesWithExtension("m") size != 0, return) */
-    initFile := folder fileNamed(initFileName) remove create open
-    initFile write("#include \"IoState.h\"\n")
-    initFile write("#include \"IoObject.h\"\n\n")
+      /* if(platform != "windows" and folder directoryNamed("source") filesWithExtension("m") size != 0, return) */
+      initFile := folder fileNamed(initFileName) remove create open
+      initFile write("#include \"IoState.h\"\n")
+      initFile write("#include \"IoObject.h\"\n\n")
 
-    sourceFiles := folder directoryNamed("source") files
-    iocFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
-    iocppFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".cpp")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
+      sourceFiles := folder directoryNamed("source") files
+      iocFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
+      iocppFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".cpp")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
 
-    iocFiles appendSeq(iocppFiles)
-    extraFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_")))
+      iocFiles appendSeq(iocppFiles)
+      extraFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_")))
 
-    orderedFiles := List clone appendSeq(iocFiles)
+      orderedFiles := List clone appendSeq(iocFiles)
 
-    iocFiles foreach(f,
-      d := f open readLines detect(line, line containsSeq("docDependsOn"))
-      f close
+      iocFiles foreach(f,
+          d := f open readLines detect(line, line containsSeq("docDependsOn"))
+          f close
 
-      if(d,
-        prerequisitName := "Io" .. d afterSeq("(\"") beforeSeq("\")") .. ".c"
-        prerequisit := orderedFiles detect(of, of name == prerequisitName )
-        orderedFiles remove(f)
-        orderedFiles insertAfter(f, prerequisit)
-      )
-    )
+          if(d,
+              prerequisitName := "Io" .. d afterSeq("(\"") beforeSeq("\")") .. ".c"
+              prerequisit := orderedFiles detect(of, of name == prerequisitName )
+              orderedFiles remove(f)
+              orderedFiles insertAfter(f, prerequisit)))
 
-    iocFiles = orderedFiles
+      iocFiles = orderedFiles
 
-    iocFiles foreach(f,
-      initFile write("IoObject *" .. f name fileName .. "_proto(void *state);\n")
-    )
+      iocFiles foreach(f,
+          initFile write("IoObject *" .. f name fileName .. "_proto(void *state);\n"))
 
-    extraFiles foreach(f,
-      initFile write("void " .. f name fileName .. "Init(void *context);\n")
-    )
+      extraFiles foreach(f,
+          initFile write("void " .. f name fileName .. "Init(void *context);\n"))
 
-    if (platform == "windows",
-      initFile write("__declspec(dllexport)\n")
-    )
-    initFile write("\nvoid " .. initFileName fileName .. "(IoObject *context)\n")
-    initFile write("{\n")
-    if(iocFiles size > 0,
-      initFile write("\tIoState *self = IoObject_state((IoObject *)context);\n\n")
-    )
+      if (platform == "windows",
+          initFile write("__declspec(dllexport)\n"))
 
-    iocFiles foreach(f,
-      initFile write("\tIoObject_setSlot_to_(context, SIOSYMBOL(\"" .. f name fileName asMutable removePrefix("Io") .. "\"), " .. f name fileName .. "_proto(self));\n\n")
-    )
+      initFile write("\nvoid " .. initFileName fileName .. "(IoObject *context)\n")
 
-    extraFiles foreach(f,
-      initFile write("\t" .. f name fileName .. "Init(context);\n")
-    )
+      initFile write("{\n")
 
-    if(ioCodeFolder and isStatic,
-      ioFiles foreach(f, initFile write(codeForIoFile(f)))
-    )
+      if(iocFiles size > 0,
+          initFile write("\tIoState *self = IoObject_state((IoObject *)context);\n\n"))
 
-    initFile write("}\n")
-    initFile close
-  )
+      iocFiles foreach(f,
+          initFile write("\tIoObject_setSlot_to_(context, SIOSYMBOL(\"" .. f name fileName asMutable removePrefix("Io") .. "\"), " .. f name fileName .. "_proto(self));\n\n"))
+
+      extraFiles foreach(f,
+          initFile write("\t" .. f name fileName .. "Init(context);\n"))
+
+      if(ioCodeFolder and isStatic,
+          ioFiles foreach(f, initFile write(codeForIoFile(f))))
+
+      initFile write("}\n")
+      initFile close)
 
   codeForIoFile := method(f,
-    code := Sequence clone
-    if (f size > 0,
-      code appendSeq("\t{\n\t\tchar *s = ")
-      code appendSeq(f contents splitNoEmpties("\n") map(line, "\"" .. line escape .. "\\n\"") join("\n\t\t"))
-      code appendSeq(";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"" .. f name .. "\");\n")
-      code appendSeq("\t}\n\n")
-    )
-    code
-  )
+      code := Sequence clone
+      if (f size > 0,
+          code appendSeq("\t{\n\t\tchar *s = ")
+          code appendSeq(f contents splitNoEmpties("\n") map(line, "\"" .. line escape .. "\\n\"") join("\n\t\t"))
+          code appendSeq(";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"" .. f name .. "\");\n")
+          code appendSeq("\t}\n\n"))
+      code)
 )
+
+BuilderWindows := Object clone do (
+    ccOutFlag := "-Fo"
+    linkdll := "link -link -nologo"
+    linkDirPathFlag := "-libpath:"
+    linkLibFlag := ""
+    linkOutFlag := "-out:"
+    linkLibSuffix := ".lib"
+    ar := "link -lib -nologo"
+    arFlags := "-out:"
+    ranlib := nil
+
+    cc := method(
+        System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
+
+    cxx := method(
+        System getEnvironmentVariable("CXX") ifNilEval("cl -nologo"))
+)
+
+BuilderUnix := Object clone do (
+    cc := method(
+        System getEnvironmentVariable("CC") ifNilEval("cc"))
+
+    cxx := method(
+        System getEnvironmentVariable("CXX") ifNilEval("g++"))
+
+    ccOutFlag := "-o "
+    linkdll := cc
+    linkDirPathFlag := "-L"
+    linkLibFlag := "-l"
+    linkLibSuffix := ""
+    linkOutFlag := "-o "
+    linkLibSuffix := ""
+
+    ar := method(
+        System getEnvironmentVariable("AR") ifNilEval("ar"))
+    arFlags := "rcu "
+
+    ranlib := method(
+        System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))
+)
+
+if (Builder platform == "windows",
+    Builder prependProto(BuilderWindows),
+    Builder prependProto(BuilderUnix)) 
