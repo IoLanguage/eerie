@@ -83,15 +83,9 @@ Installer := Object clone do (
     build := method(
         self _checkPackageSet
 
-        sourceDir := self package dir createSubdirectory("source")
-        if(sourceDir files isEmpty and sourceDir directories isEmpty, 
-            Eerie log(
-                "There is nothing to compile. The 'source' directory " ..
-                "('#{sourceDir path}') is empty.")
-            return false)
+        if(self package hasNativeCode not, return false)
 
-        buildio := self package dir fileNamed("build.io")
-        if (buildio exists not, buildio create)
+        self package buildio create
 
         # keep currentWorkingDirectory to return later
         wd := Directory currentWorkingDirectory
@@ -112,17 +106,20 @@ Installer := Object clone do (
     # For global packages, creates symlinks (UNIX-like) or .cmd files (Windows)
     # for files of the package's `bin` directory in destination's `destBinName`
     # directory.
+    # This method is called only after the package is copied to destination
+    # folder. It works in the package's destination folder.
     _installBinaries := method(
         self _checkPackageSet
         self _checkDestBinNameSet
-        pkgDestination := self _packageDestination
-        binDir := pkgDestination createSubdirectory("bin")
-        if (binDir files isEmpty, return)
+        if (self package hasBinaries not, return)
 
         isWindows := System platform containsAnyCaseSeq("windows") or(
             System platform containsAnyCaseSeq("mingw"))
 
-        binDest := self _binDestination
+        binDest := self _binInstallDir
+        # this is directory at destination - i.e. where binaries copied to
+        binDir := self _packageDestination directoryNamed(
+            self package binDir name)
         binDir files foreach(f, if(isWindows, 
             self _createCmdForBin(f, binDest),
             self _createLinkForBin(f, binDest))))
@@ -132,9 +129,9 @@ Installer := Object clone do (
             Exception raise(DestinationBinNameNotSetError clone)))
 
     # binaries will be installed in this directory
-    _binDestination := method(
-        self destination directoryNamed(self package name) directoryNamed(
-            self binDestName))
+    _binInstallDir := method(
+        self destination directoryNamed(self package name) \
+            directoryNamed(self binDestName))
 
     # This method is used on Windows to create .cmd file to be able to execute a
     # package binary as a normal command (i.e. `eerie` instead of

@@ -34,12 +34,7 @@ Eerie := Object clone do(
         self)
 
     //doc Eerie installedPackages Returns list of installed packages .
-    installedPackages := method(
-        # this way we do lazy loading. When the user asks `self
-        # installedPackages` for the first time, they will be fetched and type
-        # will change to List instead of method, but we still be able to reload
-        # packages list using `_reloadPackagesList` method.
-        _reloadPackagesList)
+    installedPackages := lazySlot(self _reloadPackagesList)
 
     _reloadPackagesList := method(
         self installedPackages = self addonsDir directories map(d,

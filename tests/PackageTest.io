@@ -3,6 +3,20 @@ Importer addSearchPath("io/Eerie")
 
 PackageTest := UnitTest clone do (
 
+    testHasNativeCode := method(
+        aPackage := Package with(Directory with("tests/_addons/AFakeAddon"))
+        assertFalse(aPackage hasNativeCode)
+
+        cPackage := Package with(Directory with("tests/_addons/CFakeAddon"))
+        assertTrue(cPackage hasNativeCode))
+
+    testHasBinaries := method(
+        aPackage := Package with(Directory with("tests/_addons/AFakeAddon"))
+        assertFalse(aPackage hasBinaries)
+
+        bPackage := Package with(Directory with("tests/_addons/BFakeAddon"))
+        assertTrue(bPackage hasBinaries))
+
     testDirectoryValidation := method(
         e := try (Package with(Directory with("tests/_faddons/NotAddon")))
         assertEquals(e error type, Package NotPackageError type))

@@ -10,6 +10,27 @@ Package := Object clone do (
     //doc Package dir Directory of this package.
     dir ::= nil
 
+    /*doc Package sourceDir The `source` directory. `Directory` with native
+    code.*/
+    sourceDir := lazySlot(self dir createSubdirectory("source"))
+
+    /*doc Package hasNativeCode Returns `true` if the package has native code
+    and `false` otherwise.*/
+    hasNativeCode := method(
+        self sourceDir files isEmpty not or(self sourceDir directories isEmpty
+            not))
+
+    /*doc Package binDir The `bin` directory. `Directory` with binaries of the
+    package.*/
+    binDir := lazySlot(self dir directoryNamed("bin"))
+
+    /*doc Package hasBinaries Returns `true` if the `Package binDir` has files
+    and `false` otherwise.*/
+    hasBinaries := method(self binDir exists and self binDir files isEmpty not)
+
+    //doc Package buildio The `build.io` file.
+    buildio := lazySlot(self dir fileNamed("build.io"))
+
     //doc Package version Returns parsed version (`SemVer`) of the package.
     version ::= nil
     
