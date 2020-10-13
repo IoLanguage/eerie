@@ -7,7 +7,6 @@ Normally, you shouldn't use this directly. Use `Installer build` instead. But
 here you'll find methods you can use inside your `build.io` script as it's
 evaluated in the context of `Builder` (i.e. it's its ancestor).*/
 
-Sequence prepend := method(s, s .. self)
 Directory fileNamedOrNil := method(path,
     f := self fileNamed(path)
     if(f exists, f, nil))
@@ -16,25 +15,16 @@ Builder := Object clone do(
     //doc Builder platform Get the platform name as lowercase.
     platform := System platform split at(0) asLowercase
 
-    /*doc Builder isGenerateInit Whether `Builder` should generate IoInit.c file
-    for your package. Default to `true`*/
-    isGenerateInit ::= true
+    /*doc Builder shouldGenerateInit Whether `Builder` should generate
+    IoAddonNameInit.c file for your package. Default to `true`*/
+    shouldGenerateInit ::= true
 
     //doc Builder package Get the package the `Builder` is building.
     package := nil
 
     cflags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
 
-    name := method(self package name)
-
-    libName := method("libIo" .. self name ..  ".a")
-
-    libsFolder := method(Directory with("libs"))
-
-    objsFolder := method(
-        self objsFolder := folder createSubdirectory("_build/objs"))
-
-    addonsFolder := method(Directory with("addons"))
+    _objsDir := lazySlot(self package dir createSubdirectory("_build/objs"))
 
     //doc Builder with(Package) Always use this to initialize `Builder`.
     with := method(pkg, 
@@ -43,8 +33,6 @@ Builder := Object clone do(
         klone)
 
     init := method(
-        self folder := Directory clone
-
         # TODO encapsulate into a proto (Depends?), move dependencies related
         # methods there as well
         self depends := Object clone do(
@@ -130,7 +118,7 @@ Builder := Object clone do(
         (platform == "windows") ifTrue(return(""))
 
         date := Date now asNumber asHex
-        resFile := (folder path) .. "/_build/_pkg_config" .. date
+        resFile := (self package dir path) .. "/_build/_pkg_config" .. date
         # System runCommand (Eerie sh) not allows pipes (?), 
         # so here we use System system instead
         statusCode := System system(
@@ -227,16 +215,16 @@ Builder := Object clone do(
     
         self _copyHeaders
 
-        self generateInitFile
+        self _generateInitFile
 
         options := options ifNilEval("") .. cflags .. " " .. defines map(d,
             "-D" .. d) join(" ")
 
-        cFiles foreach(src, self _compileFile(src, options))
+        self _cFiles foreach(src, self _compileFile(src, options))
 
-        self buildLib
-        self buildDynLib
-        self embedManifest)
+        self _buildStaticLib
+        self _buildDynLib
+        self _embedManifest)
 
     # copy (install) headers into "_build/headers/"
     _copyHeaders := method(
@@ -244,7 +232,7 @@ Builder := Object clone do(
         headers := self _headers
 
         if(headers size > 0,
-            destinationPath := Path with(self folder path, "_build/headers")
+            destinationPath := Path with(self package dir path, "_build/headers")
             headers foreach(file,
                 file copyToPath(destinationPath .. "/" .. file name))))
 
@@ -255,10 +243,10 @@ Builder := Object clone do(
     # get list of headers
     _headers := method(
         Directory with(
-            Path with(folder path, "source")) filesWithExtension(".h"))
+            Path with(self package dir path, "source")) filesWithExtension(".h"))
 
-    cFiles := method(
-        sourceFolder := folder directoryNamed("source")
+    _cFiles := method(
+        sourceFolder := self package sourceDir
         files := sourceFolder filesWithExtension("cpp") appendSeq(
             sourceFolder filesWithExtension("c"))
         if(platform != "windows", 
@@ -266,10 +254,11 @@ Builder := Object clone do(
         files select(f, f name beginsWithSeq("._") not))
 
     _compileFile := method(src, options,
+        Eerie log("Compiling #{src name}")
         obj := src name replaceSeq(".cpp", ".o") replaceSeq(".c", ".o") \
             replaceSeq(".m", ".o")
 
-        objFile := self objsFolder fileNamedOrNil(obj)
+        objFile := self _objsDir fileNamedOrNil(obj)
 
         if(objFile == nil or(
             objFile lastDataChangeDate < src lastDataChangeDate),
@@ -287,13 +276,17 @@ Builder := Object clone do(
                 command = command .. " -fPIC "
                 ,
                 command = command .. \
-                    " -DBUILDING_#{self name asUppercase}_ADDON " \
+                    " -DBUILDING_#{self package name asUppercase}_ADDON " \
                         interpolate)
 
             command = "#{command} -c #{ccOutFlag}#{self package dir path}/_build/objs/#{obj} #{self package dir path}/source/#{src name}" interpolate
             _systemCall(command)))
 
     includePaths := method(
+        # TODO what is it? Is this `package dir `/libs or `package
+        # dir`/_build/libs?
+        # given the logic of `_objsDir` it's the former
+        libsFolder := Directory with("libs")
         includePaths := List clone
         if(libsFolder exists,
             includePaths appendSeq(
@@ -307,20 +300,18 @@ Builder := Object clone do(
                 # (Eerie usedEnv path) .. "/addons/" .. n .. "/_build/headers"))
         includePaths)
 
-    buildLib := method(
+
+    _buildStaticLib := method(
+        staticLibName := "libIo" .. self package name ..  ".a"
+
+        Eerie log("Building #{staticLibName}")
+        
         mkdir("_build/lib")
         path := self package dir path
-        _systemCall("#{ar} #{arFlags}#{path}/_build/lib/#{libName} #{path}/_build/objs/*.o" \
+        _systemCall("#{ar} #{arFlags}#{path}/_build/lib/#{staticLibName} #{path}/_build/objs/*.o" \
             interpolate)
         if(ranlib != nil,
-            _systemCall("#{ranlib} #{path}/_build/lib/#{libName}" interpolate)))
-
-    dllSuffix := method(
-        if(list("cygwin", "mingw", "windows") contains(platform), return "dll")
-        if(platform == "darwin", return "dylib")
-        "so")
-
-    dllNameFor := method(s, "lib" .. s .. "." .. dllSuffix)
+            _systemCall("#{ranlib} #{path}/_build/lib/#{staticLibName}" interpolate)))
 
     dllCommand := method(
         if(platform == "darwin",
@@ -331,7 +322,11 @@ Builder := Object clone do(
                 ,
                 "-shared")))
 
-    buildDynLib := method(
+    _buildDynLib := method(
+        libname := dllNameFor("Io" .. self package name)
+
+        Eerie log("Building #{libname}")
+
         mkdir("_build/dll")
 
         # FIXME this should be `package dir with("_addons")` and `_build/dll`
@@ -367,51 +362,56 @@ Builder := Object clone do(
 
         links appendSeq(depends linkOptions)
 
-        libname := dllNameFor("Io" .. self name)
-
         s := ""
 
         if(platform == "darwin",
             links append("-flat_namespace")
             # FIXME Eerie root /activeEnv/addons There's no such thing anymore
-            s := " -install_name " .. (Eerie root) .. "/activeEnv/addons/" .. self name .. "/_build/dll/" .. libname)
+            s := " -install_name " .. (Eerie root) .. "/activeEnv/addons/" .. self package name .. "/_build/dll/" .. libname)
 
         linksJoined := links join(" ")
 
         linkCommand := "#{linkdll} #{cflags} #{dllCommand} #{s} #{linkOutFlag}#{self package dir path}/_build/dll/#{libname} #{self package dir path}/_build/objs/*.o #{linksJoined}" interpolate
         _systemCall(linkCommand))
 
-    embedManifest := method(
+    dllNameFor := method(s, "lib" .. s .. "." .. dllSuffix)
+
+    dllSuffix := method(
+        if(list("cygwin", "mingw", "windows") contains(platform), return "dll")
+        if(platform == "darwin", return "dylib")
+        "so")
+
+    _embedManifest := method(
         if((platform == "windows") not, return)
-        dllFilePath := "_build/dll/" .. dllNameFor("Io" .. name)
+        dllFilePath := "_build/dll/" .. dllNameFor("Io" .. self package name)
         manifestFilePath := dllFilePath .. ".manifest"
         _systemCall("mt.exe -manifest " .. manifestFilePath .. \
             " -outputresource:" .. dllFilePath)
         writeln("Removing manifest file: " .. manifestFilePath)
-        File with(folder path .. "/" .. manifestFilePath) remove)
+        File with(self package dir path .. "/" .. manifestFilePath) remove)
 
     clean := method(
-        writeln(folder name, " clean")
+        writeln(self package dir name, " clean")
         _systemCall("rm -rf _build")
         _systemCall("rm -f source/Io*Init.c")
-        self removeSlot("objsFolder"))
+        self removeSlot("_objsDir"))
 
-    ioCodeFolder := method(folder directoryNamed("io"))
+    ioCodeFolder := method(self package dir directoryNamed("io"))
     ioFiles := method(ioCodeFolder filesWithExtension("io"))
-    initFileName := method("source/Io" .. self name .. "Init.c")
+    initFileName := method("source/Io" .. self package name .. "Init.c")
 
     isStatic := false
 
     # TODO encapsulate into InitFileGenerator object
-    generateInitFile := method(
-        if(isGenerateInit not, return)
+    _generateInitFile := method(
+        if(self shouldGenerateInit not, return)
         Eerie log("Generating #{initFileName}")
-        /* if(platform != "windows" and folder directoryNamed("source") filesWithExtension("m") size != 0, return) */
-        initFile := folder fileNamed(initFileName) remove create open
+        /* if(platform != "windows" and self package dir directoryNamed("source") filesWithExtension("m") size != 0, return) */
+        initFile := self package dir fileNamed(initFileName) remove create open
         initFile write("#include \"IoState.h\"\n")
         initFile write("#include \"IoObject.h\"\n\n")
 
-        sourceFiles := folder directoryNamed("source") files
+        sourceFiles := self package dir directoryNamed("source") files
         iocFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
         iocppFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".cpp")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
 
@@ -464,7 +464,8 @@ Builder := Object clone do(
         code := Sequence clone
         if (f size > 0,
             code appendSeq("\t{\n\t\tchar *s = ")
-            code appendSeq(f contents splitNoEmpties("\n") map(line, "\"" .. line escape .. "\\n\"") join("\n\t\t"))
+            code appendSeq(f contents splitNoEmpties("\n") map(line,
+                "\"" .. line escape .. "\\n\"") join("\n\t\t"))
             code appendSeq(";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"" .. f name .. "\");\n")
             code appendSeq("\t}\n\n"))
         code)
