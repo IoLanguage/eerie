@@ -25,6 +25,17 @@ Builder := Object clone do(
 
     cflags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
 
+    name := method(self package name)
+
+    libName := method("libIo" .. self name ..  ".a")
+
+    libsFolder := method(Directory with("libs"))
+
+    objsFolder := method(
+        self objsFolder := folder createSubdirectory("_build/objs"))
+
+    addonsFolder := method(Directory with("addons"))
+
     //doc Builder with(Package) Always use this to initialize `Builder`.
     with := method(pkg, 
         klone := self clone
@@ -34,6 +45,8 @@ Builder := Object clone do(
     init := method(
         self folder := Directory clone
 
+        # TODO encapsulate into a proto (Depends?), move dependencies related
+        # methods there as well
         self depends := Object clone do(
             headers := List clone
             libs := List clone
@@ -95,23 +108,6 @@ Builder := Object clone do(
         searchPrefixes foreach(searchPrefix, 
             appendLibSearchPath(searchPrefix .. "/lib")))
 
-    pathForFramework := method(name,
-        frameworkname := name .. ".framework"
-        frameworkSearchPaths detect(path,
-            Directory with(path .. "/" .. frameworkname) exists))
-
-    pathForHeader := method(name,
-        headerSearchPaths detect(path,
-            File with(path .. "/" .. name) exists))
-
-    pathForLib := method(name,
-        name containsSeq("/") ifTrue(return(name))
-        libNames := list("." .. dllSuffix, ".a", ".lib") map(suffix, 
-            "lib" .. name .. suffix)
-        libSearchPaths detect(path,
-            libDirectory := Directory with(path)
-            libNames detect(libName, libDirectory fileNamed(libName) exists)))
-
     addDefine := method(v, defines appendIfAbsent(v))
     dependsOnBinding := method(v, depends addons appendIfAbsent(v))
     dependsOnHeader := method(v, depends headers appendIfAbsent(v))
@@ -162,10 +158,23 @@ Builder := Object clone do(
         ) else (
             dependsOnLib(w)))
 
+    pathForFramework := method(name,
+        frameworkname := name .. ".framework"
+        frameworkSearchPaths detect(path,
+            Directory with(path .. "/" .. frameworkname) exists))
+
     optionallyDependsOnLib := method(v, 
         a := pathForLib(v) != nil
         if(a, dependsOnLib(v))
         a)
+
+    pathForLib := method(name,
+        name containsSeq("/") ifTrue(return(name))
+        libNames := list("." .. dllSuffix, ".a", ".lib") map(suffix, 
+            "lib" .. name .. suffix)
+        libSearchPaths detect(path,
+            libDirectory := Directory with(path)
+            libNames detect(libName, libDirectory fileNamed(libName) exists)))
 
     optionallyDependsOnFramework := method(v, 
         a := pathForFramework(v) != nil
@@ -193,6 +202,10 @@ Builder := Object clone do(
 
         missing)
 
+    pathForHeader := method(name,
+        headerSearchPaths detect(path,
+            File with(path .. "/" .. name) exists))
+
     missingLibs := method(
         missing := self depends libs select(p, self pathForLib(p) == nil)
         if(missing contains(false),
@@ -218,12 +231,6 @@ Builder := Object clone do(
 
         return result)
 
-    name := method(self package name)
-
-    libName := method("libIo" .. self name ..  ".a")
-
-    objsFolder := method(self objsFolder := folder createSubdirectory("_build/objs"))
-
     cFiles := method(
         sourceFolder := folder directoryNamed("source")
         files := sourceFolder filesWithExtension("cpp") appendSeq(
@@ -231,9 +238,6 @@ Builder := Object clone do(
         if(platform != "windows", 
             files appendSeq(sourceFolder filesWithExtension("m")))
         files select(f, f name beginsWithSeq("._") not))
-
-    libsFolder   := method(Directory with("libs"))
-    addonsFolder := method(Directory with("addons"))
 
     includePaths := method(
         includePaths := List clone
@@ -393,72 +397,72 @@ Builder := Object clone do(
 
     isStatic := false
 
-  # TODO encapsulate into InitFileGenerator object
-  generateInitFile := method(
-      if(isGenerateInit not, return)
-      Eerie log("Generating #{initFileName}")
-      /* if(platform != "windows" and folder directoryNamed("source") filesWithExtension("m") size != 0, return) */
-      initFile := folder fileNamed(initFileName) remove create open
-      initFile write("#include \"IoState.h\"\n")
-      initFile write("#include \"IoObject.h\"\n\n")
+    # TODO encapsulate into InitFileGenerator object
+    generateInitFile := method(
+        if(isGenerateInit not, return)
+        Eerie log("Generating #{initFileName}")
+        /* if(platform != "windows" and folder directoryNamed("source") filesWithExtension("m") size != 0, return) */
+        initFile := folder fileNamed(initFileName) remove create open
+        initFile write("#include \"IoState.h\"\n")
+        initFile write("#include \"IoObject.h\"\n\n")
 
-      sourceFiles := folder directoryNamed("source") files
-      iocFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
-      iocppFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".cpp")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
+        sourceFiles := folder directoryNamed("source") files
+        iocFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
+        iocppFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".cpp")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
 
-      iocFiles appendSeq(iocppFiles)
-      extraFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_")))
+        iocFiles appendSeq(iocppFiles)
+        extraFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_")))
 
-      orderedFiles := List clone appendSeq(iocFiles)
+        orderedFiles := List clone appendSeq(iocFiles)
 
-      iocFiles foreach(f,
-          d := f open readLines detect(line, line containsSeq("docDependsOn"))
-          f close
+        iocFiles foreach(f,
+            d := f open readLines detect(line, line containsSeq("docDependsOn"))
+            f close
 
-          if(d,
-              prerequisitName := "Io" .. d afterSeq("(\"") beforeSeq("\")") .. ".c"
-              prerequisit := orderedFiles detect(of, of name == prerequisitName )
-              orderedFiles remove(f)
-              orderedFiles insertAfter(f, prerequisit)))
+            if(d,
+                prerequisitName := "Io" .. d afterSeq("(\"") beforeSeq("\")") .. ".c"
+                prerequisit := orderedFiles detect(of, of name == prerequisitName )
+                orderedFiles remove(f)
+                orderedFiles insertAfter(f, prerequisit)))
 
-      iocFiles = orderedFiles
+        iocFiles = orderedFiles
 
-      iocFiles foreach(f,
-          initFile write("IoObject *" .. f name fileName .. "_proto(void *state);\n"))
+        iocFiles foreach(f,
+            initFile write("IoObject *" .. f name fileName .. "_proto(void *state);\n"))
 
-      extraFiles foreach(f,
-          initFile write("void " .. f name fileName .. "Init(void *context);\n"))
+        extraFiles foreach(f,
+            initFile write("void " .. f name fileName .. "Init(void *context);\n"))
 
-      if (platform == "windows",
-          initFile write("__declspec(dllexport)\n"))
+        if (platform == "windows",
+            initFile write("__declspec(dllexport)\n"))
 
-      initFile write("\nvoid " .. initFileName fileName .. "(IoObject *context)\n")
+        initFile write("\nvoid " .. initFileName fileName .. "(IoObject *context)\n")
 
-      initFile write("{\n")
+        initFile write("{\n")
 
-      if(iocFiles size > 0,
-          initFile write("\tIoState *self = IoObject_state((IoObject *)context);\n\n"))
+        if(iocFiles size > 0,
+            initFile write("\tIoState *self = IoObject_state((IoObject *)context);\n\n"))
 
-      iocFiles foreach(f,
-          initFile write("\tIoObject_setSlot_to_(context, SIOSYMBOL(\"" .. f name fileName asMutable removePrefix("Io") .. "\"), " .. f name fileName .. "_proto(self));\n\n"))
+        iocFiles foreach(f,
+            initFile write("\tIoObject_setSlot_to_(context, SIOSYMBOL(\"" .. f name fileName asMutable removePrefix("Io") .. "\"), " .. f name fileName .. "_proto(self));\n\n"))
 
-      extraFiles foreach(f,
-          initFile write("\t" .. f name fileName .. "Init(context);\n"))
+        extraFiles foreach(f,
+            initFile write("\t" .. f name fileName .. "Init(context);\n"))
 
-      if(ioCodeFolder and isStatic,
-          ioFiles foreach(f, initFile write(codeForIoFile(f))))
+        if(ioCodeFolder and isStatic,
+            ioFiles foreach(f, initFile write(codeForIoFile(f))))
 
-      initFile write("}\n")
-      initFile close)
+        initFile write("}\n")
+        initFile close)
 
-  codeForIoFile := method(f,
-      code := Sequence clone
-      if (f size > 0,
-          code appendSeq("\t{\n\t\tchar *s = ")
-          code appendSeq(f contents splitNoEmpties("\n") map(line, "\"" .. line escape .. "\\n\"") join("\n\t\t"))
-          code appendSeq(";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"" .. f name .. "\");\n")
-          code appendSeq("\t}\n\n"))
-      code)
+    codeForIoFile := method(f,
+        code := Sequence clone
+        if (f size > 0,
+            code appendSeq("\t{\n\t\tchar *s = ")
+            code appendSeq(f contents splitNoEmpties("\n") map(line, "\"" .. line escape .. "\\n\"") join("\n\t\t"))
+            code appendSeq(";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"" .. f name .. "\");\n")
+            code appendSeq("\t}\n\n"))
+        code)
 )
 
 BuilderWindows := Object clone do (
