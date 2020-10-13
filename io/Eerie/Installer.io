@@ -1,7 +1,7 @@
 //metadoc Installer category API
 /*metadoc Installer description 
 This object is used to install and build packages. Use `Installer
-with(package)` to initialize it. You should `setDestination` right after
+with(package)` to initialize it. You should `setRoot` right after
 initialization, otherwise it will raise an exception when you'll try to install
 a package. You should also `setDestBinName` if you to install binaries from the
 `Package`.*/
@@ -11,9 +11,9 @@ Installer := Object clone do (
         "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
         "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
 
-    /*doc Installer destination The root `Directory` where `Package` will
-    be installed.*/
-    destination ::= nil
+    /*doc Installer root The installer's root `Directory` where `Package`'s'
+    should be installed.*/
+    root ::= nil
 
     /*doc Installer destBinName The name of the directory, where binaries
     (if any) will be installed.*/
@@ -26,16 +26,16 @@ Installer := Object clone do (
     with := method(pkg, self clone setPackage(pkg))
 
     /*doc Installer install(installBin)
-    Installs `Installer package` into `Installer destination`/`package name`. If
+    Installs `Installer package` into `Installer root`/`package name`. If
     `installBin` is `true`, the binaries from the package's `bin` directory will
     also be installed. 
 
     Returns `true` if the package installed successfully.*/
     install := method(includeBin,
         self _checkPackageSet
-        self _checkDestinationSet
+        self _checkRootSet
 
-        pkgDestination := self _packageDestination
+        pkgDestination := self _destination
         if (pkgDestination exists, 
             Exception raise(DirectoryExistsError with(
                 self package name, pkgDestination path)))
@@ -54,14 +54,14 @@ Installer := Object clone do (
         if (self package isNil,
             Exception raise(PackageNotSetError clone)))
 
-    _checkDestinationSet := method(
-        if (self destination isNil, 
-            Exception raise(DestinationNotSetError clone)))
+    _checkRootSet := method(
+        if (self root isNil, 
+            Exception raise(RootNotSetError clone)))
 
-    # this is the directory inside `destination` which represents the package
-    # and contains its sources
-    _packageDestination := method(
-        self destination directoryNamed(self package name))
+    # this is the directory inside `root` which represents the package and
+    # contains its sources
+    _destination := method(
+        self root directoryNamed(self package name))
 
     /*doc Installer build(Package) Compiles the `Package` if it has
     native code. Returns `true` if the package was compiled and `false`
@@ -109,7 +109,7 @@ Installer := Object clone do (
         binDest := self _binInstallDir createIfAbsent
         # this is the binaries directory (from where the binaries will be
             # installed), but at the destination
-        binDir := self _packageDestination directoryNamed(
+        binDir := self _destination directoryNamed(
             self package binDir name)
         binDir files foreach(f, if(Eerie isWindows, 
             self _createCmdForBin(f, binDest),
@@ -122,7 +122,7 @@ Installer := Object clone do (
 
     # binaries will be installed in this directory
     _binInstallDir := method(
-        self destination directoryNamed(self package name) \
+        self root directoryNamed(self package name) \
             directoryNamed(self destBinName))
 
     # This method is used on Windows to create .cmd file to be able to execute a
@@ -152,9 +152,9 @@ Installer do (
         "the package #{call evalArgAt(0)}. The destination directory " ..
         "'#{call evalArgAt(1)}' already exists.")
 
-    //doc Installer DestinationNotSetError
-    DestinationNotSetError := Eerie Error clone setErrorMsg(
-        "Package installer destination directory didn't set.")
+    //doc Installer RootNotSetError
+    RootNotSetError := Eerie Error clone setErrorMsg(
+        "Package installer root directory didn't set.")
 
     //doc Installer DestinationBinNameNotSetError
     DestinationBinNameNotSetError := Eerie Error clone setErrorMsg(

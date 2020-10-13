@@ -5,8 +5,8 @@ InstallerTest := UnitTest clone do (
 
     testValidation := method(
         installer := Installer clone
-        e := try (installer _checkDestinationSet)
-        assertEquals(e error type, Installer DestinationNotSetError type)
+        e := try (installer _checkRootSet)
+        assertEquals(e error type, Installer RootNotSetError type)
 
         e := try (installer _checkPackageSet)
         assertEquals(e error type, Installer PackageNotSetError type)
@@ -19,24 +19,24 @@ InstallerTest := UnitTest clone do (
         installer = Installer with(package)
         e := try (installer install)
         assertEquals(
-            e error type, Installer DestinationNotSetError type))
+            e error type, Installer RootNotSetError type))
 
     testInstall := method(
         package := Package with(Directory with("tests/_addons/AFakeAddon"))
-        destination := Directory with("tests/installer") 
-        installer := Installer with(package) setDestination(destination)
+        root := Directory with("tests/installer") 
+        installer := Installer with(package) setRoot(root)
 
-        if (destination exists, destination remove)
+        if (root exists, root remove)
 
         installer install
 
         # validate that what we installed is a package
-        Package with(Directory with(destination path .. "/AFakeAddon"))
+        Package with(Directory with(root path .. "/AFakeAddon"))
 
         # installing it again should raise an exception
         e := try (installer install)
         assertEquals(e error type, Installer DirectoryExistsError type)
-        destination remove)
+        root remove)
 
     testBuild := method(
         package := Package with(Directory with("tests/_addons/CFakeAddon"))
@@ -62,8 +62,8 @@ InstallerTest := UnitTest clone do (
         # we use the package's directory here as a destination, because we just
         # need to check binaries so it's ok here to treat the source as a
         # destination (like we already installed the package there)
-        destination := Directory with("tests/_addons")
-        installer := Installer with(package) setDestination(destination)
+        root := Directory with("tests/_addons")
+        installer := Installer with(package) setRoot(root)
 
         e := try (installer _installBinaries)
         assertEquals(e error type, Installer DestinationBinNameNotSetError type)
@@ -79,7 +79,7 @@ InstallerTest := UnitTest clone do (
 
         # a package with binaries
         package = Package with(Directory with("tests/_addons/BFakeAddon"))
-        installer setPackage(package) setDestination(destination)
+        installer setPackage(package) setRoot(root)
         destBinDir := package dir directoryNamed(destBinName)
 
         if (destBinDir exists, destBinDir remove)

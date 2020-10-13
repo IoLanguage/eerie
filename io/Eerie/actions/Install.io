@@ -27,7 +27,7 @@ Install := Eerie Action clone do(
     execute := method(
         self pkg runHook("beforeInstall")
         installer := Installer with(self pkg) \
-            setDestination(Eerie addonsDir) \
+            setRoot(Eerie addonsDir) \
                 setDestBinName(Eerie globalBinDirName)
 
         installer install(Eerie isGlobal)
