@@ -213,23 +213,49 @@ Builder := Object clone do(
 
         missing)
 
-    systemCall := method(s,
-        statusCode := trySystemCall(s)
-        if(statusCode == 256, System exit(1))
+    _systemCall := method(s,
+        statusCode := Eerie sh(s, true)
+        if(statusCode != 0, System exit(1))
         return statusCode)
 
-    trySystemCall := method(s,
-        oldPath := nil
-        if(folder path != ".",
-            oldPath := Directory currentWorkingDirectory
-            Directory setCurrentWorkingDirectory(folder path))
+    /*doc Builder build(options) Build the package with provided options 
+    (`Sequence`).*/
+    build := method(options,
+        if (package hasNativeCode not, 
+            Eerie log("The package #{self package name} has no code to compile")
+            return)
+    
+        self _copyHeaders
 
-        result := Eerie sh(s, true, folder path)
+        self generateInitFile
 
-        if(oldPath != nil,
-            Directory setCurrentWorkingDirectory(oldPath))
+        options := options ifNilEval("") .. cflags .. " " .. defines map(d,
+            "-D" .. d) join(" ")
 
-        return result)
+        cFiles foreach(src, self _compileFile(src, options))
+
+        self buildLib
+        self buildDynLib
+        self embedManifest)
+
+    # copy (install) headers into "_build/headers/"
+    _copyHeaders := method(
+        mkdir("_build/headers")
+        headers := self _headers
+
+        if(headers size > 0,
+            destinationPath := Path with(self folder path, "_build/headers")
+            headers foreach(file,
+                file copyToPath(destinationPath .. "/" .. file name))))
+
+    mkdir := method(relativePath,
+        path := Path with(self package dir path, relativePath)
+        Directory with(path) createIfAbsent)
+
+    # get list of headers
+    _headers := method(
+        Directory with(
+            Path with(folder path, "source")) filesWithExtension(".h"))
 
     cFiles := method(
         sourceFolder := folder directoryNamed("source")
@@ -239,6 +265,34 @@ Builder := Object clone do(
             files appendSeq(sourceFolder filesWithExtension("m")))
         files select(f, f name beginsWithSeq("._") not))
 
+    _compileFile := method(src, options,
+        obj := src name replaceSeq(".cpp", ".o") replaceSeq(".c", ".o") \
+            replaceSeq(".m", ".o")
+
+        objFile := self objsFolder fileNamedOrNil(obj)
+
+        if(objFile == nil or(
+            objFile lastDataChangeDate < src lastDataChangeDate),
+            includes := self includePaths
+            includes = includes appendSeq(headerSearchPaths) map(v, "-I" .. v)
+
+            _depends := self depends includes join(" ")
+
+            _includes := includes join(" ")
+
+            command := "#{cc} #{options} #{_depends} #{_includes} -I." \
+                interpolate
+
+            if(list("cygwin", "mingw", "windows") contains(platform) not,
+                command = command .. " -fPIC "
+                ,
+                command = command .. \
+                    " -DBUILDING_#{self name asUppercase}_ADDON " \
+                        interpolate)
+
+            command = "#{command} -c #{ccOutFlag}#{self package dir path}/_build/objs/#{obj} #{self package dir path}/source/#{src name}" interpolate
+            _systemCall(command)))
+
     includePaths := method(
         includePaths := List clone
         if(libsFolder exists,
@@ -246,74 +300,20 @@ Builder := Object clone do(
                 libsFolder directories map(path) map(p, 
                     Path with(p, "_build/headers"))))
 
-        # FIXME there's no Eerie usedEnv anymore
-        includePaths appendSeq(
-            depends addons map(n, 
-                (Eerie usedEnv path) .. "/addons/" .. n .. "/_build/headers"))
+        # TODO commented this block, it looks like it's not needed anymore, but
+        # let it be here until the refactoring
+        # includePaths appendSeq(
+            # depends addons map(n, 
+                # (Eerie usedEnv path) .. "/addons/" .. n .. "/_build/headers"))
         includePaths)
-
-    build := method(options,
-        mkdir("_build/headers")
-        mkdir("source")
-    
-        headers := Directory with(
-            Path with(folder path, "source")) filesWithExtension(".h")
-
-        if(headers size > 0,
-            destinationPath := Path with(self folder path, "_build/headers")
-            headers foreach(file,
-                file copyToPath(destinationPath .. "/" .. file name)))
-
-        self generateInitFile
-
-        options := options ifNilEval("") .. cflags .. " " .. defines map(d,
-            "-D" .. d) join(" ")
-
-        cFiles foreach(src,
-            obj := src name replaceSeq(".cpp", ".o") replaceSeq(".c", ".o") \
-                replaceSeq(".m", ".o")
-
-            objFile := objsFolder fileNamedOrNil(obj)
-
-            if(objFile == nil or(
-                objFile lastDataChangeDate < src lastDataChangeDate),
-                includes := includePaths
-                includes = includes appendSeq(headerSearchPaths) map(v,
-                    "-I" .. v)
-
-                _depends := depends includes join(" ")
-
-                _includes := includes join(" ")
-
-                command := "#{cc} #{options} #{_depends} #{_includes} -I." \
-                    interpolate
-
-                if(list("cygwin", "mingw", "windows") contains(platform) not,
-                    command = command .. " -fPIC "
-                    ,
-                    command = command .. \
-                        " -DBUILDING_#{self name asUppercase}_ADDON " \
-                            interpolate)
-
-                command = "#{command} -c #{ccOutFlag}_build/objs/#{obj} source/#{src name}" interpolate
-                systemCall(command)))
-
-        buildLib
-        buildDynLib
-        if(platform == "windows", embedManifest))
-
-    mkdir := method(relativePath,
-        path := Path with(folder path, relativePath)
-        if(Directory exists(path) not,
-            writeln("mkdir -p ", relativePath)
-            Directory with(path) createIfAbsent))
 
     buildLib := method(
         mkdir("_build/lib")
-        systemCall("#{ar} #{arFlags}_build/lib/#{libName} _build/objs/*.o" \
+        path := self package dir path
+        _systemCall("#{ar} #{arFlags}#{path}/_build/lib/#{libName} #{path}/_build/objs/*.o" \
             interpolate)
         if(ranlib != nil,
-            systemCall("#{ranlib} _build/lib/#{libName}" interpolate)))
+            _systemCall("#{ranlib} #{path}/_build/lib/#{libName}" interpolate)))
 
     dllSuffix := method(
         if(list("cygwin", "mingw", "windows") contains(platform), return "dll")
@@ -334,11 +334,14 @@ Builder := Object clone do(
     buildDynLib := method(
         mkdir("_build/dll")
 
+        # FIXME this should be `package dir with("_addons")` and `_build/dll`
+        # inside of those addons. But the path, most probably, should be
+        # absolute.
         links := depends addons map(b, 
             "#{linkDirPathFlag}../#{b}/_build/dll" interpolate)
 
         links appendSeq(depends addons map(v,
-            "#{linkLibFlag}Io#{v}#{linkLibSuffix}" interpolate))
+            "#{self linkLibFlag}Io#{v}#{self linkLibSuffix}" interpolate))
 
         if(platform == "windows",
             links appendSeq(depends syslibs map(v, v .. ".lib")))
@@ -346,6 +349,7 @@ Builder := Object clone do(
         if(platform != "darwin" and platform != "windows",
             links appendSeq(
                 depends addons map(v,
+                    # TODO
                     "-Wl,--rpath -Wl,#{Eerie root}/activeEnv/addons/#{v}/_build/dll/" interpolate)))
 
         links appendSeq(libSearchPaths map(v, linkDirPathFlag .. v))
@@ -369,26 +373,27 @@ Builder := Object clone do(
 
         if(platform == "darwin",
             links append("-flat_namespace")
-            # FIXME Eerie root /activeEnv/addons There's no such thing
+            # FIXME Eerie root /activeEnv/addons There's no such thing anymore
             s := " -install_name " .. (Eerie root) .. "/activeEnv/addons/" .. self name .. "/_build/dll/" .. libname)
 
         linksJoined := links join(" ")
 
-        linkCommand := "#{linkdll} #{cflags} #{dllCommand} #{s} #{linkOutFlag}_build/dll/#{libname} _build/objs/*.o #{linksJoined}" interpolate
-        systemCall(linkCommand))
+        linkCommand := "#{linkdll} #{cflags} #{dllCommand} #{s} #{linkOutFlag}#{self package dir path}/_build/dll/#{libname} #{self package dir path}/_build/objs/*.o #{linksJoined}" interpolate
+        _systemCall(linkCommand))
 
     embedManifest := method(
+        if((platform == "windows") not, return)
         dllFilePath := "_build/dll/" .. dllNameFor("Io" .. name)
         manifestFilePath := dllFilePath .. ".manifest"
-        systemCall("mt.exe -manifest " .. manifestFilePath .. \
+        _systemCall("mt.exe -manifest " .. manifestFilePath .. \
             " -outputresource:" .. dllFilePath)
         writeln("Removing manifest file: " .. manifestFilePath)
         File with(folder path .. "/" .. manifestFilePath) remove)
 
     clean := method(
         writeln(folder name, " clean")
-        trySystemCall("rm -rf _build")
-        trySystemCall("rm -f source/Io*Init.c")
+        _systemCall("rm -rf _build")
+        _systemCall("rm -f source/Io*Init.c")
         self removeSlot("objsFolder"))
 
     ioCodeFolder := method(folder directoryNamed("io"))

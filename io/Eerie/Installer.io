@@ -88,18 +88,19 @@ Installer := Object clone do (
         self package buildio create
 
         # keep currentWorkingDirectory to return later
-        wd := Directory currentWorkingDirectory
-        Directory setCurrentWorkingDirectory(self package dir path)
+        # wd := Directory currentWorkingDirectory
+        # Directory setCurrentWorkingDirectory(self package dir path)
 
         Eerie log("Compiling #{self package name}")
 
         builder := Builder with(self package)
-        builder doFile("build.io")
-        builder folder := Directory at(".")
+        builder doFile(self package buildio path)
+        # builder folder := Directory at(".")
+        builder folder := self package dir
         builder build(self _compileFlags)
 
         # change directory back
-        Directory setCurrentWorkingDirectory(wd)
+        # Directory setCurrentWorkingDirectory(wd)
 
         true)
 
