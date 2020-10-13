@@ -161,6 +161,6 @@ Namespaces Options do(
 
 e := try(Kano run)
 e catch(Exception,
-    "ERROR: " .. e error message println
+    Eerie log("ERROR: " .. e error message, "error")
     Eerie _isVerbose ifTrue(e coroutine backTraceString println)
     System exit(1))

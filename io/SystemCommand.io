@@ -1,12 +1,9 @@
 SystemCommand := Object clone do(
     getPlatformName := method(return System platform asLowercase)
 
-    _isWindows := method(
-        (self getPlatformName == "windows") or(self getPlatformName == "mingw"))
-
     # make symbolic link for a file
     lnFile := method(sourcePath, linkPath,
-        if(self _isWindows) \
+        if(Eerie isWindows) \
         then(
             Eerie sh("mklink /H #{linkPath asOSPath} #{sourcePath asOSPath}" \
                 interpolate)
@@ -16,7 +13,7 @@ SystemCommand := Object clone do(
 
     # make symbolic link for a directory
     lnDirectory := method(sourcePath, linkPath,
-        if(self _isWindows) \
+        if(Eerie isWindows) \
         then(
             Eerie sh("mklink /J #{linkPath asOSPath} #{sourcePath asOSPath}" \
                 interpolate)
@@ -25,7 +22,7 @@ SystemCommand := Object clone do(
 
     # copy recursively
     cpR := method(sourcePath, destinationPath,
-        if(self _isWindows) \
+        if(Eerie isWindows) \
         then(
             sourceOs := sourcePath asOSPath
             destinationOs := destinationPath asOSPath
@@ -43,7 +40,7 @@ SystemCommand := Object clone do(
 
     # remove a file
     rmFile := method(string,
-        if(self _isWindows) \
+        if(Eerie isWindows) \
         then(
             Eerie sh("del /F #{string}" interpolate)
         ) else (

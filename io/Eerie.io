@@ -33,6 +33,11 @@ Eerie := Object clone do(
         self _reloadPackagesList
         self)
 
+    /*doc Eerie isWindows Returns `true` if the OS on which Eerie is running is
+    Windows (including mingw define), `false` otherwise.*/
+    isWindows := method(System platform containsAnyCaseSeq("windows") or(
+        System platform containsAnyCaseSeq("mingw")))
+
     //doc Eerie installedPackages Returns list of installed packages .
     installedPackages := lazySlot(self _reloadPackagesList)
 
@@ -90,7 +95,9 @@ Eerie := Object clone do(
     `"info"`, `"error"`, `"console"`, `"debug"` or `"output"`.*/
     log := method(str, mode,
         mode ifNil(mode = "info")
-        ((self _logMods at(mode)) .. str) interpolate(call sender) println)
+        stream := if (mode == "error", File standardError, File standardOutput)
+        msg := ((self _logMods at(mode)) .. str) interpolate(call sender)
+        stream write(msg, "\n"))
 
     /*doc Eerie generatePackagePath Return path for addon with the given name
     independently of its existence.*/

@@ -39,10 +39,7 @@ Transaction := Object clone do(
         if(_isProcessRunning(pid) not, self lockFile remove))
 
     _isProcessRunning := method(pid,
-        isWindows := (System platform containsAnyCaseSeq("windows") or(
-            System platform containsAnyCaseSeq("mingw")))
-
-        cmd := if(isWindows,
+        cmd := if(Eerie isWindows,
             "TASKLIST /FI \"PID eq #{pid}\" 2>NUL | find \"#{pid}\" >NUL" \
             interpolate,
             "ps -p #{pid} > /dev/null" interpolate)

@@ -23,11 +23,10 @@ InstallerTest := UnitTest clone do (
 
     testInstall := method(
         package := Package with(Directory with("tests/_addons/AFakeAddon"))
-
         destination := Directory with("tests/installer") 
-        if(destination exists, destination remove)
-
         installer := Installer with(package) setDestination(destination)
+
+        if (destination exists, destination remove)
 
         installer install
 
@@ -58,5 +57,44 @@ InstallerTest := UnitTest clone do (
         buildDir remove
         initf remove)
 
-    testInstallBinaries := method()
+    testInstallBinaries := method(
+        package := Package with(Directory with("tests/_addons/AFakeAddon"))
+        # we use the package's directory here as a destination, because we just
+        # need to check binaries so it's ok here to treat the source as a
+        # destination (like we already installed the package there)
+        destination := Directory with("tests/_addons")
+        installer := Installer with(package) setDestination(destination)
+
+        e := try (installer _installBinaries)
+        assertEquals(e error type, Installer DestinationBinNameNotSetError type)
+        
+        destBinName := "_bin"
+
+        if (package dir directoryNamed(destBinName) exists, 
+            package dir directoryNamed(destBinName) remove)
+
+        installer setDestBinName(destBinName)
+        # should return `false`, because the package has no binaries
+        assertFalse(installer _installBinaries)
+
+        # a package with binaries
+        package = Package with(Directory with("tests/_addons/BFakeAddon"))
+        installer setPackage(package) setDestination(destination)
+        destBinDir := package dir directoryNamed(destBinName)
+
+        if (destBinDir exists, destBinDir remove)
+
+        assertTrue(installer _installBinaries)
+        assertTrue(destBinDir exists)
+
+        if (Eerie isWindows) then (
+            package binDir files foreach(file,
+                destBinDir fileNamed(file name .. ".cmd") exists)
+        ) else (
+            package binDir files foreach(file,
+                # it looks like links don't exist as a file in Io: neither
+                # `File exists` nor `File isLink` don't work, so:
+                assertTrue(destBinDir files map(name) contains(file name))))
+
+        destBinDir remove)
 )

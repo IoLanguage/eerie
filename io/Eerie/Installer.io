@@ -103,18 +103,18 @@ Installer := Object clone do (
     _installBinaries := method(
         self _checkPackageSet
         self _checkDestBinNameSet
-        if (self package hasBinaries not, return)
+        if (self package hasBinaries not, return false)
 
-        isWindows := System platform containsAnyCaseSeq("windows") or(
-            System platform containsAnyCaseSeq("mingw"))
-
-        binDest := self _binInstallDir
         # this is directory at destination - i.e. where binaries copied to
+        binDest := self _binInstallDir createIfAbsent
+        # this is the binaries directory (from where the binaries will be
+            # installed), but at the destination
         binDir := self _packageDestination directoryNamed(
             self package binDir name)
-        binDir files foreach(f, if(isWindows, 
+        binDir files foreach(f, if(Eerie isWindows, 
             self _createCmdForBin(f, binDest),
-            self _createLinkForBin(f, binDest))))
+            self _createLinkForBin(f, binDest)))
+        return true)
 
     _checkDestBinNameSet := method(
         if (self destBinName isNil or self destBinName isEmpty,
@@ -123,7 +123,7 @@ Installer := Object clone do (
     # binaries will be installed in this directory
     _binInstallDir := method(
         self destination directoryNamed(self package name) \
-            directoryNamed(self binDestName))
+            directoryNamed(self destBinName))
 
     # This method is used on Windows to create .cmd file to be able to execute a
     # package binary as a normal command (i.e. `eerie` instead of
