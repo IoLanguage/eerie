@@ -7,10 +7,6 @@ a package. You should also `setDestBinName` if you to install binaries from the
 `Package`.*/
 
 Installer := Object clone do (
-    _compileFlags := if(System platform split first asLowercase == "windows",
-        "-MD -Zi -DWIN32 -DNDEBUG -DIOBINDINGS -D_CRT_SECURE_NO_DEPRECATE",
-        "-Os -g -Wall -pipe -fno-strict-aliasing -DSANE_POPEN -DIOBINDINGS")
-
     /*doc Installer root The installer's root `Directory` where `Package`'s'
     should be installed.*/
     root ::= nil
@@ -91,7 +87,7 @@ Installer := Object clone do (
 
         builder := Builder with(self package)
         builder doFile(self package buildio path)
-        builder build(self _compileFlags)
+        builder build
 
         true)
 
