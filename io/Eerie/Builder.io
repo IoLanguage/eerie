@@ -396,6 +396,8 @@ Builder := Object clone do(
         File with(self package dir path .. "/" .. manifestFilePath) remove)
 )
 
+# Generates IoAddonNameInit.c file which contains code for initialization of the
+# protos defined by the sources
 InitFileGenerator := Object clone do (
     package := nil
 
@@ -407,7 +409,7 @@ InitFileGenerator := Object clone do (
     # directory with Io code
     ioCodeDir := method(self package dir directoryNamed("io"))
 
-    # io files inside inside `io` directory
+    # io files inside `io` directory
     # FIXME this should be `recursiveFileOfTypes(list("io"))`, but the generated
     # code may need to be changed too
     ioFiles := method(self ioCodeDir filesWithExtension("io"))
@@ -429,48 +431,16 @@ InitFileGenerator := Object clone do (
 
         self _writeHead
 
-        sourceFiles := self package dir directoryNamed("source") files
+        ioCFiles := self _ioCFiles
 
-        iocFiles := self _ioCFiles
+        extraFiles := self _extraFiles
 
-        iocFiles foreach(f,
-            self output write(
-                "IoObject *#{f baseName}_proto(void *state);\n" interpolate))
-
-        extraFiles := sourceFiles select(f, 
-            f name beginsWithSeq("Io") and(
-                f name endsWithSeq(".c")) and(
-                    f name containsSeq("Init") not) and(
-                        f name containsSeq("_")))
-
-        extraFiles foreach(f,
-            self output write(
-                "void #{f baseName}Init(void *context);\n" interpolate))
+        self _writeDeclarations(ioCFiles, extraFiles)
 
         if (Builder platform == "windows",
             self output write("__declspec(dllexport)\n"))
 
-        self output write(
-            "\nvoid #{self output baseName}(IoObject *context)" interpolate)
-
-        self output write(" {\n")
-
-        if(iocFiles size > 0,
-            self output write(
-                "\tIoState *self = IoObject_state((IoObject *)context);\n\n"))
-
-        iocFiles foreach(f,
-            protoName := f baseName asMutable removePrefix("Io")
-            self output write("\tIoObject_setSlot_to_(context, SIOSYMBOL(\"" ..\
-                "#{protoName}\"), #{f baseName}_proto(self));\n\n" interpolate))
-
-        extraFiles foreach(f,
-            self output write("\t#{f baseName}Init(context);\n" interpolate))
-
-        if(ioCodeDir and self embedIoCode,
-            ioFiles foreach(f, self output write(codeForIoFile(f))))
-
-        self output write("}\n")
+        self _writeInitFunction(ioCFiles, extraFiles)
         self output close)
 
     _writeHead := method(
@@ -490,40 +460,83 @@ InitFileGenerator := Object clone do (
 #include "IoObject.h" 
             """ fixMultiline, "\n\n"))
 
+    # Files like IoName.c
     _ioCFiles := method(
-        sourceFiles := self package dir directoryNamed("source") files
-        iocFiles := sourceFiles select(f,
-            f name beginsWithSeq("Io") and(
-                f name endsWithSeq(".c") or f name endsWithSeq(".cpp")) and(
-                    f name containsSeq("Init") not) and(
-                        f name containsSeq("_") not))
+        sources := self package dir directoryNamed("source") files
 
-        orderedFiles := List clone appendSeq(iocFiles)
+        files := sources select(name beginsWithSeq("Io")) \
+            select(f, f name endsWithSeq(".c") or f name endsWithSeq(".cpp")) \
+                select(name containsSeq("Init") not) \
+                    select(name containsSeq("_") not)
 
-        iocFiles foreach(f,
-            # sort slot definitions considering docDependsOn
-            d := f open readLines detect(line, line containsSeq("docDependsOn"))
-            f close
+        # sort slot definitions considering docDependsOn
+        sorted := files clone
 
-            if(d,
-                prerequisitName := "Io" .. d afterSeq("(\"") beforeSeq("\")") .. ".c"
-                prerequisit := orderedFiles detect(of, 
-                    of name == prerequisitName)
-                orderedFiles remove(f)
-                orderedFiles insertAfter(f, prerequisit)))
+        files foreach(file,
+            if (depName := file open \
+                    readLines detect(containsSeq("docDependsOn")),
 
-        iocFiles = orderedFiles
-    )
+                file close
 
-    codeForIoFile := method(f,
+                depFileName := \
+                    "Io" .. depName afterSeq("(\"") beforeSeq("\")") .. ".c"
+                depFile := sorted detect(name == depFileName)
+                sorted remove(file)
+                sorted insertAfter(file, depFile)))
+
+        sorted)
+
+    # Files like IoName_doing.c
+    _extraFiles := method(
+        package dir directoryNamed("source") files \
+            select(name beginsWithSeq("Io")) \
+                select(name endsWithSeq(".c")) \
+                    select(name containsSeq("Init") not) \
+                        select(name containsSeq("_")))
+
+    _writeDeclarations := method(sources, extras,
+        sources foreach(f,
+            self output write(
+                "IoObject *#{f baseName}_proto(void *state);\n" interpolate))
+
+        extras foreach(f,
+            self output write(
+                "void #{f baseName}Init(void *context);\n" interpolate)))
+
+    _writeInitFunction := method(sources, extras,
+        self output write(
+            "\nvoid #{self output baseName}(IoObject *context)" interpolate)
+
+        self output write(" {\n")
+
+        if(sources isEmpty not,
+            self output write(
+                "\tIoState *self = IoObject_state((IoObject *)context);\n\n"))
+
+        sources foreach(f,
+            protoName := f baseName asMutable removePrefix("Io")
+            self output write("\tIoObject_setSlot_to_(context, SIOSYMBOL(\"" ..\
+                "#{protoName}\"), #{f baseName}_proto(self));\n\n" interpolate))
+
+        extras foreach(f,
+            self output write("\t#{f baseName}Init(context);\n" interpolate))
+
+        if(self ioCodeDir and self embedIoCode,
+            self ioFiles foreach(f, self output write(_codeForIoFile(f))))
+
+        self output write("}\n"))
+
+    _codeForIoFile := method(file,
         code := Sequence clone
-        if (f size > 0,
-            code appendSeq("\t{\n\t\tchar *s = ")
-            code appendSeq(f contents splitNoEmpties("\n") map(line,
-                "\"#{line escape}\\n\"" interpolate) join("\n\t\t"))
-            code appendSeq(";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"#{f name}\");\n" interpolate)
-            code appendSeq("\t}\n\n"))
-        code)
+        if (file size < 1, return code)
+
+        code appendSeq("\t{\n\t\tchar *s = ")
+        code appendSeq(file contents splitNoEmpties("\n") map(line,
+            "\"#{line escape}\\n\"" interpolate) join("\n\t\t"))
+        code appendSeq(
+            ";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"" ..
+                "#{file name}\");\n" interpolate)
+        code appendSeq("\t}\n\n"))
 
     # better indentation for multiline strings
     Sequence fixMultiline := method(

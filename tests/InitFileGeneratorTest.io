@@ -13,7 +13,7 @@ InitFileGeneratorTest := UnitTest clone do (
             knownBug("expected file on windows doesn't exist")
             package dir directoryNamed("tests") fileNamed("ExpectedInitWin.c"),
             package dir directoryNamed("tests") fileNamed("ExpectedInitUnix.c"))
-        
+
         assertEquals(result contents, expected contents)
 
         result remove)
