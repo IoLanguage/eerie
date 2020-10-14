@@ -7,7 +7,7 @@ Normally, you shouldn't use this directly. Use `Installer build` instead. But
 here you'll find methods you can use inside your `build.io` script as it's
 evaluated in the context of `Builder` (i.e. it's its ancestor).*/
 
-Builder := Object clone do(
+Builder := Object clone do (
     //doc Builder platform Get the platform name (`Sequence`) as lowercase.
     platform := System platform split at(0) asLowercase
 
@@ -50,52 +50,43 @@ Builder := Object clone do(
         _setupPaths)
 
     _setupPaths := method(
-        self frameworkSearchPaths := List clone
-        frameworkSearchPaths append("/System/Library/Frameworks")
-        frameworkSearchPaths append("/Library/Frameworks")
-        frameworkSearchPaths append("/Local/Library/Frameworks")
-        # frameworkSearchPaths append(
-            # "~/Library/Frameworks" stringByExpandingTilde)
+        searchPrefixes foreach(prefix,
+            self appendHeaderSearchPath(prefix .. "/include"))
 
-        self searchPrefixes := List clone
-
-        searchPrefixes append(System installPrefix)
-        searchPrefixes append("/opt/local")
-        searchPrefixes append("/usr")
-        if(platform != "darwin", searchPrefixes append("/usr/X11R6"))
-        if(platform == "mingw", searchPrefixes append("/mingw"))
-        searchPrefixes append("/usr/local")
-        searchPrefixes append("/usr/pkg")
-        searchPrefixes append("/sw")
-        // on windows there is no such thing as a standard place
-        // to look for these things
-        searchPrefixes append("i:/io/addonLibs", "C:/io/addonLibs")
-
-        self headerSearchPaths := List clone
-        self appendHeaderSearchPath := method(v, 
-            if(File clone setPath(v) exists,
-                headerSearchPaths appendIfAbsent(v)))
-
-        searchPrefixes foreach(searchPrefix,
-            appendHeaderSearchPath(searchPrefix .. "/include"))
-
-        if(platform == "windows" or platform == "mingw") then (
-            appendHeaderSearchPath(
-                Path with(System installPrefix, "include", "io") asIoPath)
-        ) else (
-            appendHeaderSearchPath(
-                Path with(System installPrefix, "include", "io")))
-
-        self libSearchPaths := List clone
-
-        self appendLibSearchPath := method(v, 
-            if(File clone setPath(v) exists, libSearchPaths appendIfAbsent(v)))
-
-        if(platform == "windows" or platform == "mingw",
-            self appendLibSearchPath(System installPrefix asIoPath))
+        self appendHeaderSearchPath(
+            Path with(System installPrefix, "include", "io"))
 
         searchPrefixes foreach(searchPrefix, 
             appendLibSearchPath(searchPrefix .. "/lib")))
+
+    frameworkSearchPaths := list(
+        "/System/Library/Frameworks",
+        "/Library/Frameworks",
+        "~/Library/Frameworks" stringByExpandingTilde
+    )
+
+    searchPrefixes := list(
+        System installPrefix,
+        "/opt/local",
+        "/usr",
+        "/usr/local",
+        "/usr/pkg",
+        "/sw",
+        "/usr/X11R6",
+        "/mingw"
+    )
+
+    appendHeaderSearchPath := method(path, 
+        if(Directory with(path) exists, 
+            self headerSearchPaths appendIfAbsent(path)))
+
+    headerSearchPaths := List clone
+
+    libSearchPaths := List clone
+
+    appendLibSearchPath := method(path, 
+        if(Directory with(path) exists,
+            self libSearchPaths appendIfAbsent(path)))
 
     addDefine := method(v, defines appendIfAbsent(v))
     dependsOnBinding := method(v, depends addons appendIfAbsent(v))
@@ -134,6 +125,10 @@ Builder := Object clone do(
         ) else (
             return ""))
 
+    optionallyDependsOnFramework := method(v, 
+        a := pathForFramework(v) != nil
+        if(a, dependsOnFramework(v))
+        a)
     dependsOnFramework := method(v, depends frameworks appendIfAbsent(v))
     dependsOnInclude := method(v, depends includes appendIfAbsent(v))
     dependsOnLinkOption := method(v, depends linkOptions appendIfAbsent(v))
@@ -164,11 +159,6 @@ Builder := Object clone do(
         libSearchPaths detect(path,
             libDirectory := Directory with(path)
             libNames detect(libName, libDirectory fileNamed(libName) exists)))
-
-    optionallyDependsOnFramework := method(v, 
-        a := pathForFramework(v) != nil
-        if(a, dependsOnFramework(v))
-        a)
 
     hasDepends := method(
         (self missingFrameworks size + 
@@ -449,7 +439,7 @@ InitFileGenerator := Object clone do (
 // add setShouldGenerateInit(false) to the build.io, otherwise it will be
 // rewritten on the next build.
 //
-// The slot setting order is not guaranteed to be alphabetical. If you want to a
+// The slot setting order is not guaranteed to be alphabetical. If you want a
 // slot to be set before another slot you can add a comment line like:
 //
 // docDependsOn("SlotName")
@@ -460,9 +450,9 @@ InitFileGenerator := Object clone do (
 #include "IoObject.h" 
             """ fixMultiline, "\n\n"))
 
-    # Files like IoName.c
+    # Get files like IoName.c
     _ioCFiles := method(
-        sources := self package dir directoryNamed("source") files
+        sources := self package sourceDir files
 
         files := sources select(name beginsWithSeq("Io")) \
             select(f, f name endsWithSeq(".c") or f name endsWithSeq(".cpp")) \
@@ -486,9 +476,9 @@ InitFileGenerator := Object clone do (
 
         sorted)
 
-    # Files like IoName_doing.c
+    # Get files like IoName_doing.c
     _extraFiles := method(
-        package dir directoryNamed("source") files \
+        package sourceDir files \
             select(name beginsWithSeq("Io")) \
                 select(name endsWithSeq(".c")) \
                     select(name containsSeq("Init") not) \

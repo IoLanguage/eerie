@@ -2,7 +2,7 @@
 // add setShouldGenerateInit(false) to the build.io, otherwise it will be
 // rewritten on the next build.
 //
-// The slot setting order is not guaranteed to be alphabetical. If you want to a
+// The slot setting order is not guaranteed to be alphabetical. If you want a
 // slot to be set before another slot you can add a comment line like:
 //
 // docDependsOn("SlotName")
