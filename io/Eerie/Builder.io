@@ -8,24 +8,28 @@ here you'll find methods you can use inside your `build.io` script as it's
 evaluated in the context of `Builder` (i.e. it's its ancestor).*/
 
 Builder := Object clone do(
-    //doc Builder platform Get the platform name as lowercase.
+    //doc Builder platform Get the platform name (`Sequence`) as lowercase.
     platform := System platform split at(0) asLowercase
 
     /*doc Builder shouldGenerateInit Whether `Builder` should generate
     IoAddonNameInit.c file for your package. Default to `true`.*/
     shouldGenerateInit ::= true
 
-    //doc Builder package Get the package the `Builder` is building.
+    //doc Builder package Get the package the `Builder` will build.
     package := nil
 
     _cflags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
 
     _objsDir := lazySlot(self package dir createSubdirectory("_build/objs"))
 
+    # see `InitFileGenerator`
+    _initFileGenerator := nil
+
     //doc Builder with(Package) Always use this to initialize `Builder`.
     with := method(pkg, 
         klone := self clone
         klone package := pkg
+        klone _initFileGenerator := InitFileGenerator with(pkg)
         klone)
 
     init := method(
@@ -212,7 +216,7 @@ Builder := Object clone do(
     
         self _copyHeaders
 
-        self _generateInitFile
+        if (self shouldGenerateInit, self _initFileGenerator generate)
 
         # TODO defines should be preadded to `self defines`
         options := if(System platform split first asLowercase == "windows",
@@ -390,19 +394,32 @@ Builder := Object clone do(
             " -outputresource:" .. dllFilePath)
         Eerie log("Removing manifest file #{manifestFilePath}")
         File with(self package dir path .. "/" .. manifestFilePath) remove)
+)
 
+InitFileGenerator := Object clone do (
+    package ::= nil
+
+    # the initializer
+    with := method(pkg, self clone setPackage(pkg))
+
+    # io files inside inside `io` directory
+    # FIXME this should be `recursiveFileOfTypes(list("io"))`, but the generated
+    # code may need to be changed too
+    ioFiles := method(self ioCodeFolder filesWithExtension("io"))
+    
+    # directory with Io code
     ioCodeFolder := method(self package dir directoryNamed("io"))
-    ioFiles := method(ioCodeFolder filesWithExtension("io"))
-    initFileName := method("source/Io" .. self package name .. "Init.c")
+    
+    # path to the generated file (`Sequence`)
+    path := method("source/Io" .. self package name .. "Init.c")
 
-    isStatic := false
+    # whether the compiled package should embed io code into the library
+    embedIoCode ::= false
 
-    # TODO encapsulate into InitFileGenerator object
-    _generateInitFile := method(
-        if(self shouldGenerateInit not, return)
-        Eerie log("Generating #{initFileName}")
-        /* if(platform != "windows" and self package dir directoryNamed("source") filesWithExtension("m") size != 0, return) */
-        initFile := self package dir fileNamed(initFileName) remove create open
+    # generates the file
+    generate := method(
+        Eerie log("Generating #{path}")
+        initFile := self package dir fileNamed(path) remove create open
         initFile write("#include \"IoState.h\"\n")
         initFile write("#include \"IoObject.h\"\n\n")
 
@@ -433,10 +450,10 @@ Builder := Object clone do(
         extraFiles foreach(f,
             initFile write("void " .. f name fileName .. "Init(void *context);\n"))
 
-        if (platform == "windows",
+        if (Builder platform == "windows",
             initFile write("__declspec(dllexport)\n"))
 
-        initFile write("\nvoid " .. initFileName fileName .. "(IoObject *context)\n")
+        initFile write("\nvoid " .. path fileName .. "(IoObject *context)\n")
 
         initFile write("{\n")
 
@@ -449,7 +466,7 @@ Builder := Object clone do(
         extraFiles foreach(f,
             initFile write("\t" .. f name fileName .. "Init(context);\n"))
 
-        if(ioCodeFolder and isStatic,
+        if(ioCodeFolder and self embedIoCode,
             ioFiles foreach(f, initFile write(codeForIoFile(f))))
 
         initFile write("}\n")

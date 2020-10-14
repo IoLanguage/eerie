@@ -47,17 +47,14 @@ Installer := Object clone do (
         true)
 
     _checkPackageSet := method(
-        if (self package isNil,
-            Exception raise(PackageNotSetError clone)))
+        if (self package isNil, Exception raise(PackageNotSetError clone)))
 
     _checkRootSet := method(
-        if (self root isNil, 
-            Exception raise(RootNotSetError clone)))
+        if (self root isNil, Exception raise(RootNotSetError clone)))
 
     # this is the directory inside `root` which represents the package and
     # contains its sources
-    _destination := method(
-        self root directoryNamed(self package name))
+    _destination := method(self root directoryNamed(self package name))
 
     /*doc Installer build(Package) Compiles the `Package` if it has
     native code. Returns `true` if the package was compiled and `false`
