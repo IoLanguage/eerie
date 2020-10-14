@@ -399,74 +399,49 @@ Builder := Object clone do(
 InitFileGenerator := Object clone do (
     package := nil
 
+    # the output file
+    output := lazySlot(
+        path := "source/Io#{self package name}Init.c" interpolate
+        self package dir fileNamed(path))
+
+    # directory with Io code
+    ioCodeDir := method(self package dir directoryNamed("io"))
+
+    # io files inside inside `io` directory
+    # FIXME this should be `recursiveFileOfTypes(list("io"))`, but the generated
+    # code may need to be changed too
+    ioFiles := method(self ioCodeDir filesWithExtension("io"))
+    
+    # whether the compiled package should embed io code into the library
+    embedIoCode ::= false
+
     # the initializer
     with := method(pkg, 
         klone := self clone
         klone package = pkg
         klone)
 
-    # io files inside inside `io` directory
-    # FIXME this should be `recursiveFileOfTypes(list("io"))`, but the generated
-    # code may need to be changed too
-    ioFiles := method(self ioCodeFolder filesWithExtension("io"))
-    
-    # directory with Io code
-    ioCodeFolder := method(self package dir directoryNamed("io"))
-    
-    # the output file
-    output := lazySlot(
-        path := "source/Io#{self package name}Init.c" interpolate
-        self package dir fileNamed(path))
-
-    # whether the compiled package should embed io code into the library
-    embedIoCode ::= false
-
     # generates the file
     generate := method(
         Eerie log("Generating #{self output path}")
 
         self output remove create open
-        self output write("""
-            |// This file is generated automatically.
-            |// If you want to customize it, you should add setShouldGenerateInit(false)
-            |// to the build.io and write your own.
-            |#include "IoState.h"
-            |#include "IoObject.h" 
-            """ fixMultiline,
-            "\n\n")
+
+        self _writeHead
 
         sourceFiles := self package dir directoryNamed("source") files
 
-        iocFiles := sourceFiles select(f,
-            f name beginsWithSeq("Io") and(
-                f name endsWithSeq(".c") or f name endsWithSeq(".cpp")) and(
-                    f name containsSeq("Init") not) and(
-                        f name containsSeq("_") not))
+        iocFiles := self _ioCFiles
+
+        iocFiles foreach(f,
+            self output write(
+                "IoObject *#{f baseName}_proto(void *state);\n" interpolate))
 
         extraFiles := sourceFiles select(f, 
             f name beginsWithSeq("Io") and(
                 f name endsWithSeq(".c")) and(
                     f name containsSeq("Init") not) and(
                         f name containsSeq("_")))
-
-        orderedFiles := List clone appendSeq(iocFiles)
-
-        iocFiles foreach(f,
-            d := f open readLines detect(line, line containsSeq("docDependsOn"))
-            f close
-
-            if(d,
-                prerequisitName := "Io" .. d afterSeq("(\"") beforeSeq("\")") .. ".c"
-                prerequisit := orderedFiles detect(of, 
-                    of name == prerequisitName )
-                orderedFiles remove(f)
-                orderedFiles insertAfter(f, prerequisit)))
-
-        iocFiles = orderedFiles
-
-        iocFiles foreach(f,
-            self output write(
-                "IoObject *#{f baseName}_proto(void *state);\n" interpolate))
 
         extraFiles foreach(f,
             self output write(
@@ -492,11 +467,53 @@ InitFileGenerator := Object clone do (
         extraFiles foreach(f,
             self output write("\t#{f baseName}Init(context);\n" interpolate))
 
-        if(ioCodeFolder and self embedIoCode,
+        if(ioCodeDir and self embedIoCode,
             ioFiles foreach(f, self output write(codeForIoFile(f))))
 
         self output write("}\n")
         self output close)
+
+    _writeHead := method(
+        self output write("""|
+// This file is generated automatically. If you want to customize it, you should
+// add setShouldGenerateInit(false) to the build.io, otherwise it will be
+// rewritten on the next build.
+//
+// The slot setting order is not guaranteed to be alphabetical. If you want to a
+// slot to be set before another slot you can add a comment line like:
+//
+// docDependsOn("SlotName")
+//
+// This way the slot "SlotName" will be set before the current slot.
+|
+#include "IoState.h"
+#include "IoObject.h" 
+            """ fixMultiline, "\n\n"))
+
+    _ioCFiles := method(
+        sourceFiles := self package dir directoryNamed("source") files
+        iocFiles := sourceFiles select(f,
+            f name beginsWithSeq("Io") and(
+                f name endsWithSeq(".c") or f name endsWithSeq(".cpp")) and(
+                    f name containsSeq("Init") not) and(
+                        f name containsSeq("_") not))
+
+        orderedFiles := List clone appendSeq(iocFiles)
+
+        iocFiles foreach(f,
+            # sort slot definitions considering docDependsOn
+            d := f open readLines detect(line, line containsSeq("docDependsOn"))
+            f close
+
+            if(d,
+                prerequisitName := "Io" .. d afterSeq("(\"") beforeSeq("\")") .. ".c"
+                prerequisit := orderedFiles detect(of, 
+                    of name == prerequisitName)
+                orderedFiles remove(f)
+                orderedFiles insertAfter(f, prerequisit)))
+
+        iocFiles = orderedFiles
+    )
 
     codeForIoFile := method(f,
         code := Sequence clone
