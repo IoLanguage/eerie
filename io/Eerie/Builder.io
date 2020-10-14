@@ -397,10 +397,13 @@ Builder := Object clone do(
 )
 
 InitFileGenerator := Object clone do (
-    package ::= nil
+    package := nil
 
     # the initializer
-    with := method(pkg, self clone setPackage(pkg))
+    with := method(pkg, 
+        klone := self clone
+        klone package = pkg
+        klone)
 
     # io files inside inside `io` directory
     # FIXME this should be `recursiveFileOfTypes(list("io"))`, but the generated
@@ -410,25 +413,41 @@ InitFileGenerator := Object clone do (
     # directory with Io code
     ioCodeFolder := method(self package dir directoryNamed("io"))
     
-    # path to the generated file (`Sequence`)
-    path := method("source/Io" .. self package name .. "Init.c")
+    # the output file
+    output := lazySlot(
+        path := "source/Io#{self package name}Init.c" interpolate
+        self package dir fileNamed(path))
 
     # whether the compiled package should embed io code into the library
     embedIoCode ::= false
 
     # generates the file
     generate := method(
-        Eerie log("Generating #{path}")
-        initFile := self package dir fileNamed(path) remove create open
-        initFile write("#include \"IoState.h\"\n")
-        initFile write("#include \"IoObject.h\"\n\n")
+        Eerie log("Generating #{self output path}")
+
+        self output remove create open
+        self output write("""
+            |// This file is generated automatically.
+            |// If you want to customize it, you should add setShouldGenerateInit(false)
+            |// to the build.io and write your own.
+            |#include "IoState.h"
+            |#include "IoObject.h" 
+            """ fixMultiline,
+            "\n\n")
 
         sourceFiles := self package dir directoryNamed("source") files
-        iocFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
-        iocppFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".cpp")) and(f name containsSeq("Init") not) and(f name containsSeq("_") not))
 
-        iocFiles appendSeq(iocppFiles)
-        extraFiles := sourceFiles select(f, f name beginsWithSeq("Io") and(f name endsWithSeq(".c")) and(f name containsSeq("Init") not) and(f name containsSeq("_")))
+        iocFiles := sourceFiles select(f,
+            f name beginsWithSeq("Io") and(
+                f name endsWithSeq(".c") or f name endsWithSeq(".cpp")) and(
+                    f name containsSeq("Init") not) and(
+                        f name containsSeq("_") not))
+
+        extraFiles := sourceFiles select(f, 
+            f name beginsWithSeq("Io") and(
+                f name endsWithSeq(".c")) and(
+                    f name containsSeq("Init") not) and(
+                        f name containsSeq("_")))
 
         orderedFiles := List clone appendSeq(iocFiles)
 
@@ -438,49 +457,60 @@ InitFileGenerator := Object clone do (
 
             if(d,
                 prerequisitName := "Io" .. d afterSeq("(\"") beforeSeq("\")") .. ".c"
-                prerequisit := orderedFiles detect(of, of name == prerequisitName )
+                prerequisit := orderedFiles detect(of, 
+                    of name == prerequisitName )
                 orderedFiles remove(f)
                 orderedFiles insertAfter(f, prerequisit)))
 
         iocFiles = orderedFiles
 
         iocFiles foreach(f,
-            initFile write("IoObject *" .. f name fileName .. "_proto(void *state);\n"))
+            self output write(
+                "IoObject *#{f baseName}_proto(void *state);\n" interpolate))
 
         extraFiles foreach(f,
-            initFile write("void " .. f name fileName .. "Init(void *context);\n"))
+            self output write(
+                "void #{f baseName}Init(void *context);\n" interpolate))
 
         if (Builder platform == "windows",
-            initFile write("__declspec(dllexport)\n"))
+            self output write("__declspec(dllexport)\n"))
 
-        initFile write("\nvoid " .. path fileName .. "(IoObject *context)\n")
+        self output write(
+            "\nvoid #{self output baseName}(IoObject *context)" interpolate)
 
-        initFile write("{\n")
+        self output write(" {\n")
 
         if(iocFiles size > 0,
-            initFile write("\tIoState *self = IoObject_state((IoObject *)context);\n\n"))
+            self output write(
+                "\tIoState *self = IoObject_state((IoObject *)context);\n\n"))
 
         iocFiles foreach(f,
-            initFile write("\tIoObject_setSlot_to_(context, SIOSYMBOL(\"" .. f name fileName asMutable removePrefix("Io") .. "\"), " .. f name fileName .. "_proto(self));\n\n"))
+            protoName := f baseName asMutable removePrefix("Io")
+            self output write("\tIoObject_setSlot_to_(context, SIOSYMBOL(\"" ..\
+                "#{protoName}\"), #{f baseName}_proto(self));\n\n" interpolate))
 
         extraFiles foreach(f,
-            initFile write("\t" .. f name fileName .. "Init(context);\n"))
+            self output write("\t#{f baseName}Init(context);\n" interpolate))
 
         if(ioCodeFolder and self embedIoCode,
-            ioFiles foreach(f, initFile write(codeForIoFile(f))))
+            ioFiles foreach(f, self output write(codeForIoFile(f))))
 
-        initFile write("}\n")
-        initFile close)
+        self output write("}\n")
+        self output close)
 
     codeForIoFile := method(f,
         code := Sequence clone
         if (f size > 0,
             code appendSeq("\t{\n\t\tchar *s = ")
             code appendSeq(f contents splitNoEmpties("\n") map(line,
-                "\"" .. line escape .. "\\n\"") join("\n\t\t"))
-            code appendSeq(";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"" .. f name .. "\");\n")
+                "\"#{line escape}\\n\"" interpolate) join("\n\t\t"))
+            code appendSeq(";\n\t\tIoState_on_doCString_withLabel_(self, context, s, \"#{f name}\");\n" interpolate)
             code appendSeq("\t}\n\n"))
         code)
+
+    # better indentation for multiline strings
+    Sequence fixMultiline := method(
+        self splitNoEmpties("\n") map(split("|") last) join("\n") strip)
 )
 
 BuilderWindows := Object clone do (
