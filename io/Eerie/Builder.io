@@ -27,6 +27,8 @@ Builder := Object clone do (
     # see `CompilerCommand`
     _compilerCommand := nil
 
+    _staticLinkerCommand := nil
+
     //doc Builder with(Package) Always use this to initialize `Builder`.
     with := method(pkg, 
         klone := self clone
@@ -34,6 +36,7 @@ Builder := Object clone do (
         klone _initFileGenerator = InitFileGenerator with(pkg)
         klone _depends = Deps with(pkg)
         klone _compilerCommand = CompilerCommand with(pkg, klone _depends)
+        klone _staticLinkerCommand = StaticLinkerCommand with(pkg)
         klone)
 
     /*doc Builder build Build the package. You very rarely need this directly -
@@ -94,18 +97,14 @@ Builder := Object clone do (
 
 
     _buildStaticLib := method(
-        staticLibName := "libIo" .. self package name ..  ".a"
-
-        Eerie log("Building #{staticLibName}")
+        Eerie log("Building #{self _staticLinkerCommand outputName}")
 
         self staticLibBuildStarted
-        
+
         self package dir directoryNamed("_build/lib") createIfAbsent
         path := self package dir path
-        Eerie sh("#{ar} #{arFlags}#{path}/_build/lib/#{staticLibName} #{path}/_build/objs/*.o" \
-            interpolate)
-        if(ranlib != nil,
-            Eerie sh("#{ranlib} #{path}/_build/lib/#{staticLibName}" interpolate)))
+        Eerie sh(self _staticLinkerCommand arSeq)
+        Eerie sh(self _staticLinkerCommand ranlibSeq))
 
     _buildDynLib := method(
         libname := self _dllNameFor("Io" .. self package name)
@@ -273,9 +272,6 @@ BuilderWindows := Object clone do (
     linkLibFlag := ""
     linkOutFlag := "-out:"
     linkLibSuffix := ".lib"
-    ar := "link -lib -nologo"
-    arFlags := "-out:"
-    ranlib := nil
 )
 
 BuilderUnix := Object clone do (
@@ -286,13 +282,6 @@ BuilderUnix := Object clone do (
     linkLibSuffix := ""
     linkOutFlag := "-o "
     linkLibSuffix := ""
-
-    ar := method(
-        System getEnvironmentVariable("AR") ifNilEval("ar"))
-    arFlags := "rcu "
-
-    ranlib := method(
-        System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))
 )
 
 if (Builder platform == "windows",
@@ -551,6 +540,47 @@ CompilerCommand := Object clone do (
         
         result .. cFlags .. " " .. self _defines map(d, "-D" .. d) join(" "))
 )
+
+StaticLinkerCommand := Object clone do (
+    package := nil
+
+    with := method(pkg,
+        klone := self clone
+        klone package = pkg
+        klone)
+
+    outputName := method("libIo" .. self package name ..  ".a")
+
+    arSeq := method(
+        path := self package dir path
+        ("#{self _ar} #{self _arFlags}#{path}/_build/lib/#{self outputName} " ..
+            "#{path}/_build/objs/*.o") interpolate)
+
+    ranlibSeq := method(
+        if (self _ranlib isNil, return "") 
+
+        path := self package dir path
+        "#{self _ranlib} #{path}/_build/lib/#{self outputName}" interpolate)
+)
+
+StaticLinkerCommandWinExt := Object clone do (
+    _ar := "link -lib -nologo"
+    _arFlags := "-out:"
+    _ranlib := nil
+)
+
+StaticLinkerCommandUnixExt := Object clone do (
+    _ar := method(
+        System getEnvironmentVariable("AR") ifNilEval("ar"))
+    _arFlags := "rcu "
+
+    _ranlib := method(
+        System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))
+)
+
+if (Builder platform == "windows",
+    StaticLinkerCommand prependProto(StaticLinkerCommandWinExt),
+    StaticLinkerCommand prependProto(StaticLinkerCommandUnixExt)) 
 
 # Generates IoAddonNameInit.c file which contains code for initialization of the
 # protos defined by the sources
