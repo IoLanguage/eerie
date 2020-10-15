@@ -24,34 +24,24 @@ Builder := Object clone do (
     # see `Deps`
     _depends := nil
 
+    # see `CompilerCommand`
+    _compilerCommand := nil
+
     //doc Builder with(Package) Always use this to initialize `Builder`.
     with := method(pkg, 
         klone := self clone
-        klone package := pkg
-        klone _initFileGenerator := InitFileGenerator with(pkg)
-        klone _depends := Deps with(pkg)
+        klone package = pkg
+        klone _initFileGenerator = InitFileGenerator with(pkg)
+        klone _depends = Deps with(pkg)
+        klone _compilerCommand = CompilerCommand with(pkg, klone _depends)
         klone)
-
-    _defines := lazySlot(
-        if(self platform == "windows",
-            list(
-                "WIN32",
-                "NDEBUG", 
-                "IOBINDINGS", 
-                "_CRT_SECURE_NO_DEPRECATE"),
-            list("SANE_POPEN",
-                "IOBINDINGS")))
-
-    addDefine := method(v, self _defines appendIfAbsent(v))
-
 
     _systemCall := method(cmd,
         result := Eerie sh(cmd, true)
         if(result != 0, 
             Exception raise(SystemCommandError with(cmd, result))))
 
-    /*doc Builder build(options) Build the package with provided options 
-    (`Sequence`).*/
+    /*doc Builder build Build the package.*/
     build := method(
         if (package hasNativeCode not, 
             Eerie log("The package #{self package name} has no code to compile")
@@ -63,14 +53,7 @@ Builder := Object clone do (
 
         if (self shouldGenerateInit, self _initFileGenerator generate)
 
-        options := if(self platform == "windows",
-            "-MD -Zi",
-            "-Os -g -Wall -pipe -fno-strict-aliasing")
-        cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
-        options = options .. cflags .. " " .. self _defines map(d,
-            "-D" .. d) join(" ")
-
-        self _cFiles foreach(src, self _compileFile(src, options))
+        self _cFiles foreach(src, self _compileFile(src))
 
         self _buildStaticLib
         self _buildDynLib
@@ -98,6 +81,7 @@ Builder := Object clone do (
 
     _compileFile := method(src, options,
         Eerie log("Compiling #{src name}")
+
         objName := src name replaceSeq(".cpp", ".o") \
             replaceSeq(".c", ".o") \
                 replaceSeq(".m", ".o")
@@ -105,25 +89,9 @@ Builder := Object clone do (
         objFile := self package dir \
             createSubdirectory("_build/objs") fileNamed(objName)
 
-        if(objFile exists not or(
-            objFile lastDataChangeDate < src lastDataChangeDate),
-            includes := self _depends _headerSearchPaths map(v, "-I" .. v)
-
-            depends := self _depends _includes join(" ")
-
-            _includes := includes join(" ")
-
-            command := "#{cc} #{options} #{depends} #{_includes} -I." \
-                interpolate
-
-            if(list("cygwin", "mingw", "windows") contains(self platform),
-                command = command .. \
-                    " -DBUILDING_#{self package name asUppercase}_ADDON " \
-                        interpolate,
-                command = command .. " -fPIC ")
-
-            command = "#{command} -c #{ccOutFlag}#{self package dir path}/_build/objs/#{objName} #{self package dir path}/source/#{src name}" interpolate
-            self _systemCall(command)))
+            if(objFile exists not or(
+                objFile lastDataChangeDate < src lastDataChangeDate),
+                self _systemCall(self _compilerCommand forFile(src))))
 
 
     _buildStaticLib := method(
@@ -231,7 +199,7 @@ Deps := Object clone do (
 
     _headers := list()
     
-    _headerSearchPaths := list()
+    _headerSearchPaths := list(".")
 
     _searchPrefixes := list(
         System installPrefix,
@@ -257,8 +225,6 @@ Deps := Object clone do (
     _frameworks := list()
     
     _syslibs := list()
-    
-    _includes := list()
     
     _linkOptions := list()
 
@@ -305,8 +271,6 @@ Deps := Object clone do (
     dependsOnBinding := method(v, self _addons appendIfAbsent(v))
 
     dependsOnHeader := method(v, self _headers appendIfAbsent(v))
-
-    dependsOnInclude := method(v, self _includes appendIfAbsent(v))
 
     dependsOnLib := method(v,
         self _libs contains(v) ifFalse(
@@ -419,6 +383,68 @@ Deps do (
 
     MissingFrameworksError := Eerie Error clone setErrorMsg(
         """Framework(s) #{call evalArgAt(0) join(", ")} not found.""")
+)
+
+CompilerCommand := Object clone do (
+    if (Builder platform == "windows",
+        _cc := method(
+            System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
+        _ccOutFlag := "-Fo",
+
+        _cc := method(
+            System getEnvironmentVariable("CC") ifNilEval("cc"))
+        _ccOutFlag := "-o ")
+
+    package := nil
+
+    _depends := nil
+
+    _defines := lazySlot(
+        build := "BUILDING_#{self package name asUppercase}_ADDON" interpolate 
+        
+        result := if(Builder platform == "windows",
+            list(
+                "WIN32",
+                "NDEBUG", 
+                "IOBINDINGS", 
+                "_CRT_SECURE_NO_DEPRECATE"),
+            list("SANE_POPEN",
+                "IOBINDINGS"))
+
+        if (list("cygwin", "mingw") contains(Builder platform),
+            result append(build))
+
+        result)
+
+    with := method(pkg, deps,
+        klone := self clone
+        klone package = pkg
+        klone _depends = deps
+        klone)
+
+    addDefine := method(def, self _defines appendIfAbsent(def))
+
+    forFile := method(src,
+        objName := src name replaceSeq(".cpp", ".o") \
+            replaceSeq(".c", ".o") \
+                replaceSeq(".m", ".o")
+
+        includes := self _depends _headerSearchPaths map(v, "-I" .. v) join(" ")
+
+        command := "#{self _cc} #{self _options} #{includes}" interpolate
+
+        ("#{command} -c #{self _ccOutFlag}" ..
+            "#{self package dir path}/_build/objs/#{objName} " ..
+            "#{self package dir path}/source/#{src name}") interpolate)
+
+    _options := lazySlot(
+        result := if(Builder platform == "windows",
+            "-MD -Zi",
+            "-Os -g -Wall -pipe -fno-strict-aliasing -fPIC")
+
+        cFlags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
+        
+        result .. cFlags .. " " .. self _defines map(d, "-D" .. d) join(" "))
 )
 
 # Generates IoAddonNameInit.c file which contains code for initialization of the
@@ -569,7 +595,6 @@ InitFileGenerator := Object clone do (
 )
 
 BuilderWindows := Object clone do (
-    ccOutFlag := "-Fo"
     linkdll := "link -link -nologo"
     linkDirPathFlag := "-libpath:"
     linkLibFlag := ""
@@ -578,23 +603,11 @@ BuilderWindows := Object clone do (
     ar := "link -lib -nologo"
     arFlags := "-out:"
     ranlib := nil
-
-    cc := method(
-        System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
-
-    cxx := method(
-        System getEnvironmentVariable("CXX") ifNilEval("cl -nologo"))
 )
 
 BuilderUnix := Object clone do (
-    cc := method(
+    linkdll := method(
         System getEnvironmentVariable("CC") ifNilEval("cc"))
-
-    cxx := method(
-        System getEnvironmentVariable("CXX") ifNilEval("g++"))
-
-    ccOutFlag := "-o "
-    linkdll := cc
     linkDirPathFlag := "-L"
     linkLibFlag := "-l"
     linkLibSuffix := ""
