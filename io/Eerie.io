@@ -50,11 +50,10 @@ Eerie := Object clone do(
             Exception raise("Error: EERIEDIR is not set")))
 
 
-    /*doc Eerie sh(cmd[, logFailure=true, dir=cwd])
-    Executes system command. If `logFailure` is `true` and command exists with
-    non-zero value, the application will abort.
-    */
-    sh := method(cmd, logFailure, dir,
+    /*doc Eerie sh(cmd[, dir=cwd])
+    Executes system command. Raises exception with `Eerie SystemCommandError` on
+    failure.*/
+    sh := method(cmd, dir,
         self log(cmd, "console")
         prevDir := nil
         dirPrefix := ""
@@ -73,14 +72,11 @@ Eerie := Object clone do(
         SystemCommand rmFilesContaining("-stdout")
         SystemCommand rmFilesContaining("-stderr")
         
-        if(cmdOut exitStatus != 0 and logFailure == true) \
-        then (
-            self log("Last command exited with the following error:", "error")
-            self log(stdOut, "error")
-            self log(stdErr, "error")
-            System exit(cmdOut exitStatus)
-        ) else (
-            return cmdOut exitStatus))
+        if(cmdOut exitStatus != 0,
+            Exception raise(
+                SystemCommandError with(cmd, cmdOut exitStatus, stdErr)))
+
+        cmdOut exitStatus)
 
     _logMods := Map with(
         "info",         " - ",
@@ -144,6 +140,11 @@ Eerie do (
     //doc Eerie MissingPackageError
     MissingPackageError := Error clone setErrorMsg(
         "Package '#{call evalArgAt(0)}' is missing.")
+
+    //doc Eerie SystemCommandError
+    SystemCommandError := Error clone setErrorMsg(
+        "Command '#{call evalArgAt(0)}' exited with status code " .. 
+        "#{call evalArgAt(1)}:\n#{call evalArgAt(2)}")
 )
 
 Eerie clone = Eerie do (

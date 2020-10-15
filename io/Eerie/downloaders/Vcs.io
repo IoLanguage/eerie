@@ -48,7 +48,8 @@ VcsDownloader := Eerie Downloader clone do(
             dir = self path
         )
 
-        statusCode := Eerie sh((self chosenVcs cmd) .. " " .. args, true, dir)
+        # FIXME this should be replaced with exception catch
+        statusCode := Eerie sh((self chosenVcs cmd) .. " " .. args, dir)
         if(statusCode == 0, return true, return false)
     )
 

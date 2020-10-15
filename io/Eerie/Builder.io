@@ -36,11 +36,6 @@ Builder := Object clone do (
         klone _compilerCommand = CompilerCommand with(pkg, klone _depends)
         klone)
 
-    _systemCall := method(cmd,
-        result := Eerie sh(cmd, true)
-        if(result != 0, 
-            Exception raise(SystemCommandError with(cmd, result))))
-
     /*doc Builder build Build the package. You very rarely need this directly -
     use `Installer build` instead.*/
     build := method(
@@ -59,8 +54,9 @@ Builder := Object clone do (
         self _cFiles foreach(src, self _compileFile(src))
 
         self _buildStaticLib
+
         self _buildDynLib
-        self _embedManifest
+
         self buildFinished)
 
     # copy (install) headers into "_build/headers/"
@@ -90,12 +86,11 @@ Builder := Object clone do (
             replaceSeq(".c", ".o") \
                 replaceSeq(".m", ".o")
 
-        objFile := self package dir \
+        obj := self package dir \
             createSubdirectory("_build/objs") fileNamed(objName)
 
-            if(objFile exists not or(
-                objFile lastDataChangeDate < src lastDataChangeDate),
-                self _systemCall(self _compilerCommand forFile(src))))
+        if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
+            Eerie sh(self _compilerCommand forFile(src))))
 
 
     _buildStaticLib := method(
@@ -107,19 +102,10 @@ Builder := Object clone do (
         
         self package dir directoryNamed("_build/lib") createIfAbsent
         path := self package dir path
-        self _systemCall("#{ar} #{arFlags}#{path}/_build/lib/#{staticLibName} #{path}/_build/objs/*.o" \
+        Eerie sh("#{ar} #{arFlags}#{path}/_build/lib/#{staticLibName} #{path}/_build/objs/*.o" \
             interpolate)
         if(ranlib != nil,
-            self _systemCall("#{ranlib} #{path}/_build/lib/#{staticLibName}" interpolate)))
-
-    _dllCommand := method(
-        if(platform == "darwin",
-            "-dynamiclib -single_module"
-            ,
-            if (platform == "windows",
-                "-dll -debug"
-                ,
-                "-shared")))
+            Eerie sh("#{ranlib} #{path}/_build/lib/#{staticLibName}" interpolate)))
 
     _buildDynLib := method(
         libname := self _dllNameFor("Io" .. self package name)
@@ -183,7 +169,9 @@ Builder := Object clone do (
 
         cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
         linkCommand := "#{linkdll} #{cflags} #{_dllCommand} #{s} #{linkOutFlag}#{self package dir path}/_build/dll/#{libname} #{self package dir path}/_build/objs/*.o #{linksJoined}" interpolate
-        self _systemCall(linkCommand))
+        Eerie sh(linkCommand)
+
+        self _embedManifest)
 
     _dllNameFor := method(s, "lib" .. s .. "." .. _dllSuffix)
 
@@ -192,11 +180,20 @@ Builder := Object clone do (
         if(platform == "darwin", return "dylib")
         "so")
 
+    _dllCommand := method(
+        if(platform == "darwin") then (
+            return "-dynamiclib -single_module"
+        ) elseif (platform == "windows") then (
+            return "-dll -debug"
+        ) else (
+            return "-shared"))
+
     _embedManifest := method(
         if((platform == "windows") not, return)
-        dllFilePath := self package dir path .. "/_build/dll/" .. _dllNameFor("Io" .. self package name)
+        dllFilePath := self package dir path .. 
+            "/_build/dll/" .. _dllNameFor("Io" .. self package name)
         manifestFilePath := dllFilePath .. ".manifest"
-        self _systemCall("mt.exe -manifest " .. manifestFilePath .. \
+        Eerie sh("mt.exe -manifest " .. manifestFilePath ..
             " -outputresource:" .. dllFilePath)
         Eerie log("Removing manifest file #{manifestFilePath}")
         File with(self package dir path .. "/" .. manifestFilePath) remove)
@@ -225,7 +222,7 @@ Builder do (
     dependsOnLib := method(name, self _depends dependsOnLib(name))
 
     /*doc Builder dependsOnSysLib(Sequence) Add system library dependency.
-    Applicable on Windows only.*/
+    Applicable to Windows only.*/
     dependsOnSysLib := method(name, self _depends dependsOnSysLib(name))
 
     /*doc Builder optionallyDependsOnLib(Sequence) Add optional library
@@ -234,11 +231,11 @@ Builder do (
         self _depends optionallyDependsOnLib(name))
 
     /*doc Builder dependsOnFramework(Sequence) Add framework dependency.
-    Applicable only on macOS.*/
+    Applicable only to macOS.*/
     dependsOnFramework := method(name, self _depends dependsOnFramework(name))
 
     /*doc Builder optionallyDependsOnFramework(Sequence) Add optional framework
-    dependency. Applicable only on macOS.*/
+    dependency. Applicable only to macOS.*/
     optionallyDependsOnFramework := method(name, 
         self _depends optionallyDependsOnFramework(name))
 
@@ -269,6 +266,38 @@ Builder do (
     Feel free to rewrite it inside your `build.io`.*/
     buildFinished := method()
 )
+
+BuilderWindows := Object clone do (
+    linkdll := "link -link -nologo"
+    linkDirPathFlag := "-libpath:"
+    linkLibFlag := ""
+    linkOutFlag := "-out:"
+    linkLibSuffix := ".lib"
+    ar := "link -lib -nologo"
+    arFlags := "-out:"
+    ranlib := nil
+)
+
+BuilderUnix := Object clone do (
+    linkdll := method(
+        System getEnvironmentVariable("CC") ifNilEval("cc"))
+    linkDirPathFlag := "-L"
+    linkLibFlag := "-l"
+    linkLibSuffix := ""
+    linkOutFlag := "-o "
+    linkLibSuffix := ""
+
+    ar := method(
+        System getEnvironmentVariable("AR") ifNilEval("ar"))
+    arFlags := "rcu "
+
+    ranlib := method(
+        System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))
+)
+
+if (Builder platform == "windows",
+    Builder prependProto(BuilderWindows),
+    Builder prependProto(BuilderUnix)) 
 
 Deps := Object clone do (
     package := nil
@@ -668,44 +697,4 @@ InitFileGenerator := Object clone do (
     # better indentation for multiline strings
     Sequence fixMultiline := method(
         self splitNoEmpties("\n") map(split("|") last) join("\n") strip)
-)
-
-BuilderWindows := Object clone do (
-    linkdll := "link -link -nologo"
-    linkDirPathFlag := "-libpath:"
-    linkLibFlag := ""
-    linkOutFlag := "-out:"
-    linkLibSuffix := ".lib"
-    ar := "link -lib -nologo"
-    arFlags := "-out:"
-    ranlib := nil
-)
-
-BuilderUnix := Object clone do (
-    linkdll := method(
-        System getEnvironmentVariable("CC") ifNilEval("cc"))
-    linkDirPathFlag := "-L"
-    linkLibFlag := "-l"
-    linkLibSuffix := ""
-    linkOutFlag := "-o "
-    linkLibSuffix := ""
-
-    ar := method(
-        System getEnvironmentVariable("AR") ifNilEval("ar"))
-    arFlags := "rcu "
-
-    ranlib := method(
-        System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))
-)
-
-if (Builder platform == "windows",
-    Builder prependProto(BuilderWindows),
-    Builder prependProto(BuilderUnix)) 
-
-# Error types
-Builder do (
-    //doc Builder SystemCommandError
-    SystemCommandError := Eerie Error clone setErrorMsg(
-        "Command '#{call evalArgAt(0)}' exited with status code " .. 
-        "#{call evalArgAt(1)}")
 )
