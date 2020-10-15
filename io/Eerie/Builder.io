@@ -15,10 +15,8 @@ Builder := Object clone do (
     IoAddonNameInit.c file for your package. Default to `true`.*/
     shouldGenerateInit ::= true
 
-    //doc Builder package Get the package the `Builder` will build.
+    //doc Builder package Get the `Package` the `Builder` will build.
     package := nil
-
-    _cflags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
 
     # see `InitFileGenerator`
     _initFileGenerator := nil
@@ -46,12 +44,6 @@ Builder := Object clone do (
 
     addDefine := method(v, self _defines appendIfAbsent(v))
 
-    dependsOnBinding := method(v, self _depends addons appendIfAbsent(v))
-
-    dependsOnInclude := method(v, self _depends includes appendIfAbsent(v))
-    dependsOnLinkOption := method(v, 
-        self _depends linkOptions appendIfAbsent(v))
-    dependsOnSysLib := method(v, self _depends syslibs appendIfAbsent(v))
 
     _systemCall := method(cmd,
         result := Eerie sh(cmd, true)
@@ -74,7 +66,8 @@ Builder := Object clone do (
         options := if(self platform == "windows",
             "-MD -Zi",
             "-Os -g -Wall -pipe -fno-strict-aliasing")
-        options = options .. _cflags .. " " .. self _defines map(d,
+        cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
+        options = options .. cflags .. " " .. self _defines map(d,
             "-D" .. d) join(" ")
 
         self _cFiles foreach(src, self _compileFile(src, options))
@@ -105,19 +98,18 @@ Builder := Object clone do (
 
     _compileFile := method(src, options,
         Eerie log("Compiling #{src name}")
-        obj := src name replaceSeq(".cpp", ".o") replaceSeq(".c", ".o") \
-            replaceSeq(".m", ".o")
+        objName := src name replaceSeq(".cpp", ".o") \
+            replaceSeq(".c", ".o") \
+                replaceSeq(".m", ".o")
 
         objFile := self package dir \
-            createSubdirectory("_build/objs") fileNamed(obj)
+            createSubdirectory("_build/objs") fileNamed(objName)
 
         if(objFile exists not or(
             objFile lastDataChangeDate < src lastDataChangeDate),
-            includes := self includePaths
-            includes = includes appendSeq(
-                self _depends _headerSearchPaths) map(v, "-I" .. v)
+            includes := self _depends _headerSearchPaths map(v, "-I" .. v)
 
-            depends := self _depends includes join(" ")
+            depends := self _depends _includes join(" ")
 
             _includes := includes join(" ")
 
@@ -130,27 +122,8 @@ Builder := Object clone do (
                         interpolate,
                 command = command .. " -fPIC ")
 
-            command = "#{command} -c #{ccOutFlag}#{self package dir path}/_build/objs/#{obj} #{self package dir path}/source/#{src name}" interpolate
-            _systemCall(command)))
-
-    # TODO this should become a part of Deps _headerSearchPaths 
-    includePaths := method(
-        # TODO what is it? Is this `package dir `/libs or `package
-        # dir`/_build/libs?
-        # given the logic of `_objsDir` it's the former
-        libsFolder := Directory with("libs")
-        includePaths := List clone
-        if(libsFolder exists,
-            includePaths appendSeq(
-                libsFolder directories map(path) map(p, 
-                    Path with(p, "_build/headers"))))
-
-        # TODO commented this block out, it looks like it's not needed anymore,
-        # but let it be here until the refactoring
-        # includePaths appendSeq(
-            # self _depends addons map(n, 
-                # (Eerie usedEnv path) .. "/addons/" .. n .. "/_build/headers"))
-        includePaths)
+            command = "#{command} -c #{ccOutFlag}#{self package dir path}/_build/objs/#{objName} #{self package dir path}/source/#{src name}" interpolate
+            self _systemCall(command)))
 
 
     _buildStaticLib := method(
@@ -160,10 +133,10 @@ Builder := Object clone do (
         
         self package dir directoryNamed("_build/lib") createIfAbsent
         path := self package dir path
-        _systemCall("#{ar} #{arFlags}#{path}/_build/lib/#{staticLibName} #{path}/_build/objs/*.o" \
+        self _systemCall("#{ar} #{arFlags}#{path}/_build/lib/#{staticLibName} #{path}/_build/objs/*.o" \
             interpolate)
         if(ranlib != nil,
-            _systemCall("#{ranlib} #{path}/_build/lib/#{staticLibName}" interpolate)))
+            self _systemCall("#{ranlib} #{path}/_build/lib/#{staticLibName}" interpolate)))
 
     _dllCommand := method(
         if(platform == "darwin",
@@ -175,7 +148,7 @@ Builder := Object clone do (
                 "-shared")))
 
     _buildDynLib := method(
-        libname := _dllNameFor("Io" .. self package name)
+        libname := self _dllNameFor("Io" .. self package name)
 
         Eerie log("Building #{libname}")
 
@@ -184,18 +157,27 @@ Builder := Object clone do (
         # FIXME this should be `package dir with("_addons")` and `_build/dll`
         # inside of those addons. But the path, most probably, should be
         # absolute or better it should be relative to `package dir`
-        links := self _depends addons map(b, 
+        # 
+        # we should rethink this from the position of Eerie infra
+        # we have dependencies list inside `eerie.json` and we know, that they
+        # are inside _addons directory, so we know the path to the dll
+        # BUT specifying package dependencies here is not safe, because we
+        # don't guarantee it's installed. So we should consider that all the
+        # addons we need already installed inside _addons directory and disallow
+        # user to specify addons dependencies inside `build.io`... But it turns
+        # out so is for headers and libraries.
+        links := self _depends _addons map(b, 
             "#{linkDirPathFlag}../#{b}/_build/dll" interpolate)
 
-        links appendSeq(self _depends addons map(v,
+        links appendSeq(self _depends _addons map(v,
             "#{self linkLibFlag}Io#{v}#{self linkLibSuffix}" interpolate))
 
         if(platform == "windows",
-            links appendSeq(self _depends syslibs map(v, v .. ".lib")))
+            links appendSeq(self _depends _syslibs map(v, v .. ".lib")))
 
         if(platform != "darwin" and platform != "windows",
             links appendSeq(
-                self _depends addons map(v,
+                self _depends _addons map(v,
                     # TODO
                     "-Wl,--rpath -Wl,#{Eerie root}/activeEnv/addons/#{v}/_build/dll/" interpolate)))
 
@@ -210,9 +192,9 @@ Builder := Object clone do (
             linkLibFlag .. "iovmall" .. linkLibSuffix,
             linkLibFlag .. "basekit" .. linkLibSuffix))
 
-        links appendSeq(self _depends frameworks map(v, "-framework " .. v))
+        links appendSeq(self _depends _frameworks map(v, "-framework " .. v))
 
-        links appendSeq(self _depends linkOptions)
+        links appendSeq(self _depends _linkOptions)
 
         s := ""
 
@@ -223,8 +205,9 @@ Builder := Object clone do (
 
         linksJoined := links join(" ")
 
-        linkCommand := "#{linkdll} #{_cflags} #{_dllCommand} #{s} #{linkOutFlag}#{self package dir path}/_build/dll/#{libname} #{self package dir path}/_build/objs/*.o #{linksJoined}" interpolate
-        _systemCall(linkCommand))
+        cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
+        linkCommand := "#{linkdll} #{cflags} #{_dllCommand} #{s} #{linkOutFlag}#{self package dir path}/_build/dll/#{libname} #{self package dir path}/_build/objs/*.o #{linksJoined}" interpolate
+        self _systemCall(linkCommand))
 
     _dllNameFor := method(s, "lib" .. s .. "." .. _dllSuffix)
 
@@ -237,7 +220,7 @@ Builder := Object clone do (
         if((platform == "windows") not, return)
         dllFilePath := self package dir path .. "/_build/dll/" .. _dllNameFor("Io" .. self package name)
         manifestFilePath := dllFilePath .. ".manifest"
-        _systemCall("mt.exe -manifest " .. manifestFilePath .. \
+        self _systemCall("mt.exe -manifest " .. manifestFilePath .. \
             " -outputresource:" .. dllFilePath)
         Eerie log("Removing manifest file #{manifestFilePath}")
         File with(self package dir path .. "/" .. manifestFilePath) remove)
@@ -246,9 +229,9 @@ Builder := Object clone do (
 Deps := Object clone do (
     package := nil
 
-    _headers := List clone
+    _headers := list()
     
-    _headerSearchPaths := List clone
+    _headerSearchPaths := list()
 
     _searchPrefixes := list(
         System installPrefix,
@@ -261,7 +244,7 @@ Deps := Object clone do (
         "/mingw"
     )
 
-    _libSearchPaths := List clone
+    _libSearchPaths := list()
 
     _frameworkSearchPaths := list(
         "/System/Library/Frameworks",
@@ -269,17 +252,17 @@ Deps := Object clone do (
         "~/Library/Frameworks" stringByExpandingTilde
     )
 
-    _libs := List clone
+    _libs := list()
     
-    frameworks := List clone
+    _frameworks := list()
     
-    syslibs := List clone
+    _syslibs := list()
     
-    includes := List clone
+    _includes := list()
     
-    linkOptions := List clone
+    _linkOptions := list()
 
-    addons := List clone
+    _addons := list()
 
     init := method(
         self _searchPrefixes foreach(prefix,
@@ -297,14 +280,33 @@ Deps := Object clone do (
         klone)
 
     appendHeaderSearchPath := method(path, 
-        if(Directory with(path) exists, 
-            self _headerSearchPaths appendIfAbsent(path)))
+        dir := self _dirForPath(path)
+        if(dir exists, 
+            self _headerSearchPaths appendIfAbsent(dir path)))
 
     appendLibSearchPath := method(path, 
-        if(Directory with(path) exists,
-            self _libSearchPaths appendIfAbsent(path)))
+        dir := self _dirForPath(path)
+        if(dir exists,
+            self _libSearchPaths appendIfAbsent(dir path)))
+
+    # returns directory relative to package's directory if path relative and
+    # just a directory if path is absolute
+    _dirForPath := method(path,
+        if (self _isPathAbsolute(path),
+            Directory with(path),
+            self package dir directoryNamed(path)))
+
+    # whether the path is absolute
+    _isPathAbsolute := method(path,
+        if (Builder platform == "windows",
+            path containsSeq(":\\") or path containsSeq(":/"),
+            path beginsWithSeq("/")))
+
+    dependsOnBinding := method(v, self _addons appendIfAbsent(v))
 
     dependsOnHeader := method(v, self _headers appendIfAbsent(v))
+
+    dependsOnInclude := method(v, self _includes appendIfAbsent(v))
 
     dependsOnLib := method(v,
         self _libs contains(v) ifFalse(
@@ -341,6 +343,8 @@ Deps := Object clone do (
         ) else (
             return ""))
 
+    dependsOnSysLib := method(v, self _syslibs appendIfAbsent(v))
+
     optionallyDependsOnLib := method(v, 
         a := self _pathForLib(v) != nil
         if(a, self dependsOnLib(v))
@@ -354,7 +358,7 @@ Deps := Object clone do (
             libDirectory := Directory with(path)
             libNames detect(libName, libDirectory fileNamed(libName) exists)))
 
-    dependsOnFramework := method(v, self frameworks appendIfAbsent(v))
+    dependsOnFramework := method(v, self _frameworks appendIfAbsent(v))
 
     optionallyDependsOnFramework := method(v, 
         a := self _pathForFramework(v) != nil
@@ -373,6 +377,9 @@ Deps := Object clone do (
             self appendHeaderSearchPath(path .. "/" .. v .. ".framework/Headers")
         ) else (
             self dependsOnLib(w)))
+
+    dependsOnLinkOption := method(v, 
+        self _linkOptions appendIfAbsent(v))
 
     # actually this will never be raise an exception, because we check the
     # existence of a path when we use append methods
@@ -399,7 +406,7 @@ Deps := Object clone do (
     _missingLibs := method(self _libs select(p, self _pathForLib(p) isNil))
 
     _missingFrameworks := method(
-        self frameworks select(p, self _pathForFramework(p) isNil))
+        self _frameworks select(p, self _pathForFramework(p) isNil))
 )
 
 # Deps error types
