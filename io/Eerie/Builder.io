@@ -36,19 +36,87 @@ Builder := Object clone do (
         klone _compilerCommand = CompilerCommand with(pkg, klone _depends)
         klone)
 
+    //doc Builder addDefine(Sequence) Add define macro to compiler command.
+    addDefine := method(def, self _compilerCommand addDefine(def))
+
+    /*doc Builder appendHeaderSearchPath(Sequence) Append header search path. If
+    the path is relative, it's relative to the package's root directory.*/
+    appendHeaderSearchPath := method(path, 
+        self _depends appendHeaderSearchPath(path))
+
+    /*doc Builder appendLibSearchPath(Sequence) Append library search path. If
+    the path is relative, it's relative to the package's root directory.*/
+    appendLibSearchPath := method(path, self _depends appendLibSearchPath(path))
+
+    /*doc Builder dependsOnHeader(Sequence) Add header dependency. The value
+    should include extension (i.e. `header.h`).*/
+    dependsOnHeader := method(header, self _depends dependsOnHeader(header))
+
+    /*doc Builder dependsOnLib(Sequence) Add library dependency. The value
+    should not contain `lib` prefix and extension.*/
+    dependsOnLib := method(name, self _depends dependsOnLib(name))
+
+    /*doc Builder dependsOnSysLib(Sequence) Add system library dependency.
+    Applicable on Windows only.*/
+    dependsOnSysLib := method(name, self _depends dependsOnSysLib(name))
+
+    /*doc Builder optionallyDependsOnLib(Sequence) Add optional library
+    dependency.*/
+    optionallyDependsOnLib := method(name, 
+        self _depends optionallyDependsOnLib(name))
+
+    /*doc Builder dependsOnFramework(Sequence) Add framework dependency.
+    Applicable only on macOS.*/
+    dependsOnFramework := method(name, self _depends dependsOnFramework(name))
+
+    /*doc Builder optionallyDependsOnFramework(Sequence) Add optional framework
+    dependency. Applicable only on macOS.*/
+    optionallyDependsOnFramework := method(name, 
+        self _depends optionallyDependsOnFramework(name))
+
+    /*doc Builder dependsOnFrameworkOrLib(Sequence, Sequence) Add either
+    framework (the first argument) or library (the second argument) dependency.
+    First it tries the framework and if it's not found the libray will be added
+    to dependencies.*/
+    dependsOnFrameworkOrLib := method(fw, lib, 
+        self _depends dependsOnFrameworkOrLib(fw, lib))
+
+    //doc Builder dependsOnLinkOption(Sequence) Add linker option dependency.
+    dependsOnLinkOption := method(opt, self _depends dependsOnLinkOption(opt))
+
+    /*doc Builder buildStarted Callback called when the build process started.
+    Feel free to rewrite it inside your `build.io`.*/
+    buildStarted := method()
+
+    /*doc Builder staticLibBuildStarted Callback called when the linker started
+    to build the static library. Feel free to rewrite it inside your
+    `build.io`.*/
+    staticLibBuildStarted := method()
+
+    /*doc Builder dynLibBuildStarted Callback called when linker started to
+    build the dynamic library. Feel free to rewrite it inside your `build.io`*/
+    dynLibBuildStarted := method()
+
+    /*doc Builder buildFinished Callback called when the build process finished.
+    Feel free to rewrite it inside your `build.io`.*/
+    buildFinished := method()
+
     _systemCall := method(cmd,
         result := Eerie sh(cmd, true)
         if(result != 0, 
             Exception raise(SystemCommandError with(cmd, result))))
 
-    /*doc Builder build Build the package.*/
+    /*doc Builder build Build the package. You very rarely need this directly -
+    use `Installer build` instead.*/
     build := method(
         if (package hasNativeCode not, 
             Eerie log("The package #{self package name} has no code to compile")
             return)
 
         self _depends checkMissing
-    
+
+        self buildStarted
+
         self _copyHeaders
 
         if (self shouldGenerateInit, self _initFileGenerator generate)
@@ -57,7 +125,8 @@ Builder := Object clone do (
 
         self _buildStaticLib
         self _buildDynLib
-        self _embedManifest)
+        self _embedManifest
+        self buildFinished)
 
     # copy (install) headers into "_build/headers/"
     _copyHeaders := method(
@@ -98,6 +167,8 @@ Builder := Object clone do (
         staticLibName := "libIo" .. self package name ..  ".a"
 
         Eerie log("Building #{staticLibName}")
+
+        self staticLibBuildStarted
         
         self package dir directoryNamed("_build/lib") createIfAbsent
         path := self package dir path
@@ -119,6 +190,8 @@ Builder := Object clone do (
         libname := self _dllNameFor("Io" .. self package name)
 
         Eerie log("Building #{libname}")
+
+        self dynLibBuildStarted
 
         self package dir directoryNamed("_build/dll") createIfAbsent
 
