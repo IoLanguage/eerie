@@ -45,7 +45,7 @@ where you barely can navigate.
 
 The public modules should be started with metadoc comments.
 
-```
+```Io
 //metadoc Proto category Name
 /*metadoc Proto description
 Description of the module.*/
@@ -142,7 +142,7 @@ ProtoName := Object clone do (
     ...)
 ```
 
-Also, notice a space before the `do` keyword.
+Also, notice a space after the `do` keyword.
 
 
 ### Line Width
@@ -167,7 +167,7 @@ members use inline code style.
 ### `if` Statements
 
 Use the short form of if statement for small blocks, where it has a single case
-or it's very easy to separate the cases. Also, use a space before `if`, `then`,
+or it's very easy to separate the cases. Also, use a space after `if`, `then`,
 `elseif` and `else` keywords. Examples:
 
 **CORRECT**
