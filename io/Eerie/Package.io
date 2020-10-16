@@ -1,6 +1,5 @@
 //metadoc Package category API
 //metadoc Package description Represents an Eerie package.
-doRelativeFile("Path.io")
 doRelativeFile("SemVer.io")
 
 Package := Object clone do (
