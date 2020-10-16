@@ -1,14 +1,14 @@
 # Contents
 
-- [Contributing](#Contributing)
-    - [Pull Requests](#Contributing#Pull Requests)
-    - [Io Style Guide](#Contributing#Io Style Guide)
-        - [Document Structure](#Contributing#Io Style Guide#Document Structure)
-        - [Naming](#Contributing#Io Style Guide#Naming)
-        - [Indentation](#Contributing#Io Style Guide#Indentation)
-        - [Line Width](#Contributing#Io Style Guide#Line Width)
-        - [Comments](#Contributing#Io Style Guide#Comments)
-        - [`if` Statements](#Contributing#Io Style Guide#`if` Statements)
+- [Contributing](#contributing)
+    - [Pull Requests](#pull-requests)
+    - [Io Style Guide](#io-style-guide)
+        - [Document Structure](#document-structure)
+        - [Naming](#naming)
+        - [Indentation](#indentation)
+        - [Line Width](#line-width)
+        - [Comments](#comments)
+        - [`if` Statements](#if-statements)
 
 # Contributing
 
