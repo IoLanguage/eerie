@@ -1,11 +1,11 @@
 Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
+Importer addSearchPath("io/Eerie/Builder")
 
 InitFileGeneratorTest := UnitTest clone do (
     
     testGenerate := method(
         package := Package with(Directory with("tests/_addons/CFakeAddon"))
-        generator := Builder InitFileGenerator with(package)
+        generator := InitFileGenerator with(package)
         generator generate
         
         result := package sourceDir fileNamed("IoCFakeAddonInit.c") 
