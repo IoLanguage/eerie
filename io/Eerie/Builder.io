@@ -82,7 +82,7 @@ Builder := Object clone do (
             files appendSeq(sourceFolder filesWithExtension("m")))
         files select(f, f name beginsWithSeq("._") not))
 
-    _compileFile := method(src, options,
+    _compileFile := method(src,
         Eerie log("Compiling #{src name}")
 
         objName := src name replaceSeq(".cpp", ".o") \
@@ -93,7 +93,7 @@ Builder := Object clone do (
             createSubdirectory("_build/objs") fileNamed(objName)
 
         if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
-            Eerie sh(self _compilerCommand forFile(src))))
+            Eerie sh(self _compilerCommand setSrc(src) asSeq)))
 
 
     _buildStaticLib := method(
@@ -102,9 +102,7 @@ Builder := Object clone do (
         self staticLibBuildStarted
 
         self package dir directoryNamed("_build/lib") createIfAbsent
-        path := self package dir path
-        Eerie sh(self _staticLinkerCommand arSeq)
-        Eerie sh(self _staticLinkerCommand ranlibSeq))
+        Eerie sh(self _staticLinkerCommand asSeq))
 
     _buildDynLib := method(
         libname := self _dllNameFor("Io" .. self package name)
@@ -479,17 +477,15 @@ Deps do (
         """Framework(s) #{call evalArgAt(0) join(", ")} not found.""")
 )
 
-CompilerCommand := Object clone do (
-    if (Builder platform == "windows",
-        _cc := method(
-            System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
-        _ccOutFlag := "-Fo",
+Command := Object clone do (
+    asSeq := method(nil)
+)
 
-        _cc := method(
-            System getEnvironmentVariable("CC") ifNilEval("cc"))
-        _ccOutFlag := "-o ")
-
+CompilerCommand := Command clone do (
     package := nil
+
+    # the file this command should compile
+    src ::= nil
 
     _depends := nil
 
@@ -518,8 +514,10 @@ CompilerCommand := Object clone do (
 
     addDefine := method(def, self _defines appendIfAbsent(def))
 
-    forFile := method(src,
-        objName := src name replaceSeq(".cpp", ".o") \
+    asSeq := method(
+        if (self src isNil, Exception raise(SrcNotSetError with("")))
+
+        objName := self src name replaceSeq(".cpp", ".o") \
             replaceSeq(".c", ".o") \
                 replaceSeq(".m", ".o")
 
@@ -529,7 +527,7 @@ CompilerCommand := Object clone do (
 
         ("#{command} -c #{self _ccOutFlag}" ..
             "#{self package dir path}/_build/objs/#{objName} " ..
-            "#{self package dir path}/source/#{src name}") interpolate)
+            "#{self package dir path}/source/#{self src name}") interpolate)
 
     _options := lazySlot(
         result := if(Builder platform == "windows",
@@ -541,7 +539,26 @@ CompilerCommand := Object clone do (
         result .. cFlags .. " " .. self _defines map(d, "-D" .. d) join(" "))
 )
 
-StaticLinkerCommand := Object clone do (
+CompilerCommandWinExt := Object clone do (
+    _cc := method(System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
+    _ccOutFlag := "-Fo"
+)
+
+CompilerCommandUnixExt := Object clone do (
+    _cc := method(System getEnvironmentVariable("CC") ifNilEval("cc"))
+    _ccOutFlag := "-o "
+)
+
+if (Builder platform == "windows", 
+    CompilerCommand prependProto(CompilerCommandWinExt),
+    CompilerCommand prependProto(CompilerCommandUnixExt)) 
+
+CompilerCommand do (
+    SrcNotSetError := Eerie Error clone setErrorMsg(
+        "Source file to compile doesn't set.")
+)
+
+StaticLinkerCommand := Command clone do (
     package := nil
 
     with := method(pkg,
@@ -551,12 +568,17 @@ StaticLinkerCommand := Object clone do (
 
     outputName := method("libIo" .. self package name ..  ".a")
 
-    arSeq := method(
+    asSeq := method(
         path := self package dir path
-        ("#{self _ar} #{self _arFlags}#{path}/_build/lib/#{self outputName} " ..
-            "#{path}/_build/objs/*.o") interpolate)
+        result := ("#{self _ar} #{self _arFlags}" ..
+            "#{path}/_build/lib/#{self outputName} " ..
+            "#{path}/_build/objs/*.o") interpolate
 
-    ranlibSeq := method(
+        if (self _ranlibSeq isEmpty, return result)
+        
+        result .. " && " .. self _ranlibSeq)
+
+    _ranlibSeq := method(
         if (self _ranlib isNil, return "") 
 
         path := self package dir path
