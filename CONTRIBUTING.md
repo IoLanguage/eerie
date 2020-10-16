@@ -1,3 +1,15 @@
+# Contents
+
+- [Contributing](#Contributing)
+    - [Pull Requests](#Contributing#Pull Requests)
+    - [Io Style Guide](#Contributing#Io Style Guide)
+        - [Document Structure](#Contributing#Io Style Guide#Document Structure)
+        - [Naming](#Contributing#Io Style Guide#Naming)
+        - [Indentation](#Contributing#Io Style Guide#Indentation)
+        - [Line Width](#Contributing#Io Style Guide#Line Width)
+        - [Comments](#Contributing#Io Style Guide#Comments)
+        - [`if` Statements](#Contributing#Io Style Guide#`if` Statements)
+
 # Contributing
 
 This document describes rules, which we all should follow to keep the code base
@@ -16,8 +28,8 @@ All public **API should be documented**. It's good if private functions are
 commented too.
 
 Any fixes and new features **should be covered by tests**. To make it easier for
-maintainers and contributors stick the rule that you should prove it works using
-tests.
+maintainers and contributors, stick the rule that you should prove it works
+using tests.
 
 
 
