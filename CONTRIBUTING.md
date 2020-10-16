@@ -13,7 +13,7 @@
 # Contributing
 
 This document describes rules, which we all should follow to keep the code base
-maintainable and consistent. It's important to follow this rules and a PR will
+maintainable and consistent. It's important to follow these rules and a PR will
 not be merged until they're satisfied.
 
 
