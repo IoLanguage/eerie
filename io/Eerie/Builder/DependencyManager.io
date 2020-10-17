@@ -1,10 +1,17 @@
 # This proto manages dependencies
+
 DependencyManager := Object clone do (
+
     package := nil
 
-    _headers := list()
-    
-    _headerSearchPaths := list(".")
+    headerSearchPaths := list(".")
+
+    libSearchPaths := list()
+
+    _frameworkSearchPaths := list(
+        "/System/Library/Frameworks",
+        "/Library/Frameworks",
+        "~/Library/Frameworks" stringByExpandingTilde)
 
     _searchPrefixes := list(
         System installPrefix,
@@ -14,17 +21,10 @@ DependencyManager := Object clone do (
         "/usr/pkg",
         "/sw",
         "/usr/X11R6",
-        "/mingw"
-    )
+        "/mingw")
 
-    _libSearchPaths := list()
-
-    _frameworkSearchPaths := list(
-        "/System/Library/Frameworks",
-        "/Library/Frameworks",
-        "~/Library/Frameworks" stringByExpandingTilde
-    )
-
+    _headers := list()
+    
     _libs := list()
     
     _frameworks := list()
@@ -32,8 +32,6 @@ DependencyManager := Object clone do (
     _syslibs := list()
     
     _linkOptions := list()
-
-    _addons := list()
 
     init := method(
         self _searchPrefixes foreach(prefix,
@@ -53,12 +51,12 @@ DependencyManager := Object clone do (
     appendHeaderSearchPath := method(path, 
         dir := self _dirForPath(path)
         if(dir exists, 
-            self _headerSearchPaths appendIfAbsent(dir path)))
+            self headerSearchPaths appendIfAbsent(dir path)))
 
     appendLibSearchPath := method(path, 
         dir := self _dirForPath(path)
         if(dir exists,
-            self _libSearchPaths appendIfAbsent(dir path)))
+            self libSearchPaths appendIfAbsent(dir path)))
 
     # returns directory relative to package's directory if path relative and
     # just a directory if path is absolute
@@ -72,8 +70,6 @@ DependencyManager := Object clone do (
         if (Eerie platform == "windows",
             path containsSeq(":\\") or path containsSeq(":/"),
             path beginsWithSeq("/")))
-
-    dependsOnBinding := method(v, self _addons appendIfAbsent(v))
 
     dependsOnHeader := method(v, self _headers appendIfAbsent(v))
 
@@ -123,7 +119,7 @@ DependencyManager := Object clone do (
         name containsSeq("/") ifTrue(return(name))
         libNames := list("." .. Builder _dllSuffix, ".a", ".lib") map(suffix, 
             "lib" .. name .. suffix)
-        self _libSearchPaths detect(path,
+        self libSearchPaths detect(path,
             libDirectory := Directory with(path)
             libNames detect(libName, libDirectory fileNamed(libName) exists)))
 
@@ -169,17 +165,19 @@ DependencyManager := Object clone do (
         self _headers select(h, self _pathForHeader(p) isNil))
 
     _pathForHeader := method(name,
-        self _headerSearchPaths detect(path,
+        self headerSearchPaths detect(path,
             File with(path .. "/" .. name) exists))
 
     _missingLibs := method(self _libs select(p, self _pathForLib(p) isNil))
 
     _missingFrameworks := method(
         self _frameworks select(p, self _pathForFramework(p) isNil))
+
 )
 
 # error types
 DependencyManager do (
+
     MissingHeadersError := Eerie Error clone setErrorMsg(
         """Header(s) #{call evalArgAt(0) join(", ")} not found.""")
 
@@ -188,4 +186,5 @@ DependencyManager do (
 
     MissingFrameworksError := Eerie Error clone setErrorMsg(
         """Framework(s) #{call evalArgAt(0) join(", ")} not found.""")
+
 )

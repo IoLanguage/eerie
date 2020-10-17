@@ -44,7 +44,7 @@ CompilerCommand := Command clone do (
             replaceSeq(".c", ".o") \
                 replaceSeq(".m", ".o")
 
-        includes := self _depsManager _headerSearchPaths map(v, 
+        includes := self _depsManager headerSearchPaths map(v, 
             "-I" .. v) join(" ")
 
         command := "#{self _cc} #{self _options} #{includes}" interpolate
@@ -143,6 +143,7 @@ DynamicLinkerCommand := Command clone do (
         klone)
 
     asSeq := method(
+        # TODO refactor
         links := self package installedPackages \
             select(hasNativeCode) \
                 map(pkg, 
@@ -156,7 +157,7 @@ DynamicLinkerCommand := Command clone do (
             links appendSeq(self _depsManager _syslibs map(v, v .. ".lib")))
 
         links appendSeq(
-            self _depsManager _libSearchPaths map(v, 
+            self _depsManager libSearchPaths map(v, 
                 self _dirPathFlag .. v))
 
         links appendSeq(self _depsManager _libs map(v,

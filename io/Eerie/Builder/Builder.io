@@ -126,18 +126,30 @@ Builder := Object clone do (
             "Removing manifest file #{self _dynLinkerCommand manifestPath}")
         
         File with(self _dynLinkerCommand manifestPath) remove)
+
 )
 
 # build.io API
 Builder do (
+
     //doc Builder addDefine(Sequence) Add define macro to compiler command.
     addDefine := method(def, self _compilerCommand addDefine(def))
+
+    /*doc Builder headerSearchPaths 
+    Get the list of headers search paths. Don't modify it directly, use 
+    `Builder appendHeaderSearchPath` instead.*/
+    headerSearchPaths := method(self _depsManager headerSearchPaths)
 
     /*doc Builder appendHeaderSearchPath(Sequence) 
     Append header search path. If the path is relative, it's relative to the
     package's root directory.*/
     appendHeaderSearchPath := method(path, 
         self _depsManager appendHeaderSearchPath(path))
+
+    /*doc Builder libSearchPaths
+    Get the list of libraries search paths. Don't modify it directly, use 
+    `Builder appendLibSearchPath` instead.*/
+    libSearchPaths := method(self _depsManager libSearchPaths)
 
     /*doc Builder appendLibSearchPath(Sequence) 
     Append library search path. If the path is relative, it's relative to the
@@ -205,25 +217,3 @@ Builder do (
     inside your `build.io`.*/
     buildFinished := method()
 )
-
-BuilderWindows := Object clone do (
-    linkdll := "link -link -nologo"
-    linkDirPathFlag := "-libpath:"
-    linkLibFlag := ""
-    linkOutFlag := "-out:"
-    linkLibSuffix := ".lib"
-)
-
-BuilderUnix := Object clone do (
-    linkdll := method(
-        System getEnvironmentVariable("CC") ifNilEval("cc"))
-    linkDirPathFlag := "-L"
-    linkLibFlag := "-l"
-    linkLibSuffix := ""
-    linkOutFlag := "-o "
-    linkLibSuffix := ""
-)
-
-if (Eerie platform == "windows",
-    Builder prependProto(BuilderWindows),
-    Builder prependProto(BuilderUnix)) 
