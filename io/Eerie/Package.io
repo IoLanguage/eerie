@@ -3,6 +3,7 @@
 doRelativeFile("SemVer.io")
 
 Package := Object clone do (
+
     //doc Package config Package's config file (the manifest) as a `Map`.
     config ::= nil
 
@@ -13,22 +14,97 @@ Package := Object clone do (
     code.*/
     sourceDir := lazySlot(self dir createSubdirectory("source"))
 
-    /*doc Package hasNativeCode Returns `true` if the package has native code
-    and `false` otherwise.*/
-    hasNativeCode := method(
-        self sourceDir files isEmpty not or(self sourceDir directories isEmpty
-            not))
-
-    /*doc Package binDir The `bin` directory. `Directory` with binaries of the
-    package.*/
+    /*doc Package binDir 
+    The `bin` directory. `Directory` with binaries of the package.*/
     binDir := lazySlot(self dir directoryNamed("bin"))
 
-    /*doc Package hasBinaries Returns `true` if the `Package binDir` has files
-    and `false` otherwise.*/
-    hasBinaries := method(self binDir exists and self binDir files isEmpty not)
+    /*doc Package installedBinDir
+    Get the `_bin` directory, where binaries of dependencies are installed.*/
+    installedBinDir := lazySlot(self dir createSubdirectory("_bin"))
+
+    //doc Package addonsDir Get the `_addons` `Directory`.
+    addonsDir := lazySlot(self dir createSubdirectory("_addons"))
+
+    /*doc Package tmpDir 
+    Get `_tmp` `Directory`, the temporary directory used by `Downloader` to
+    download dependencies into.*/
+    tmpDir := lazySlot(self dir createSubdirectory("_tmp"))
+
+    /*doc Package buildDir 
+    Get `_build` `Directory`, the directory where build artifacts are stored.*/
+    buildDir := lazySlot(self dir createSubdirectory("_build"))
+
+    /*doc Package headersBuildDir
+    Get the output `Directory` where all the headers of this package will be
+    installed.*/
+    headersBuildDir := lazySlot(self buildDir createSubdirectory("headers"))
+
+    /*doc Package objsBuildDir
+    Get the output objects (`.o`) `Directory`.*/
+    objsBuildDir := lazySlot(self buildDir createSubdirectory("objs"))
+
+    /*doc Package dllBuildDir
+    Get the output `Directory` for dynamic library this package represents.*/
+    dllBuildDir := lazySlot(self buildDir createSubdirectory("dll"))
+
+    /*doc Package staticLibBuildDir
+    Get the output `Directory` for static library this package represents.*/
+    staticLibBuildDir := lazySlot(self buildDir createSubdirectory("lib"))
+
+    /*doc Package dllFileName 
+    Get the file name of the dynamic library provided by this package in the
+    result of compilation with `lib` prefix.*/
+    dllFileName := method("lib" .. self dllName .. "." .. self _dllExt)
+
+    /*doc Package dllName 
+    Get the name of the dynamic library provided by this package in the result
+    of compilation. Note, this is the name of the library, not the name of the
+    dll file (i.e. without extension and `lib` prefix). Use `Package
+    dllFileName` for the DLL file name.*/
+    dllName := method("Io" .. self name)
+
+    _dllExt := method(
+        if (Eerie isWindows) then (
+            return "dll"
+        ) elseif (Eerie platform == "darwin") then (
+            return "dylib"
+        ) else (
+            return "so"))
+
+    /*doc Package staticLibFileName 
+    Get the file name of the static library provided by this package in the
+    result of compilation.*/
+    staticLibFileName := method("lib" .. self staticLibName .. ".a")
+
+    /*doc Package staticLibName 
+    Get the name of the static library provided by this package in the result of
+    compilation. Note, this is the name of the library, not the name of the dll
+    file (i.e. the extension and without `lib` prefix). Use `Package
+    staticLibFileName` for the static library file name.*/
+    staticLibName := method("Io" .. self name)
+
+    /*doc Package dllPath
+    Get the path to the dynamic library this package represents.*/
+    dllPath := method(self dllBuildDir path .. "/" .. self dllFileName)
+
+    /*doc Package staticLibPath
+    Get the path to the static library this package represents.*/
+    staticLibPath := method(
+        self staticLibBuildDir path .. "/" .. self staticLibFileName)
 
     //doc Package buildio The `build.io` file.
     buildio := lazySlot(self dir fileNamed("build.io"))
+
+    /*doc Package installedPackages 
+    Get the `List` of installed dependencies for this package.*/
+    installedPackages := lazySlot(
+        self addonsDir directories map(dir, Package with(dir)))
+
+    /*doc Package packageNamed 
+    Get the dependency package with the provided name (`Sequence`) if it's
+    installed. Otherwise it returns `nil`.*/ 
+    packageNamed := method(name,
+        self installedPackages detect(pkg, pkg name == name))
 
     //doc Package version Returns parsed version (`SemVer`) of the package.
     version ::= nil
@@ -62,6 +138,8 @@ Package := Object clone do (
         manifest := File with(dir path .. "/#{Eerie manifestName}" interpolate) 
         klone setConfig(manifest contents parseJson)
         klone setVersion(SemVer fromSeq(klone config at("version")))
+        # call to init the list
+        klone installedPackages
         klone)
 
     _checkDirectoryPackage := method(dir,
@@ -149,6 +227,15 @@ Package := Object clone do (
     _checkField := method(test, msg, path,
         test ifTrue(Exception raise(InsufficientManifestError with(path, msg))))
 
+    /*doc Package hasNativeCode 
+    Returns `true` if the package has native code and `false` otherwise.*/
+    hasNativeCode := method(
+        self sourceDir files isEmpty not or(self sourceDir directories isEmpty
+            not))
+
+    /*doc Package hasBinaries
+    Returns `true` if the `Package binDir` has files and `false` otherwise.*/
+    hasBinaries := method(self binDir exists and self binDir files isEmpty not)
 
     //doc Package providesProtos Returns list of protos this package provides.
     providesProtos := method(
@@ -164,8 +251,8 @@ Package := Object clone do (
         if(category and d and d isEmpty not, d = d at(category))
         if(d isNil, list(), d))
 
-    /*doc Package runHook(hookName) Runs Io script with hookName in package's
-    `hooks` directory if it exists.*/
+    /*doc Package runHook(hookName) 
+    Runs Io script with hookName in package's `hooks` directory if it exists.*/
     runHook := method(hook,
         f := File with("#{self dir}/hooks/#{hook}.io" interpolate)
         f exists ifTrue(

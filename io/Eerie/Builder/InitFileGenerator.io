@@ -39,7 +39,7 @@ InitFileGenerator := Object clone do (
 
         self _writeDeclarations(ioCFiles, extraFiles)
 
-        if (Builder platform == "windows",
+        if (Eerie platform == "windows",
             self output write("__declspec(dllexport)\n"))
 
         self _writeInitFunction(ioCFiles, extraFiles)

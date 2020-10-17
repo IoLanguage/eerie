@@ -69,7 +69,7 @@ DependencyManager := Object clone do (
 
     # whether the path is absolute
     _isPathAbsolute := method(path,
-        if (Builder platform == "windows",
+        if (Eerie platform == "windows",
             path containsSeq(":\\") or path containsSeq(":/"),
             path beginsWithSeq("/")))
 
@@ -94,7 +94,7 @@ DependencyManager := Object clone do (
         self _pkgConfig(pkg, "--cflags") splitNoEmpties("-I") map(strip))
 
     _pkgConfig := method(pkg, flags,
-        (Builder platform == "windows") ifTrue(return "")
+        (Eerie platform == "windows") ifTrue(return "")
 
         date := Date now asNumber asHex
         resFile := (self package dir path) .. "/_build/_pkg_config" .. date

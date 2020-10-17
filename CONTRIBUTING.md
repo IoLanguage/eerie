@@ -51,8 +51,9 @@ The public modules should be started with metadoc comments.
 Description of the module.*/
 ```
 
-The proto definition should be started with member variables followed by
-initializers and then with functions ordered by their introduction in the code.
+The proto definition should be started with member variables (including getters
+and setters) followed by initializers and then with functions ordered by their
+introduction in the code.
 
 For example, if you write a method `foo`, which uses a method `bar` followed by
 `baz`, you should write them in the same order:
@@ -130,6 +131,7 @@ But this rule doesn't apply to the `do` statement:
 **CORRECT**
 ```Io
 ProtoName := Object clone do (
+
     someMethod := method("hello" println)
     ...
 )
@@ -138,11 +140,13 @@ ProtoName := Object clone do (
 **WRONG**
 ```Io
 ProtoName := Object clone do (
+
     someMethod := method("hello" println)
     ...)
 ```
 
-Also, notice a space after the `do` keyword.
+Also, notice a space after the `do` keyword. There should be a blank line inside
+after start and before the end of the `do` block.
 
 
 ### Line Width

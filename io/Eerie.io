@@ -8,24 +8,45 @@ System userInterruptHandler := method(
     super(userInterruptHandler))
 
 Eerie := Object clone do(
+    
     //doc Eerie manifestName The name of the manifest file.
     manifestName := "eerie.json"
+    
     /*doc Eerie root Current working directory or value of `EERIEDIR` system's 
     environment variable if `isGlobal` is `true`.*/
     root := method(if (self isGlobal, globalRoot, "."))
+    
     //doc Eerie globalRoot Returns value of EERIEDIR environment variable.
     globalRoot := method(
         System getEnvironmentVariable("EERIEDIR"))
+
+    // TODO all global things should go via this globalPackage, there shouldn't
+    // be no things like switching roots etc. If isGlobal == true, we use
+    // globalPackage. That's it.
+    //doc Eerie globalPackage Get the global package.
+    globalPackage := lazySlot(
+        path := System getEnvironmentVariable("EERIEDIR")
+        if (root isNil,
+            Exception raise(EerieDirNotSetError with("")),
+            Package with(Directory with(path))))
+
     //doc Eerie tmpDir Get temp `Directory`.
     tmpDir ::= Directory with(globalRoot .. "/_tmp")
+    
     //doc Eerie addonsDir `Directory` where addons are installed.
     addonsDir := method(Directory with("#{self root}/_addons" interpolate))
+    
     /*doc Eerie globalBinDirName The name of the directory where binaries from
     the packages will be installed globally. Default to `"_bin"`.*/
     globalBinDirName := "_bin"
+
     //doc Eerie isGlobal Whether the global environment in use.
     isGlobal := method(self _isGlobal)
+    
     _isGlobal := false
+
+    //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
+    platform := System platform split at(0) asLowercase
 
     //doc Eerie setIsGlobal Set whether the global environment in use. 
     setIsGlobal := method(value, 
@@ -145,6 +166,10 @@ Eerie do (
     SystemCommandError := Error clone setErrorMsg(
         "Command '#{call evalArgAt(0)}' exited with status code " .. 
         "#{call evalArgAt(1)}:\n#{call evalArgAt(2)}")
+
+    //doc Eerie EerieDirNotSetError
+    EerieDirNotSetError := Error clone setErrorMsg(
+        "Environment variable EERIEDIR did not set.")
 )
 
 Eerie clone = Eerie do (

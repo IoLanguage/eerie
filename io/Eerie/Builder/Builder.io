@@ -10,9 +10,6 @@ evaluated in the context of `Builder` (i.e. it's its ancestor).*/
 Command
 
 Builder := Object clone do (
-    //doc Builder platform Get the platform name (`Sequence`) as lowercase.
-    platform := System platform split at(0) asLowercase
-
     /*doc Builder shouldGenerateInit Whether `Builder` should generate
     IoAddonNameInit.c file for your package. Default to `true`.*/
     shouldGenerateInit ::= true
@@ -32,6 +29,9 @@ Builder := Object clone do (
     # see `StaticLinkerCommand`
     _staticLinkerCommand := nil
 
+    # see `DynamicLinkerCommand`
+    _dynLinkerCommand := nil
+
     //doc Builder with(Package) Always use this to initialize `Builder`.
     with := method(pkg, 
         klone := self clone
@@ -40,6 +40,8 @@ Builder := Object clone do (
         klone _depsManager = DependencyManager with(pkg)
         klone _compilerCommand = CompilerCommand with(pkg, klone _depsManager)
         klone _staticLinkerCommand = StaticLinkerCommand with(pkg)
+        klone _dynLinkerCommand = DynamicLinkerCommand with(pkg,
+            klone _depsManager)
         klone)
 
     /*doc Builder build
@@ -82,7 +84,7 @@ Builder := Object clone do (
         sourceFolder := self package sourceDir
         files := sourceFolder filesWithExtension("cpp") appendSeq(
             sourceFolder filesWithExtension("c"))
-        if(platform != "windows", 
+        if(Eerie platform != "windows", 
             files appendSeq(sourceFolder filesWithExtension("m")))
         files select(f, f name beginsWithSeq("._") not))
 
@@ -99,107 +101,31 @@ Builder := Object clone do (
         if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
             Eerie sh(self _compilerCommand setSrc(src) asSeq)))
 
-
     _buildStaticLib := method(
-        Eerie log("Building #{self _staticLinkerCommand outputName}")
+        Eerie log("Building #{self package staticLibFileName}")
 
         self staticLibBuildStarted
 
-        self package dir directoryNamed("_build/lib") createIfAbsent
         Eerie sh(self _staticLinkerCommand asSeq))
 
     _buildDynLib := method(
-        libname := self _dllNameFor("Io" .. self package name)
-
-        Eerie log("Building #{libname}")
+        Eerie log("Building #{self package dllFileName}")
 
         self dynLibBuildStarted
 
-        self package dir directoryNamed("_build/dll") createIfAbsent
+        # create DLL output dir if it doesn't exist
+        self package dllBuildDir 
 
-        # FIXME this should be `package dir with("_addons")` and `_build/dll`
-        # inside of those addons. But the path, most probably, should be
-        # absolute or better it should be relative to `package dir`
-        # 
-        # we should rethink this from the position of Eerie infra
-        # we have dependencies list inside `eerie.json` and we know, that they
-        # are inside _addons directory, so we know the path to the dll
-        # BUT specifying package dependencies here is not safe, because we
-        # don't guarantee it's installed. So we should consider that all the
-        # addons we need already installed inside _addons directory and disallow
-        # user to specify addons dependencies inside `build.io`... But it turns
-        # out so is for headers and libraries.
-        links := self _depsManager _addons map(b, 
-            "#{linkDirPathFlag}../#{b}/_build/dll" interpolate)
+        libname := self package dllName
 
-        links appendSeq(self _depsManager _addons map(v,
-            "#{self linkLibFlag}Io#{v}#{self linkLibSuffix}" interpolate))
+        Eerie sh(self _dynLinkerCommand asSeq)
 
-        if(platform == "windows",
-            links appendSeq(self _depsManager _syslibs map(v, v .. ".lib")))
+        if (Eerie platform != "windows", return)
 
-        if(platform != "darwin" and platform != "windows",
-            links appendSeq(
-                self _depsManager _addons map(v,
-                    # TODO
-                    "-Wl,--rpath -Wl,#{Eerie root}/activeEnv/addons/#{v}/_build/dll/" interpolate)))
-
-        links appendSeq(
-            self _depsManager _libSearchPaths map(v, linkDirPathFlag .. v))
-
-        links appendSeq(self _depsManager _libs map(v,
-            if(v at(0) asCharacter == "-", 
-                v,
-                linkLibFlag .. v .. linkLibSuffix)))
-
-        links appendSeq(list(linkDirPathFlag .. (System installPrefix), 
-            linkLibFlag .. "iovmall" .. linkLibSuffix,
-            linkLibFlag .. "basekit" .. linkLibSuffix))
-
-        links appendSeq(
-            self _depsManager _frameworks map(v, "-framework " .. v))
-
-        links appendSeq(self _depsManager _linkOptions)
-
-        s := ""
-
-        if(platform == "darwin",
-            links append("-flat_namespace")
-            # FIXME Eerie root /activeEnv/addons There's no such thing anymore
-            s := " -install_name " .. (Eerie root) .. "/activeEnv/addons/" .. self package name .. "/_build/dll/" .. libname)
-
-        linksJoined := links join(" ")
-
-        cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
-        linkCommand := "#{linkdll} #{cflags} #{_dllCommand} #{s} #{linkOutFlag}#{self package dir path}/_build/dll/#{libname} #{self package dir path}/_build/objs/*.o #{linksJoined}" interpolate
-        Eerie sh(linkCommand)
-
-        self _embedManifest)
-
-    _dllNameFor := method(s, "lib" .. s .. "." .. _dllSuffix)
-
-    _dllSuffix := method(
-        if(list("cygwin", "mingw", "windows") contains(platform), return "dll")
-        if(platform == "darwin", return "dylib")
-        "so")
-
-    _dllCommand := method(
-        if(platform == "darwin") then (
-            return "-dynamiclib -single_module"
-        ) elseif (platform == "windows") then (
-            return "-dll -debug"
-        ) else (
-            return "-shared"))
-
-    _embedManifest := method(
-        if((platform == "windows") not, return)
-        dllFilePath := self package dir path .. 
-            "/_build/dll/" .. _dllNameFor("Io" .. self package name)
-        manifestPath := dllFilePath .. ".manifest"
-        Eerie sh("mt.exe -manifest " .. manifestPath ..
-            " -outputresource:" .. dllFilePath)
-        Eerie log("Removing manifest file #{manifestPath}")
-        File with(self package dir path .. "/" .. manifestPath) remove)
+        Eerie log(
+            "Removing manifest file #{self _dynLinkerCommand manifestPath}")
+        
+        File with(self _dynLinkerCommand manifestPath) remove)
 )
 
 # build.io API
@@ -298,6 +224,6 @@ BuilderUnix := Object clone do (
     linkLibSuffix := ""
 )
 
-if (Builder platform == "windows",
+if (Eerie platform == "windows",
     Builder prependProto(BuilderWindows),
     Builder prependProto(BuilderUnix)) 
