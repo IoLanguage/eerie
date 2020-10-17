@@ -4,12 +4,13 @@ Builder for native packages. This proto knows how to build a `Package` with
 native code. 
 
 Normally, you shouldn't use this directly. Use `Installer build` instead. But
-here you'll find methods you can use inside your `build.io` script as it's
-evaluated in the context of `Builder` (i.e. it's its ancestor).*/
-
-Command
+here you'll find API you can use inside your `build.io` script as it's evaluated
+in the context of `Builder` (i.e. it's its ancestor).*/
 
 Builder := Object clone do (
+
+    Command
+    
     /*doc Builder shouldGenerateInit Whether `Builder` should generate
     IoAddonNameInit.c file for your package. Default to `true`.*/
     shouldGenerateInit ::= true
@@ -45,8 +46,8 @@ Builder := Object clone do (
         klone)
 
     /*doc Builder build
-    Build the package. You very rarely need this directly - use `Installer
-    build` instead.*/
+    Build the package. You very rarely need this directly - use 
+    `Installer build` instead.*/
     build := method(
         if (package hasNativeCode not, 
             Eerie log("The package #{self package name} has no code to compile")
@@ -198,22 +199,23 @@ Builder do (
         self _depsManager dependsOnLinkOption(opt))
 
     /*doc Builder buildStarted
-    Callback called when the build process started. Feel free to rewrite it
+    Callback called when the build process started. Feel free to redefine it
     inside your `build.io`.*/
     buildStarted := method()
 
     /*doc Builder staticLibBuildStarted
     Callback called when the linker started to build the static library. Feel
-    free to rewrite it inside your `build.io`.*/
+    free to redefine it inside your `build.io`.*/
     staticLibBuildStarted := method()
 
     /*doc Builder dynLibBuildStarted
-    Callback called when linker started to build the dynamic library. Feel free
-    to rewrite it inside your `build.io`*/
+    Callback called when linker started to build the dynamic library. Feel
+    redefine to rewrite it inside your `build.io`*/
     dynLibBuildStarted := method()
 
     /*doc Builder buildFinished 
-    Callback called when the build process finished. Feel free to rewrite it
+    Callback called when the build process finished. Feel free to redefine it
     inside your `build.io`.*/
     buildFinished := method()
+
 )

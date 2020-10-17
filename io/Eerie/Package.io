@@ -117,16 +117,16 @@ Package := Object clone do (
         self config atPut("name", v)
         self)
 
-    /*doc Package uri Either local path or git url. Parsed from `path` field of
-    the manifest.*/
+    //doc Package downloader Instance of [[Downloader]] for this package.
+    downloader ::= nil
+
+    /*doc Package uri 
+    Either local path or git url. Parsed from `path` field of `eerie.json`.*/
     uri := method(
         dir := self config at("path") at("dir")
         if (dir isNil not, 
             dir,
             self config at("path") at("git") at("url")))
-
-    //doc Package downloader Instance of [[Downloader]] for this package.
-    downloader ::= nil
 
     /*doc Package with(dir) 
     Creates new package from provided `Directory`. Raises `NotPackageError` if
@@ -263,10 +263,12 @@ Package := Object clone do (
                 Eerie log("#{hook} failed.", "error")
                 Eerie log(e message, "debug"))
             f close))
+
 )
 
 # Error types
 Package do (
+
     //doc Package NotPackageError
     NotPackageError := Eerie Error clone setErrorMsg(
         "The directory '#{call evalArgAt(0)}' is not recognised as an Eerie "..
@@ -278,4 +280,5 @@ Package do (
             "all requirements." .. 
             "#{if(call evalArgAt(1) isNil, " ..
                 "\"\", \"\\n\" .. call evalArgAt(1))}")
+
 )

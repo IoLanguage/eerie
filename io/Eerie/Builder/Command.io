@@ -1,10 +1,13 @@
 # This module contains commands for compiler, static linker and dynamic linker
 
 Command := Object clone do (
+
     asSeq := method(nil)
+
 )
 
 CompilerCommand := Command clone do (
+
     package := nil
 
     # the file this command should compile
@@ -61,16 +64,23 @@ CompilerCommand := Command clone do (
         cFlags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
         
         result .. cFlags .. " " .. self _defines map(d, "-D" .. d) join(" "))
+
 )
 
 CompilerCommandWinExt := Object clone do (
+
     _cc := method(System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
+
     _ccOutFlag := "-Fo"
+
 )
 
 CompilerCommandUnixExt := Object clone do (
+    
     _cc := method(System getEnvironmentVariable("CC") ifNilEval("cc"))
+    
     _ccOutFlag := "-o "
+
 )
 
 if (Eerie platform == "windows", 
@@ -79,11 +89,14 @@ if (Eerie platform == "windows",
 
 # CompilerCommand error types
 CompilerCommand do (
+
     SrcNotSetError := Eerie Error clone setErrorMsg(
         "Source file to compile doesn't set.")
+
 )
 
 StaticLinkerCommand := Command clone do (
+    
     package := nil
 
     with := method(pkg,
@@ -106,21 +119,29 @@ StaticLinkerCommand := Command clone do (
 
         path := self package dir path
         "#{self _ranlib} #{self package staticLibPath}" interpolate)
+
 )
 
 StaticLinkerCommandWinExt := Object clone do (
+
     _ar := "link -lib -nologo"
+
     _arFlags := "-out:"
+
     _ranlib := nil
+
 )
 
 StaticLinkerCommandUnixExt := Object clone do (
+
     _ar := method(
         System getEnvironmentVariable("AR") ifNilEval("ar"))
+
     _arFlags := "rcu "
 
     _ranlib := method(
         System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))
+
 )
 
 if (Eerie platform == "windows",
@@ -210,20 +231,32 @@ DynamicLinkerCommand := Command clone do (
 )
 
 DynamicLinkerCommandWinExt := Object clone do (
+
     _linkerCmd := "link -link -nologo"
+
     _dirPathFlag := "-libpath:"
+
     _libFlag := ""
+
     _libSuffix := ".lib"
+
     _outFlag := "-out:"
+
 )
 
 DynamicLinkerCommandUnixExt := Object clone do (
+
     _linkerCmd := method(
-        _    System getEnvironmentVariable("CC") ifNilEval("cc"))
+        System getEnvironmentVariable("CC") ifNilEval("cc"))
+
     _dirPathFlag := "-L"
+
     _libFlag := "-l"
+
     _libSuffix := ""
+
     _outFlag := "-o "
+
 )
 
 if (Eerie platform == "windows",
