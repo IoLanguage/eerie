@@ -164,7 +164,25 @@ DynamicLinkerCommand := Command clone do (
         klone)
 
     asSeq := method(
-        # TODO refactor
+        links := self _linksSeq
+        # TODO the install_name flag specifies where the executable linked
+        # against it should look for the library. The path is relative, so it
+        # may cause library not found error. Needs investigation on macOS. 
+        installNameFlag := if (Eerie platform == "darwin",
+            " -install_name " .. self package dllPath,
+            "")
+
+        cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
+        result := ("#{self _linkerCmd} #{cflags} " .. 
+            "#{self _dllCommand} #{installNameFlag} " ..
+            "#{self _outFlag}" ..
+            "#{self package dllPath} " .. 
+            "#{self package objsBuildDir path}/*.o #{links}") interpolate
+
+        result .. "&&" .. self _embedManifestCmd)
+
+    # generates a `Sequence` with all needed -L and -l flags
+    _linksSeq := method(
         links := self package installedPackages \
             select(hasNativeCode) \
                 map(pkg, 
@@ -186,30 +204,20 @@ DynamicLinkerCommand := Command clone do (
                 v,
                 self _libFlag .. self _nameWithLibSuffix(v))))
 
+        # TODO ---------------------------------------------------------
         links appendSeq(list(self _dirPathFlag .. (System installPrefix), 
             self _libFlag .. self _nameWithLibSuffix("iovmall"),
             self _libFlag .. self _nameWithLibSuffix("basekit")))
+        # --------------------------------------------------------------
 
         links appendSeq(
             self _depsManager _frameworks map(v, "-framework " .. v))
 
         links appendSeq(self _depsManager _linkOptions)
 
-        s := ""
+        if (Eerie platform == "darwin", links append("-flat_namespace"))
 
-        if (Eerie platform == "darwin",
-            links append("-flat_namespace")
-            s := " -install_name " .. self package dllPath )
-
-        linksJoined := links join(" ")
-
-        cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
-        result := ("#{self _linkerCmd} #{cflags} #{self _dllCommand} #{s} " ..
-            "#{self _outFlag}" ..
-            "#{self package dllPath} " .. 
-            "#{self package objsBuildDir path}/*.o #{linksJoined}") interpolate
-
-        result .. "&&" .. self _embedManifestCmd)
+        links join(" "))
 
     _dllCommand := method(
         if(Eerie platform == "darwin") then (
