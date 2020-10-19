@@ -37,8 +37,10 @@ DependencyManager := Object clone do (
         self _searchPrefixes foreach(prefix,
             self appendHeaderSearchPath(prefix .. "/include"))
 
+        # TODO -----------------------------------------------
         self appendHeaderSearchPath(
             Path with(System installPrefix, "include", "io"))
+        # ----------------------------------------------------
 
         self _searchPrefixes foreach(prefix, 
             self appendLibSearchPath(prefix .. "/lib")))
@@ -58,8 +60,8 @@ DependencyManager := Object clone do (
         if(dir exists,
             self libSearchPaths appendIfAbsent(dir path)))
 
-    # returns directory relative to package's directory if path relative and
-    # just a directory if path is absolute
+    # returns directory relative to package's directory if the path is relative
+    # or the directory with provided path if it's absolute
     _dirForPath := method(path,
         if (self _isPathAbsolute(path),
             Directory with(path),
@@ -84,7 +86,9 @@ DependencyManager := Object clone do (
                 self appendHeaderSearchPath(p))))
 
     _pkgConfigLibs := method(pkg,
-        self _pkgConfig(pkg, "--libs") splitNoEmpties(linkLibFlag) map(strip))
+        self _pkgConfig(pkg, "--libs") \
+            splitNoEmpties(Command DynamicLinkerCommand libFlag) \
+                map(strip))
 
     _pkgConfigCFlags := method(pkg,
         self _pkgConfig(pkg, "--cflags") splitNoEmpties("-I") map(strip))
@@ -117,7 +121,7 @@ DependencyManager := Object clone do (
 
     _pathForLib := method(name,
         name containsSeq("/") ifTrue(return(name))
-        libNames := list("." .. Builder _dllSuffix, ".a", ".lib") map(suffix, 
+        libNames := list("." .. Eerie dllExt, ".a", ".lib") map(suffix, 
             "lib" .. name .. suffix)
         self libSearchPaths detect(path,
             libDirectory := Directory with(path)
@@ -139,15 +143,14 @@ DependencyManager := Object clone do (
         path := self _pathForFramework(v)
         if(path != nil) then (
             self dependsOnFramework(v)
-            self appendHeaderSearchPath(path .. "/" .. v .. ".framework/Headers")
+            self appendHeaderSearchPath(
+                path .. "/" .. v .. ".framework/Headers")
         ) else (
             self dependsOnLib(w)))
 
     dependsOnLinkOption := method(v, 
         self _linkOptions appendIfAbsent(v))
 
-    # actually this will never be raise an exception, because we check the
-    # existence of a path when we use append methods
     checkMissing := method(
         missing := self _missingHeaders
         if (missing isEmpty not,
@@ -162,7 +165,7 @@ DependencyManager := Object clone do (
             Exception raise(MissingFrameworksError with(missing))))
 
     _missingHeaders := method(
-        self _headers select(h, self _pathForHeader(p) isNil))
+        self _headers select(h, self _pathForHeader(h) isNil))
 
     _pathForHeader := method(name,
         self headerSearchPaths detect(path,

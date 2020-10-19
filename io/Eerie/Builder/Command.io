@@ -189,7 +189,7 @@ DynamicLinkerCommand := Command clone do (
                     "#{self _dirPathFlag}#{pkg _dllBuildDir path}" interpolate)
 
         links appendSeq(self package installedPackages map(pkg,
-            ("#{self _libFlag}" ..
+            ("#{self libFlag}" ..
                 "#{self _nameWithLibSuffix(pkg dllName)}") interpolate))
 
         if(Eerie platform == "windows",
@@ -202,12 +202,12 @@ DynamicLinkerCommand := Command clone do (
         links appendSeq(self _depsManager _libs map(v,
             if(v at(0) asCharacter == "-", 
                 v,
-                self _libFlag .. self _nameWithLibSuffix(v))))
+                self libFlag .. self _nameWithLibSuffix(v))))
 
         # TODO ---------------------------------------------------------
         links appendSeq(list(self _dirPathFlag .. (System installPrefix), 
-            self _libFlag .. self _nameWithLibSuffix("iovmall"),
-            self _libFlag .. self _nameWithLibSuffix("basekit")))
+            self libFlag .. self _nameWithLibSuffix("iovmall"),
+            self libFlag .. self _nameWithLibSuffix("basekit")))
         # --------------------------------------------------------------
 
         links appendSeq(
@@ -244,7 +244,7 @@ DynamicLinkerCommandWinExt := Object clone do (
 
     _dirPathFlag := "-libpath:"
 
-    _libFlag := ""
+    libFlag := ""
 
     _libSuffix := ".lib"
 
@@ -259,7 +259,7 @@ DynamicLinkerCommandUnixExt := Object clone do (
 
     _dirPathFlag := "-L"
 
-    _libFlag := "-l"
+    libFlag := "-l"
 
     _libSuffix := ""
 

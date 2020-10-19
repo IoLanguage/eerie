@@ -7,7 +7,7 @@ a package. You should also `setDestBinName` if you to install binaries from the
 `Package`.*/
 
 Installer := Object clone do (
-    /*doc Installer root The installer's root `Directory` where `Package`'s'
+    /*doc Installer root The installer's root `Directory` where `Package`'s
     should be installed.*/
     root ::= nil
 
@@ -111,7 +111,7 @@ Installer := Object clone do (
 
     _checkDestBinNameSet := method(
         if (self destBinName isNil or self destBinName isEmpty,
-            Exception raise(DestinationBinNameNotSetError clone)))
+            Exception raise(DestinationBinNameNotSetError with(""))))
 
     # binaries will be installed in this directory
     _binInstallDir := method(
@@ -137,6 +137,7 @@ Installer := Object clone do (
 
 # Errors
 Installer do (
+
     //doc Installer PackageNotSetError
     PackageNotSetError := Eerie Error clone setErrorMsg("Package didn't set.")
 
@@ -153,6 +154,7 @@ Installer do (
     DestinationBinNameNotSetError := Eerie Error clone setErrorMsg(
         "Name of the destination directory where binaries will be installed " ..
         "didn't set.")
+
 )
 
 //doc Directory cp Copy the content of source `Directory` to a `Destination`.

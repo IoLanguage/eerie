@@ -48,6 +48,15 @@ Eerie := Object clone do(
     //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
     platform := System platform split at(0) asLowercase
 
+    //doc Eerie ddlExt Get dynamic library extension for the current platform.
+    dllExt := method(
+        if (Eerie isWindows) then (
+            return "dll"
+        ) elseif (Eerie platform == "darwin") then (
+            return "dylib"
+        ) else (
+            return "so"))
+
     //doc Eerie setIsGlobal Set whether the global environment in use. 
     setIsGlobal := method(value, 
         self _isGlobal = value

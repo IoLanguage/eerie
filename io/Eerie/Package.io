@@ -12,7 +12,7 @@ Package := Object clone do (
 
     /*doc Package sourceDir The `source` directory. `Directory` with native
     code.*/
-    sourceDir := lazySlot(self dir createSubdirectory("source"))
+    sourceDir := method(self dir createSubdirectory("source"))
 
     /*doc Package binDir 
     The `bin` directory. `Directory` with binaries of the package.*/
@@ -20,41 +20,41 @@ Package := Object clone do (
 
     /*doc Package installedBinDir
     Get the `_bin` directory, where binaries of dependencies are installed.*/
-    installedBinDir := lazySlot(self dir createSubdirectory("_bin"))
+    installedBinDir := method(self dir createSubdirectory("_bin"))
 
     //doc Package addonsDir Get the `_addons` `Directory`.
-    addonsDir := lazySlot(self dir createSubdirectory("_addons"))
+    addonsDir := method(self dir createSubdirectory("_addons"))
 
     /*doc Package tmpDir 
     Get `_tmp` `Directory`, the temporary directory used by `Downloader` to
     download dependencies into.*/
-    tmpDir := lazySlot(self dir createSubdirectory("_tmp"))
+    tmpDir := method(self dir createSubdirectory("_tmp"))
 
     /*doc Package buildDir 
     Get `_build` `Directory`, the directory where build artifacts are stored.*/
-    buildDir := lazySlot(self dir createSubdirectory("_build"))
+    buildDir := method(self dir createSubdirectory("_build"))
 
     /*doc Package headersBuildDir
     Get the output `Directory` where all the headers of this package will be
     installed.*/
-    headersBuildDir := lazySlot(self buildDir createSubdirectory("headers"))
+    headersBuildDir := method(self buildDir createSubdirectory("headers"))
 
     /*doc Package objsBuildDir
     Get the output objects (`.o`) `Directory`.*/
-    objsBuildDir := lazySlot(self buildDir createSubdirectory("objs"))
+    objsBuildDir := method(self buildDir createSubdirectory("objs"))
 
     /*doc Package dllBuildDir
     Get the output `Directory` for dynamic library this package represents.*/
-    dllBuildDir := lazySlot(self buildDir createSubdirectory("dll"))
+    dllBuildDir := method(self buildDir createSubdirectory("dll"))
 
     /*doc Package staticLibBuildDir
     Get the output `Directory` for static library this package represents.*/
-    staticLibBuildDir := lazySlot(self buildDir createSubdirectory("lib"))
+    staticLibBuildDir := method(self buildDir createSubdirectory("lib"))
 
     /*doc Package dllFileName 
     Get the file name of the dynamic library provided by this package in the
     result of compilation with `lib` prefix.*/
-    dllFileName := method("lib" .. self dllName .. "." .. self _dllExt)
+    dllFileName := method("lib" .. self dllName .. "." .. Eerie dllExt)
 
     /*doc Package dllName 
     Get the name of the dynamic library provided by this package in the result
@@ -62,14 +62,6 @@ Package := Object clone do (
     dll file (i.e. without extension and `lib` prefix). Use `Package
     dllFileName` for the DLL file name.*/
     dllName := method("Io" .. self name)
-
-    _dllExt := method(
-        if (Eerie isWindows) then (
-            return "dll"
-        ) elseif (Eerie platform == "darwin") then (
-            return "dylib"
-        ) else (
-            return "so"))
 
     /*doc Package staticLibFileName 
     Get the file name of the static library provided by this package in the

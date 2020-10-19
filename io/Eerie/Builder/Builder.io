@@ -100,14 +100,14 @@ Builder := Object clone do (
             Eerie sh(self _compilerCommand setSrc(src) asSeq)))
 
     _buildStaticLib := method(
-        Eerie log("Building #{self package staticLibFileName}")
+        Eerie log("Linking #{self package staticLibFileName}")
 
         self staticLibBuildStarted
 
         Eerie sh(self _staticLinkerCommand asSeq))
 
     _buildDynLib := method(
-        Eerie log("Building #{self package dllFileName}")
+        Eerie log("Linking #{self package dllFileName}")
 
         self dynLibBuildStarted
 
@@ -170,7 +170,8 @@ Builder do (
     dependsOnSysLib := method(name, self _depsManager dependsOnSysLib(name))
 
     /*doc Builder optionallyDependsOnLib(Sequence)
-    Add optional library dependency.*/
+    Add optional library dependency. Returns `true` if the library was found and
+    added and `false` otherwise.*/
     optionallyDependsOnLib := method(name, 
         self _depsManager optionallyDependsOnLib(name))
 
