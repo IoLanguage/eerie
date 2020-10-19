@@ -1,10 +1,8 @@
 Importer addSearchPath("io")
 Importer addSearchPath("io/Eerie")
+Importer addSearchPath("io/Eerie/Builder")
 
 DependencyManagerTest := UnitTest clone do (
-
-    Builder
-    Builder DependencyManager
 
     testCheckMissing := method(
         package := Package with(Directory with("tests/_addons/AFakeAddon"))

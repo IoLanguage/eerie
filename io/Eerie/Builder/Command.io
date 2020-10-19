@@ -47,23 +47,23 @@ CompilerCommand := Command clone do (
             replaceSeq(".c", ".o") \
                 replaceSeq(".m", ".o")
 
-        includes := self _depsManager headerSearchPaths map(v, 
-            "-I" .. v) join(" ")
-
-        command := "#{self _cc} #{self _options} #{includes}" interpolate
-
-        ("#{command} -c #{self _ccOutFlag}" ..
+        ("#{self _cc} #{self _options} #{self _cFlags} " ..
+            "#{self _definesFlags} #{self _includesFlags} " ..
+            "-c #{self _ccOutFlag}" ..
             "#{self package objsBuildDir path}/#{objName} " ..
             "#{self package sourceDir path}/#{self src name}") interpolate)
 
     _options := lazySlot(
-        result := if(Eerie platform == "windows",
+       if(Eerie platform == "windows",
             "-MD -Zi",
-            "-Os -g -Wall -pipe -fno-strict-aliasing -fPIC")
+            "-Os -g -Wall -pipe -fno-strict-aliasing -fPIC"))
 
-        cFlags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
-        
-        result .. cFlags .. " " .. self _defines map(d, "-D" .. d) join(" "))
+    _cFlags := method(System getEnvironmentVariable("CFLAGS") ifNilEval(""))
+
+    _definesFlags := method(self _defines map(d, "-D" .. d) join(" "))
+
+    _includesFlags := method(
+        self _depsManager headerSearchPaths map(v, "-I" .. v) join(" "))
 
 )
 

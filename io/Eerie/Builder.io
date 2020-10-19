@@ -9,7 +9,9 @@ in the context of `Builder` (i.e. it's its ancestor).*/
 
 Builder := Object clone do (
 
-    Command
+    doRelativeFile("Builder/Command.io")
+    doRelativeFile("Builder/DependencyManager.io")
+    doRelativeFile("Builder/InitFileGenerator.io")
     
     /*doc Builder shouldGenerateInit Whether `Builder` should generate
     IoAddonNameInit.c file for your package. Default to `true`.*/

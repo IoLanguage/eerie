@@ -267,8 +267,8 @@ Package do (
         "package.")
 
     //doc Package InsufficientManifestError
-    InsufficientManifestError := Eerie Error clone \
-        setErrorMsg("The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
+    InsufficientManifestError := Eerie Error clone setErrorMsg(
+        "The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
             "all requirements." .. 
             "#{if(call evalArgAt(1) isNil, " ..
                 "\"\", \"\\n\" .. call evalArgAt(1))}")

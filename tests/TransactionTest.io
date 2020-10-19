@@ -6,8 +6,8 @@ TransactionTest := UnitTest clone do(
     transaction ::= nil
 
     setUp := method(
-        Eerie Transaction lockFile = File with("tests/transaction_lock")
-        setTransaction(Eerie Transaction clone))
+        Transaction lockFile = File with("tests/transaction_lock")
+        setTransaction(Transaction clone))
 
     tearDown := method(
         if(self transaction lockFile exists, 
@@ -25,4 +25,5 @@ TransactionTest := UnitTest clone do(
         self transaction lockFile setContents("1000000000")
         self transaction _checkAbandonedLock
         assertFalse(self transaction lockFile exists))
+
 )
