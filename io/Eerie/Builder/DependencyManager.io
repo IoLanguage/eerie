@@ -93,7 +93,7 @@ DependencyManager := Object clone do (
         (Eerie platform == "windows") ifTrue(return "")
 
         date := Date now asNumber asHex
-        resFile := (self package dir path) .. "/_build/_pkg_config" .. date
+        resFile := self package buildDir path .. "/_pkg_config" .. date
         # System runCommand (Eerie sh) doesn't allow pipes (?), 
         # so here we use System system instead
         statusCode := System system(

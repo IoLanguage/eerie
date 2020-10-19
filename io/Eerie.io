@@ -18,14 +18,14 @@ Eerie := Object clone do(
     
     //doc Eerie globalRoot Returns value of EERIEDIR environment variable.
     globalRoot := method(
-        System getEnvironmentVariable("EERIEDIR"))
+        System getEnvironmentVariable("EERIEDIR") ?stringByExpandingTilde)
 
     // TODO all global things should go via this globalPackage, there shouldn't
     // be no things like switching roots etc. If isGlobal == true, we use
     // globalPackage. That's it.
     //doc Eerie globalPackage Get the global package.
     globalPackage := lazySlot(
-        path := System getEnvironmentVariable("EERIEDIR")
+        path := self globalRoot
         if (root isNil,
             Exception raise(EerieDirNotSetError with("")),
             Package with(Directory with(path))))

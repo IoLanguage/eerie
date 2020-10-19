@@ -71,15 +71,13 @@ Builder := Object clone do (
 
     # copy (install) headers into "_build/headers/"
     _copyHeaders := method(
-        self package dir directoryNamed("_build/headers") createIfAbsent
-        headers := Directory with(
-            Path with(self package dir path, "source")) filesWithExtension(".h")
+        headers := Directory with(self package sourceDir path) \
+        filesWithExtension(".h")
 
         if(headers size > 0,
-            destinationPath := Path with(
-                self package dir path, "_build/headers")
             headers foreach(file,
-                file copyToPath(destinationPath .. "/" .. file name))))
+                file copyToPath(
+                    self package headersBuildDir path .. "/" .. file name))))
 
     _cFiles := method(
         sourceFolder := self package sourceDir
@@ -96,8 +94,7 @@ Builder := Object clone do (
             replaceSeq(".c", ".o") \
                 replaceSeq(".m", ".o")
 
-        obj := self package dir \
-            createSubdirectory("_build/objs") fileNamed(objName)
+        obj := self package objsBuildDir fileNamed(objName)
 
         if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
             Eerie sh(self _compilerCommand setSrc(src) asSeq)))
