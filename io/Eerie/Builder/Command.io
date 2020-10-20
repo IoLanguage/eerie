@@ -179,7 +179,7 @@ DynamicLinkerCommand := Command clone do (
             "#{self package dllPath} " .. 
             "#{self package objsBuildDir path}/*.o #{links}") interpolate
 
-        result .. "&&" .. self _embedManifestCmd)
+        result .. " && " .. self _embedManifestCmd)
 
     # generates a `Sequence` with all needed -L and -l flags
     _linksSeq := method(

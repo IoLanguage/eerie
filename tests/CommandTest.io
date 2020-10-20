@@ -6,10 +6,12 @@ CommandTest := UnitTest clone do (
 
     Command
 
+    _package := Package with(Directory with("tests/_addons/AFakeAddon"))
+
+    _depsManager := DependencyManager with(_package)
+
     testCompilerCommand := method(
-        package := Package with(Directory with("tests/_addons/AFakeAddon"))
-        depsManager := DependencyManager with(package)
-        command := CompilerCommand with(package, depsManager)
+        command := CompilerCommand with(self _package, self _depsManager)
 
         e := try (command asSeq)
         assertEquals(e error type, CompilerCommand SrcNotSetError type)
@@ -26,10 +28,19 @@ CommandTest := UnitTest clone do (
 
         assertEquals(expected, command _definesFlags) 
 
-        command asSeq println
-
         expected = "tests/_addons/AFakeAddon/_build/objs/test.o " .. \
             "tests/_addons/AFakeAddon/source/test.c"
 
         assertTrue(command asSeq endsWithSeq(expected)))
+
+    testStaticLinkerCommand := method(
+        # check it works at least
+        command := StaticLinkerCommand with(self _package)
+        command asSeq)
+
+    testDynamicLinkerCommand := method(
+        # check it works at least
+        command := DynamicLinkerCommand with(self _package, self _depsManager)
+        command asSeq)
+
 )
