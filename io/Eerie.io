@@ -13,6 +13,10 @@ Eerie := Object clone do(
     //doc Eerie setIsGlobal
     isGlobal ::= false
     
+    init := method(
+        # call this to check whether EERIEDIR set
+        self root)
+
     //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
     platform := System platform split at(0) asLowercase
 
@@ -29,10 +33,6 @@ Eerie := Object clone do(
     Windows (including mingw define), `false` otherwise.*/
     isWindows := method(System platform containsAnyCaseSeq("windows") or(
         System platform containsAnyCaseSeq("mingw")))
-
-    init := method(
-        # call this to check whether EERIEDIR set
-        self root)
 
     //doc Eerie root Returns value of EERIEDIR environment variable.
     root := method(

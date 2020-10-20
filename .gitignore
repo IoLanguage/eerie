@@ -2,6 +2,7 @@
 ./_bin
 ./_build
 ./_tmp
+./iolang
 ./tests/_addons/CFakeAddon/_build
 ./tests/deleteme
 ./tests/installer
