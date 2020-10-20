@@ -15,23 +15,9 @@ EerieTest := UnitTest clone do (
         Eerie setIsGlobal(true)
         assertTrue(Eerie isGlobal))
 
-    testAddonsDir := method(
-        expected := Eerie root .. "/_addons"
-        assertEquals(Eerie addonsDir path, expected))
-
-    testGeneratePackagePath := method(
-        packageName := "FakePackageName"
-        expected := Eerie addonsDir path .. "/#{packageName}" interpolate
-        assertEquals(Eerie generatePackagePath(packageName), expected))
-
-    testReloadPackagesList := method(
-        Eerie
-        Eerie setIsGlobal(true)
-        expected := list("AFakeAddon", "BFakeAddon", "CFakeAddon")
-        names := Eerie installedPackages map(name) sort
-        assertEquals(expected, names))
-
     testExceptionWithoutEeridir := method(
         System setEnvironmentVariable("EERIEDIR", "")
-        assertRaisesException(Eerie init))
+        e := try (Eerie init)
+        assertEquals(e error type, Eerie EerieDirNotSetError type))
+
 )

@@ -183,12 +183,12 @@ DynamicLinkerCommand := Command clone do (
 
     # generates a `Sequence` with all needed -L and -l flags
     _linksSeq := method(
-        links := self package installedPackages \
+        links := self package packages \
             select(hasNativeCode) \
                 map(pkg, 
                     "#{self _dirPathFlag}#{pkg _dllBuildDir path}" interpolate)
 
-        links appendSeq(self package installedPackages map(pkg,
+        links appendSeq(self package packages map(pkg,
             ("#{self libFlag}" ..
                 "#{self _nameWithLibSuffix(pkg dllName)}") interpolate))
 

@@ -32,6 +32,8 @@ Installer := Object clone do (
 
         self _installBinaries(dependency)
 
+        self package appendPackage(Package with(pkgDestination))
+
         true)
 
     _checkPackageSet := method(

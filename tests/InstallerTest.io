@@ -1,5 +1,5 @@
-Importer addSearchPath("io/")
-Importer addSearchPath("io/Eerie/")
+Importer addSearchPath("io")
+Importer addSearchPath("io/Eerie")
 Importer addSearchPath("io/Eerie/Builder")
 
 InstallerTest := UnitTest clone do (
@@ -26,10 +26,10 @@ InstallerTest := UnitTest clone do (
 
         installer install(dependency)
 
-        # validate that what we've installed is a package
-        Package with(
-            Directory with(self package addonsDir path .. "/BFakeAddon"))
+        assertFalse(self package packageNamed(dependency name) isNil)
 
+        assertEquals(
+            self package packageNamed(dependency name) name, dependency name)
 
         # check binaries installation
         assertTrue(self package destBinDir exists)
@@ -40,8 +40,8 @@ InstallerTest := UnitTest clone do (
                 # it looks like links don't exist as a file in Io: neither
                 # `File exists` nor `File isLink` don't work, so:
                 assertTrue(
-                    self package destBinDir files map(
-                        name) contains(file name))))
+                    self package destBinDir files map(name) contains(
+                        file name))))
 
         # installing it again should raise an exception
         e := try (installer install(dependency))

@@ -8,28 +8,11 @@ System userInterruptHandler := method(
     super(userInterruptHandler))
 
 Eerie := Object clone do(
+
+    //doc Eerie isGlobal Whether the global environment in use. Default `false`.
+    //doc Eerie setIsGlobal
+    isGlobal ::= false
     
-    //doc Eerie globalRoot Returns value of EERIEDIR environment variable.
-    root := method(
-        System getEnvironmentVariable("EERIEDIR") ?stringByExpandingTilde)
-
-    //doc Eerie globalPackage Get the global package.
-    globalPackage := lazySlot(
-        self _checkEeriedirSet
-        Package with(Directory with(self root)))
-
-    //doc Eerie addonsDir `Directory` where addons are installed.
-    addonsDir := method(Directory with("#{self root}/_addons" interpolate))
-    
-    /*doc Eerie globalBinDirName The name of the directory where binaries from
-    the packages will be installed globally. Default to `"_bin"`.*/
-    globalBinDirName := "_bin"
-
-    //doc Eerie isGlobal Whether the global environment in use.
-    isGlobal := method(self _isGlobal)
-    
-    _isGlobal := false
-
     //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
     platform := System platform split at(0) asLowercase
 
@@ -42,30 +25,22 @@ Eerie := Object clone do(
         ) else (
             return "so"))
 
-    //doc Eerie setIsGlobal Set whether the global environment in use. 
-    setIsGlobal := method(value, 
-        self _isGlobal = value
-        self _reloadPackagesList
-        self)
-
     /*doc Eerie isWindows Returns `true` if the OS on which Eerie is running is
     Windows (including mingw define), `false` otherwise.*/
     isWindows := method(System platform containsAnyCaseSeq("windows") or(
         System platform containsAnyCaseSeq("mingw")))
 
-    //doc Eerie installedPackages Returns list of installed packages .
-    installedPackages := lazySlot(self _reloadPackagesList)
+    init := method(
+        # call this to check whether EERIEDIR set
+        self root)
 
-    _reloadPackagesList := method(
-        self installedPackages = self addonsDir directories map(d,
-            Package with(d)))
-
-    init := method(self _checkEeriedirSet)
-
-    _checkEeriedirSet := method(
-        if(self root isNil or self root isEmpty,
-            Exception raise(EerieDirNotSetError with(""))))
-
+    //doc Eerie root Returns value of EERIEDIR environment variable.
+    root := method(
+        path := System getEnvironmentVariable("EERIEDIR") \
+            ?stringByExpandingTilde
+        if(path isNil or path isEmpty,
+            Exception raise(EerieDirNotSetError with("")))
+        path)
 
     /*doc Eerie sh(cmd[, dir=cwd])
     Executes system command. Raises exception with `Eerie SystemCommandError` on
@@ -112,36 +87,6 @@ Eerie := Object clone do(
         msg := ((self _logMods at(mode)) .. str) interpolate(call sender)
         stream write(msg, "\n"))
 
-    /*doc Eerie generatePackagePath Return path for addon with the given name
-    independently of its existence.*/
-    generatePackagePath := method(name,
-        self addonsDir path .. "/#{name}" interpolate)
-
-    /*doc Eerie packageNamed(name) Returns package with provided name if it 
-    exists, `nil` otherwise.*/
-    packageNamed := method(pkgName,
-        self installedPackages detect(pkg, pkg name == pkgName))
-
-    /*doc Eerie appendPackage(package) Append a package to the installedPackages
-    list.*/
-    appendPackage := method(package,
-        self installedPackages appendIfAbsent(package))
-
-    //doc Eerie removePackage(package) Removes the given package.
-    removePackage := method(package, self installedPackages remove(package))
-
-    //doc Eerie updatePackage(package)
-    updatePackage := method(package,
-        old := self installedPackages detect(p, p name == package name)
-        old isNil ifTrue(
-            msg := "Tried to update package which is not yet installed."
-            msg = msg .. " (#{package name})"
-            Eerie log(msg, "debug")
-            return false)
-
-        self installedPackages remove(old) append(package)
-        true)
-
 )
 
 //doc Eerie Error Eerie modules subclass this error for their error types.
@@ -149,7 +94,6 @@ Eerie Error := Error clone do (
     errorMsg ::= nil
 
     with := method(msg,
-        Eerie Transaction releaseLock
         super(with(self errorMsg interpolate)))
 )
 

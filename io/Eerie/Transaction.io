@@ -2,18 +2,28 @@
 //metadoc Transaction description
 
 Transaction := Object clone do(
+
+    //doc Transaction package
+    package ::= nil
+
     items := List clone
+    
     depsCheckedFor  := List clone
+
+    /*doc Transaction with(`Package`)
+    Initializes `Transaction` with the given `Package`.*/
+    with := method(pkg, Transaction clone setPackage(pkg))
 
     init := method(
         self items = List clone
         self depsCheckedFor = List clone
         self acquireLock)
 
-    /*doc Transaction lockFile A file with current Eerie process ID. Eerie
-    checks for existence of this file to make it sure that only one instance of
-    Eerie is running per package.*/
-    lockFile := Eerie addonsDir fileNamed(".transaction_lock")
+    /*doc Transaction lockFile
+    A file containing current Eerie process ID. Eerie checks for existence of
+    this file to make it sure that only one instance of Eerie is running per
+    package.*/
+    lockFile := method(self package addonsDir fileNamed(".transaction_lock"))
 
     //doc Transaction acquireLock Creates transaction lock.
     acquireLock := method(

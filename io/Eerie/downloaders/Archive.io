@@ -28,8 +28,7 @@ ArchiveDownloader := Eerie Downloader clone do(
         tmpFile := nil
 
         self uri containsSeq("http") ifTrue(
-            tmpFile = Eerie globalPackage \
-                tmpDir fileNamed(self uri split("/") last)
+            tmpFile = Package global tmpDir fileNamed(self uri split("/") last)
             URL with(self uri) fetchToFile(tmpFile)
             tmpFile exists ifFalse(
                 Exception raise(

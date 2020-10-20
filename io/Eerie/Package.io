@@ -90,16 +90,9 @@ Package := Object clone do (
     //doc Package buildio The `build.io` file.
     buildio := lazySlot(self dir fileNamed("build.io"))
 
-    /*doc Package installedPackages 
+    /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
-    installedPackages := lazySlot(
-        self addonsDir directories map(dir, Package with(dir)))
-
-    /*doc Package packageNamed 
-    Get the dependency package with the provided name (`Sequence`) if it's
-    installed. Otherwise it returns `nil`.*/ 
-    packageNamed := method(name,
-        self installedPackages detect(pkg, pkg name == name))
+    packages := lazySlot(self addonsDir directories map(dir, Package with(dir)))
 
     //doc Package version Returns parsed version (`SemVer`) of the package.
     version ::= nil
@@ -135,7 +128,7 @@ Package := Object clone do (
         klone setConfig(manifest contents parseJson)
         klone setVersion(SemVer fromSeq(klone config at("version")))
         # call to init the list
-        klone installedPackages
+        klone packages
         klone)
 
     _checkDirectoryPackage := method(dir,
@@ -223,6 +216,37 @@ Package := Object clone do (
     # The third argument is the manifest path.
     _checkField := method(test, msg, path,
         test ifTrue(Exception raise(InsufficientManifestError with(path, msg))))
+
+    /*doc Package global 
+    Initializes the global Eerie package (i.e. the Eerie itself).*/
+    global := method(Package with(Directory with(Eerie root)))
+
+    /*doc Package appendPackage 
+    Add a `Package` to the list of installed packages.*/
+    appendPackage := method(package, self packages appendIfAbsent(package))
+
+    /*doc Package packageNamed 
+    Get the dependency package with the provided name (`Sequence`) if it's
+    installed. Otherwise it returns `nil`.*/ 
+    packageNamed := method(name, self packages detect(pkg, pkg name == name))
+
+    /*doc Eerie updatePackage(Package) 
+    Replaces package with the given name with the given package.
+
+    Return `true` if package was found and replaced and `false` otherwise.*/
+    updatePackage := method(package,
+        old := self packageNamed(package name)
+        old isNil ifTrue(
+            msg := "Tried to update package which is not yet installed."
+            msg = msg .. " (#{package name})"
+            Eerie log(msg, "debug")
+            return false)
+
+        self packages remove(old) append(package)
+        true)
+
+    //doc Package removePackage(`Package`) Removes the given package.
+    removePackage := method(package, self packages remove(package))
 
     /*doc Package hasNativeCode 
     Returns `true` if the package has native code and `false` otherwise.*/

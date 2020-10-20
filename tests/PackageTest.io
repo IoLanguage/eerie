@@ -5,10 +5,10 @@ PackageTest := UnitTest clone do (
 
     testInstalledPackages := method(
         package := Package with(Directory with("tests/_addons/BFakeAddon"))
-        assertEquals(2, package installedPackages size)
+        assertEquals(2, package packages size)
 
         expected := list("AFakeAddon", "CFakeAddon")
-        result := package installedPackages map(name) sort
+        result := package packages map(name) sort
         assertEquals(expected, result))
 
     testHasNativeCode := method(
