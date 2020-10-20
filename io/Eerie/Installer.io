@@ -1,60 +1,46 @@
 //metadoc Installer category API
 /*metadoc Installer description 
-This object is used to install and build packages. Use `Installer
-with(package)` to initialize it. You should `setRoot` right after
-initialization, otherwise it will raise an exception when you'll try to install
-a package. You should also `setDestBinName` if you to install binaries from the
-`Package`.*/
+This object is used to install and build package dependencies. Use 
+`Installer with(package)` to initialize it.*/
 
 Installer := Object clone do (
-    /*doc Installer root The installer's root `Directory` where `Package`'s
-    should be installed.*/
-    root ::= nil
 
-    /*doc Installer destBinName The name of the directory, where binaries
-    (if any) will be installed.*/
-    destBinName ::= nil
-
-    //doc Installer package `Package` which the `Installer` will install.
+    /*doc Installer package
+    The `Package` for which the `Installer` will install dependencies.*/
     package ::= nil
 
     //doc Installer with(package) Initializes installer with the given package.
     with := method(pkg, self clone setPackage(pkg))
 
-    /*doc Installer install(installBin)
-    Installs `Installer package` into `Installer root`/`package name`. If
-    `installBin` is `true`, the binaries from the package's `bin` directory will
-    also be installed. 
+    /*doc Installer install(dependency)
+    Installs `dependency` (`Package`). 
 
     Returns `true` if the package installed successfully.*/
-    install := method(includeBin,
+    install := method(dependency,
         self _checkPackageSet
-        self _checkRootSet
 
-        pkgDestination := self _destination
+        pkgDestination := self _destination(dependency)
         if (pkgDestination exists, 
             Exception raise(DirectoryExistsError with(
-                self package name, pkgDestination path)))
+                dependency name, pkgDestination path)))
 
-        self build
+        self build(dependency)
 
         pkgDestination createIfAbsent
 
-        Directory cp(self package dir, pkgDestination)
+        Directory cp(dependency dir, pkgDestination)
 
-        if(includeBin, self _installBinaries)
+        self _installBinaries(dependency)
 
         true)
 
     _checkPackageSet := method(
         if (self package isNil, Exception raise(PackageNotSetError clone)))
 
-    _checkRootSet := method(
-        if (self root isNil, Exception raise(RootNotSetError clone)))
-
-    # this is the directory inside `root` which represents the package and
+    # this is the directory inside `addonsDir` which represents the package and
     # contains its sources
-    _destination := method(self root directoryNamed(self package name))
+    _destination := method(dependency,
+        self package addonsDir directoryNamed(dependency name))
 
     /*doc Installer build(Package) Compiles the `Package` if it has
     native code. Returns `true` if the package was compiled and `false`
@@ -73,45 +59,41 @@ Installer := Object clone do (
 
     Look `Builder`'s documentation for more methods you can use in `build.io`.
     */
-    build := method(
+    build := method(dependency,
         self _checkPackageSet
 
-        if(self package hasNativeCode not, return false)
+        if(dependency hasNativeCode not, return false)
 
-        self package buildio create
+        dependency buildio create
 
-        Eerie log("Compiling #{self package name}")
+        Eerie log("Compiling #{dependency name}")
 
-        builder := Builder with(self package)
-        builder doFile(self package buildio path)
+        builder := Builder with(dependency)
+        builder doFile(dependency buildio path)
         builder build
 
         true)
 
-    # For global packages, creates symlinks (UNIX-like) or .cmd files (Windows)
-    # for files of the package's `bin` directory in destination's `destBinName`
-    # directory.
-    # This method is called only after the package is copied to destination
-    # folder. It works in the package's destination folder.
-    _installBinaries := method(
+    # For global packages, creates symlinks (UNIX-like) or .cmd files (Windows).
+    # This method is called only after the dependency is copied to destination
+    # folder. It works in the dependency's destination folder.
+    _installBinaries := method(dependency,
         self _checkPackageSet
-        self _checkDestBinNameSet
-        if (self package hasBinaries not, return false)
 
-        # this is directory at destination - i.e. where binaries copied to
-        binDest := self _binInstallDir createIfAbsent
+        if (dependency hasBinaries not, return false)
+
         # this is the binaries directory (from where the binaries will be
-            # installed), but at the destination
-        binDir := self _destination directoryNamed(
-            self package binDir name)
+        # installed), but at the destination
+        # Note, here we consider that the dependency is already installed to
+        # it's destination, so we can't use `dependency binDir` as the path has
+        # changed
+        binDir := self _destination(dependency) directoryNamed(
+            dependency binDir name)
         binDir files foreach(f, if(Eerie isWindows, 
-            self _createCmdForBin(f, binDest),
-            self _createLinkForBin(f, binDest)))
-        return true)
+            self _createCmdForBin(f),
+            self _createLinkForBin(f)))
 
-    _checkDestBinNameSet := method(
-        if (self destBinName isNil or self destBinName isEmpty,
-            Exception raise(DestinationBinNameNotSetError with(""))))
+        return true)
 
     # binaries will be installed in this directory
     _binInstallDir := method(
@@ -121,16 +103,16 @@ Installer := Object clone do (
     # This method is used on Windows to create .cmd file to be able to execute a
     # package binary as a normal command (i.e. `eerie` instead of
     # `io /path/to/eerie/bin`)
-    _createCmdForBin := method(bin, binDest,
-        cmd := binDest fileNamed(bin name .. ".cmd")
+    _createCmdForBin := method(bin,
+        cmd := self package destBinDir fileNamed(bin name .. ".cmd")
         cmd open setContents("io #{bin path} %*" interpolate) close)
 
     # We just create a link for binary on unix-like system
-    _createLinkForBin := method(bin, binDest,
+    _createLinkForBin := method(bin,
         # make sure it's executable
         Eerie sh("chmod u+x #{bin path}" interpolate)
         # create the link
-        link := binDest fileNamed(bin name)
+        link := self package destBinDir fileNamed(bin name)
         link exists ifFalse(SystemCommand lnFile(bin path, link path))
         link close)
 )
@@ -149,11 +131,6 @@ Installer do (
     //doc Installer RootNotSetError
     RootNotSetError := Eerie Error clone setErrorMsg(
         "Package installer root directory didn't set.")
-
-    //doc Installer DestinationBinNameNotSetError
-    DestinationBinNameNotSetError := Eerie Error clone setErrorMsg(
-        "Name of the destination directory where binaries will be installed " ..
-        "didn't set.")
 
 )
 

@@ -3,53 +3,61 @@ Importer addSearchPath("io/Eerie/")
 Importer addSearchPath("io/Eerie/Builder")
 
 InstallerTest := UnitTest clone do (
+    package := Package with(Directory with("tests/_addons/AFakeAddon"))
+
+    setUp := method(
+        self package addonsDir remove
+        self package destBinDir remove)
+
+    tearDown := method(
+        self package addonsDir remove
+        self package destBinDir remove)
 
     testValidation := method(
         installer := Installer clone
-        e := try (installer _checkRootSet)
-        assertEquals(e error type, Installer RootNotSetError type)
 
         e := try (installer _checkPackageSet)
-        assertEquals(e error type, Installer PackageNotSetError type)
-
-        e := try (installer _checkDestBinNameSet)
-        assertEquals(e error type, 
-            Installer DestinationBinNameNotSetError type)
-
-        package := Package with(Directory with("tests/_addons/AFakeAddon"))
-        installer = Installer with(package)
-        e := try (installer install)
-        assertEquals(
-            e error type, Installer RootNotSetError type))
+        assertEquals(e error type, Installer PackageNotSetError type))
 
     testInstall := method(
-        package := Package with(Directory with("tests/_addons/AFakeAddon"))
-        root := Directory with("tests/installer") 
-        installer := Installer with(package) setRoot(root)
+        # this package has binaries, so we check binaries installation too
+        dependency := Package with(Directory with("tests/_addons/BFakeAddon"))
+        installer := Installer with(self package)
 
-        if (root exists, root remove)
+        installer install(dependency)
 
-        installer install
+        # validate that what we've installed is a package
+        Package with(
+            Directory with(self package addonsDir path .. "/BFakeAddon"))
 
-        # validate that what we installed is a package
-        Package with(Directory with(root path .. "/AFakeAddon"))
+
+        # check binaries installation
+        assertTrue(self package destBinDir exists)
+        assertTrue(self package destBinDir files size > 0)
+
+        if (Eerie isWindows not,
+            self package destBinDir files foreach(file,
+                # it looks like links don't exist as a file in Io: neither
+                # `File exists` nor `File isLink` don't work, so:
+                assertTrue(
+                    self package destBinDir files map(
+                        name) contains(file name))))
 
         # installing it again should raise an exception
-        e := try (installer install)
-        assertEquals(e error type, Installer DirectoryExistsError type)
-        root remove)
+        e := try (installer install(dependency))
+        assertEquals(e error type, Installer DirectoryExistsError type))
 
     testBuild := method(
-        package := Package with(Directory with("tests/_addons/CFakeAddon"))
-        initf := package sourceDir fileNamed("IoCFakeAddonInit.c")
-        buildDir := package buildDir
+        dependency := Package with(Directory with("tests/_addons/CFakeAddon"))
+        initf := dependency sourceDir fileNamed("IoCFakeAddonInit.c")
+        buildDir := dependency buildDir
 
         if (initf exists, initf remove)
         if (buildDir exists, buildDir remove)
 
-        installer := Installer with(package)
+        installer := Installer with(self package)
 
-        installer build
+        installer build(dependency)
 
         assertTrue(buildDir exists)
         assertTrue(initf exists)
@@ -58,43 +66,13 @@ InstallerTest := UnitTest clone do (
         initf remove)
 
     testInstallBinaries := method(
-        package := Package with(Directory with("tests/_addons/AFakeAddon"))
-        # we use the package's directory here as a destination, because we just
-        # need to check binaries so it's ok here to treat the source as a
-        # destination (like we already installed the package there)
-        root := Directory with("tests/_addons")
-        installer := Installer with(package) setRoot(root)
+        # the rest of the test is inside testInstall
 
-        e := try (installer _installBinaries)
-        assertEquals(e error type, Installer DestinationBinNameNotSetError type)
-        
-        destBinName := "_bin"
+        installer := Installer with(self package)
+        # a package without binaries
+        dependency := Package with(Directory with("tests/_addons/CFakeAddon"))
 
-        if (package dir directoryNamed(destBinName) exists, 
-            package dir directoryNamed(destBinName) remove)
-
-        installer setDestBinName(destBinName)
         # should return `false`, because the package has no binaries
-        assertFalse(installer _installBinaries)
+        assertFalse(installer _installBinaries(dependency)))
 
-        # a package with binaries
-        package = Package with(Directory with("tests/_addons/BFakeAddon"))
-        installer setPackage(package) setRoot(root)
-        destBinDir := package dir directoryNamed(destBinName)
-
-        if (destBinDir exists, destBinDir remove)
-
-        assertTrue(installer _installBinaries)
-        assertTrue(destBinDir exists)
-
-        if (Eerie isWindows) then (
-            package binDir files foreach(file,
-                destBinDir fileNamed(file name .. ".cmd") exists)
-        ) else (
-            package binDir files foreach(file,
-                # it looks like links don't exist as a file in Io: neither
-                # `File exists` nor `File isLink` don't work, so:
-                assertTrue(destBinDir files map(name) contains(file name))))
-
-        destBinDir remove)
 )

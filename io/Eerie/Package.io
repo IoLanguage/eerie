@@ -4,6 +4,9 @@ doRelativeFile("SemVer.io")
 
 Package := Object clone do (
 
+    //doc Package manifestName The name of the manifest file.
+    manifestName := "eerie.json"
+    
     //doc Package config Package's config file (the manifest) as a `Map`.
     config ::= nil
 
@@ -18,9 +21,9 @@ Package := Object clone do (
     The `bin` directory. `Directory` with binaries of the package.*/
     binDir := lazySlot(self dir directoryNamed("bin"))
 
-    /*doc Package installedBinDir
+    /*doc Package destBinDir
     Get the `_bin` directory, where binaries of dependencies are installed.*/
-    installedBinDir := method(self dir createSubdirectory("_bin"))
+    destBinDir := method(self dir createSubdirectory("_bin"))
 
     //doc Package addonsDir Get the `_addons` `Directory`.
     addonsDir := method(self dir createSubdirectory("_addons"))
@@ -127,7 +130,8 @@ Package := Object clone do (
         _checkDirectoryPackage(dir)
 
         klone := self clone setDir(dir)
-        manifest := File with(dir path .. "/#{Eerie manifestName}" interpolate) 
+        manifest := File with(
+            dir path .. "/#{Package manifestName}" interpolate) 
         klone setConfig(manifest contents parseJson)
         klone setVersion(SemVer fromSeq(klone config at("version")))
         # call to init the list
@@ -136,7 +140,8 @@ Package := Object clone do (
 
     _checkDirectoryPackage := method(dir,
         ioDir := dir directoryNamed("io")
-        manifest := File with(dir path .. "/#{Eerie manifestName}" interpolate)
+        manifest := File with(
+            dir path .. "/#{Package manifestName}" interpolate)
         if ((dir exists and manifest exists and ioDir exists) not,
             Exception raise(NotPackageError with(dir path)))
 

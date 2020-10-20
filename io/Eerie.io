@@ -9,30 +9,15 @@ System userInterruptHandler := method(
 
 Eerie := Object clone do(
     
-    //doc Eerie manifestName The name of the manifest file.
-    manifestName := "eerie.json"
-    
-    /*doc Eerie root Current working directory or value of `EERIEDIR` system's 
-    environment variable if `isGlobal` is `true`.*/
-    root := method(if (self isGlobal, globalRoot, "."))
-    
     //doc Eerie globalRoot Returns value of EERIEDIR environment variable.
-    globalRoot := method(
+    root := method(
         System getEnvironmentVariable("EERIEDIR") ?stringByExpandingTilde)
 
-    // TODO all global things should go via this globalPackage, there shouldn't
-    // be no things like switching roots etc. If isGlobal == true, we use
-    // globalPackage. That's it.
     //doc Eerie globalPackage Get the global package.
     globalPackage := lazySlot(
-        path := self globalRoot
-        if (root isNil,
-            Exception raise(EerieDirNotSetError with("")),
-            Package with(Directory with(path))))
+        self _checkEeriedirSet
+        Package with(Directory with(self root)))
 
-    //doc Eerie tmpDir Get temp `Directory`.
-    tmpDir ::= Directory with(globalRoot .. "/_tmp")
-    
     //doc Eerie addonsDir `Directory` where addons are installed.
     addonsDir := method(Directory with("#{self root}/_addons" interpolate))
     
@@ -75,9 +60,11 @@ Eerie := Object clone do(
         self installedPackages = self addonsDir directories map(d,
             Package with(d)))
 
-    init := method(
-        if(globalRoot isNil or globalRoot isEmpty,
-            Exception raise("Error: EERIEDIR is not set")))
+    init := method(self _checkEeriedirSet)
+
+    _checkEeriedirSet := method(
+        if(self root isNil or self root isEmpty,
+            Exception raise(EerieDirNotSetError with(""))))
 
 
     /*doc Eerie sh(cmd[, dir=cwd])
