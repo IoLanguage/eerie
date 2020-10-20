@@ -3,15 +3,21 @@ Importer addSearchPath("io/Eerie")
 Importer addSearchPath("io/Eerie/Builder")
 
 InstallerTest := UnitTest clone do (
+    
     package := Package with(Directory with("tests/_addons/AFakeAddon"))
+
+    eerieDirBackup := System getEnvironmentVariable("EERIEDIR")
 
     setUp := method(
         self package addonsDir remove
-        self package destBinDir remove)
+        self package destBinDir remove
+        System setEnvironmentVariable(
+            "EERIEDIR", Directory currentWorkingDirectory))
 
     tearDown := method(
         self package addonsDir remove
-        self package destBinDir remove)
+        self package destBinDir remove
+        System setEnvironmentVariable("EERIEDIR", self eerieDirBackup))
 
     testValidation := method(
         installer := Installer clone

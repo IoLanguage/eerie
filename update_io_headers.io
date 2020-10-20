@@ -11,8 +11,20 @@ System system(
 
 Directory with("ioheaders") create remove create
 
-Directory with("#{srcName}/libs/iovm/source" interpolate) \
-    filesWithExtension(".h") \
-        foreach(f, f moveTo("ioheaders/#{f name}" interpolate))
+copyHeadersFrom := method(path,
+    Directory with(path) filesWithExtension(".h") \
+        foreach(f, f moveTo("ioheaders/#{f name}" interpolate)))
+
+# basekit
+copyHeadersFrom("#{srcName}/libs/basekit/source" interpolate)
+
+# coroutine
+copyHeadersFrom("#{srcName}/libs/coroutine/source" interpolate)
+
+# garbage collector
+copyHeadersFrom("#{srcName}/libs/garbagecollector/source" interpolate)
+
+# iovm
+copyHeadersFrom("#{srcName}/libs/iovm/source" interpolate)
 
 Directory with(srcName) remove

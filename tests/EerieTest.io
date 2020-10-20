@@ -8,6 +8,9 @@ EerieTest := UnitTest clone do (
         System setEnvironmentVariable("EERIEDIR", 
             Directory currentWorkingDirectory .. "/tests"))
 
+    tearDown := method(
+        System setEnvironmentVariable("EERIEDIR", System launchPath))
+
     testSetGlobal := method(
         Eerie 
         assertFalse(Eerie isGlobal)

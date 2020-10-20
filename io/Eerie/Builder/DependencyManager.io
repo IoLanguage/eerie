@@ -4,7 +4,7 @@ DependencyManager := Object clone do (
 
     package := nil
 
-    headerSearchPaths := list(".")
+    headerSearchPaths := list(".", Eerie ioHeadersPath)
 
     libSearchPaths := list()
 
@@ -36,11 +36,6 @@ DependencyManager := Object clone do (
     init := method(
         self _searchPrefixes foreach(prefix,
             self appendHeaderSearchPath(prefix .. "/include"))
-
-        # TODO -----------------------------------------------
-        self appendHeaderSearchPath(
-            Path with(System installPrefix, "include", "io"))
-        # ----------------------------------------------------
 
         self _searchPrefixes foreach(prefix, 
             self appendLibSearchPath(prefix .. "/lib")))

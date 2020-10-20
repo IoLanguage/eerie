@@ -34,6 +34,9 @@ Eerie := Object clone do(
     isWindows := method(System platform containsAnyCaseSeq("windows") or(
         System platform containsAnyCaseSeq("mingw")))
 
+    //doc Eerie ioHeadersPath Returns path (`Sequence`) to io headers.
+    ioHeadersPath := method(Eerie root .. "/ioheaders")
+
     //doc Eerie root Returns value of EERIEDIR environment variable.
     root := method(
         path := System getEnvironmentVariable("EERIEDIR") \
