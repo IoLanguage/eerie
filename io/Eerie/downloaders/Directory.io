@@ -4,11 +4,8 @@ DirectoryDownloader := Eerie Downloader clone do(
     )
 
     download := method(
-        # Should we copy dot files also? Not copying .git/.svn/etc folders
-        # is ok, but what about the rest?
-        SystemCommand cpR(self uri, self path)
-        return true
-    )
+        Directory cp(self uri, self path)
+        return true)
 
     update := getSlot("download")
 

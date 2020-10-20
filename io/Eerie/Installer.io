@@ -115,7 +115,7 @@ Installer := Object clone do (
         Eerie sh("chmod u+x #{bin path}" interpolate)
         # create the link
         link := self package destBinDir fileNamed(bin name)
-        link exists ifFalse(SystemCommand lnFile(bin path, link path))
+        link exists ifFalse(Eerie sh("ln -s #{bin path} #{link path}" interpolate))
         link close)
 )
 
@@ -135,27 +135,3 @@ Installer do (
         "Package installer root directory didn't set.")
 
 )
-
-//doc Directory cp Copy the content of source `Directory` to a `Destination`.
-Directory cp := method(source, destination,
-    destination createIfAbsent
-    absoluteDest := Path absolute(destination path)
-
-    # keep path to the current directory to return when we're done
-    wd := Directory currentWorkingDirectory
-    # change directory, to copy only what's inside the source
-    Directory setCurrentWorkingDirectory(source path)
-
-
-    Directory at(".") walk(item,
-        newPath := absoluteDest .. "/" .. item path
-        if (item type == File type) then (
-            Directory with(newPath pathComponent) createIfAbsent 
-            # `File copyToPath` has rights issues, `File setPath` too, so we
-            # just create a new file here and copy the content of the source
-            # into it
-            File with(newPath) create setContents(item contents) close
-        ) else (
-            Directory createIfAbsent(newPath)))
-
-    Directory setCurrentWorkingDirectory(wd))

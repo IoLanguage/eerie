@@ -1,7 +1,6 @@
 //metadoc Eerie category API
 //metadoc Eerie author Josip Lisec, Ales Tsurko
 //metadoc Eerie description Eerie is the Io package manager.
-SystemCommand
 
 System userInterruptHandler := method(
     Eerie Transaction releaseLock
@@ -49,7 +48,7 @@ Eerie := Object clone do(
     Executes system command. Raises exception with `Eerie SystemCommandError` on
     failure.*/
     sh := method(cmd, dir,
-        self log(cmd, "console")
+        Eerie log(cmd, "console")
         prevDir := nil
         dirPrefix := ""
         if(dir != nil and dir != ".",
@@ -63,15 +62,21 @@ Eerie := Object clone do(
 
         prevDir isNil ifFalse(Directory setCurrentWorkingDirectory(prevDir))
 
-        # System runCommand leaves weird files behind
-        SystemCommand rmFilesContaining("-stdout")
-        SystemCommand rmFilesContaining("-stderr")
+        Eerie _cleanRunCommand
         
         if(cmdOut exitStatus != 0,
             Exception raise(
                 SystemCommandError with(cmd, cmdOut exitStatus, stdErr)))
 
         cmdOut exitStatus)
+
+    # remove *-stdout and *-stderr files, which are kept in result of
+    # System runCommand call
+    _cleanRunCommand := method(
+        Directory clone files select(file, 
+            file name endsWithSeq("-stdout") or \
+                file name endsWithSeq("-stderr")) \
+                    foreach(remove))
 
     _logMods := Map with(
         "info",         " - ",
@@ -114,6 +119,30 @@ Eerie do (
     EerieDirNotSetError := Error clone setErrorMsg(
         "Environment variable EERIEDIR did not set.")
 )
+
+//doc Directory cp Copy the content of source `Directory` to a `Destination`.
+Directory cp := method(source, destination,
+    destination createIfAbsent
+    absoluteDest := Path absolute(destination path)
+
+    # keep path to the current directory to return when we're done
+    wd := Directory currentWorkingDirectory
+    # change directory, to copy only what's inside the source
+    Directory setCurrentWorkingDirectory(source path)
+
+
+    Directory at(".") walk(item,
+        newPath := absoluteDest .. "/" .. item path
+        if (item type == File type) then (
+            Directory with(newPath pathComponent) createIfAbsent 
+            # `File copyToPath` has rights issues, `File setPath` too, so we
+            # just create a new file here and copy the content of the source
+            # into it
+            File with(newPath) create setContents(item contents) close
+        ) else (
+            Directory createIfAbsent(newPath)))
+
+    Directory setCurrentWorkingDirectory(wd))
 
 Eerie clone = Eerie do (
     //doc Eerie Package [Package](package.html)
