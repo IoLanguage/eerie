@@ -127,6 +127,7 @@ Transaction := Object clone do(
         toInstall foreach(pkg, 
             Eerie Transaction clone install(pkg) run)
         true)
+
 )
 
 # Error types

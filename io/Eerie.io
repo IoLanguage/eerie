@@ -1,10 +1,8 @@
 //metadoc Eerie category API
 //metadoc Eerie author Josip Lisec, Ales Tsurko
-//metadoc Eerie description Eerie is the Io package manager.
-
-System userInterruptHandler := method(
-    Eerie Transaction releaseLock
-    super(userInterruptHandler))
+/*metadoc Eerie description 
+This proto is a singleton. It's mainly for keeping `isGlobal` state and logging,
+but it also contains some helpful functions.*/
 
 Eerie := Object clone do(
 
@@ -78,6 +76,14 @@ Eerie := Object clone do(
                 file name endsWithSeq("-stderr")) \
                     foreach(remove))
 
+    /*doc Eerie log(message, mode) Displays the message to the user. Mode can be
+    `"info"`, `"error"`, `"console"`, `"debug"` or `"output"`.*/
+    log := method(str, mode,
+        mode ifNil(mode = "info")
+        stream := if (mode == "error", File standardError, File standardOutput)
+        msg := ((self _logMods at(mode)) .. str) interpolate(call sender)
+        stream write(msg, "\n"))
+
     _logMods := Map with(
         "info",         " - ",
         "error",        " ! ",
@@ -86,14 +92,6 @@ Eerie := Object clone do(
         "install",      " + ",
         "transaction",  "-> ",
         "output",       "")
-
-    /*doc Eerie log(message, mode) Displays the message to the user. Mode can be
-    `"info"`, `"error"`, `"console"`, `"debug"` or `"output"`.*/
-    log := method(str, mode,
-        mode ifNil(mode = "info")
-        stream := if (mode == "error", File standardError, File standardOutput)
-        msg := ((self _logMods at(mode)) .. str) interpolate(call sender)
-        stream write(msg, "\n"))
 
 )
 
@@ -131,7 +129,7 @@ Directory cp := method(source, destination,
     Directory setCurrentWorkingDirectory(source path)
 
 
-    Directory at(".") walk(item,
+    Directory clone walk(item,
         newPath := absoluteDest .. "/" .. item path
         if (item type == File type) then (
             Directory with(newPath pathComponent) createIfAbsent 
