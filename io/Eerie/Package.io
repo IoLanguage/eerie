@@ -220,35 +220,22 @@ Package do (
 
 )
 
-Package do (
+Package ManifestValidator := Object clone do (
+
+    _manifest := nil
+
+    _config := nil
     
-    ManifestValidator := Object clone do (
+    Map squareBrackets := method(key, self at(key))
 
-        _manifest := nil
 
-        _config := nil
-        
-        Map squareBrackets := method(key, self at(key))
-    
+    with := method(manifest,
+        klone := self clone
+        klone _manifest := manifest
+        klone _config := manifest contents parseJson
+        klone)
 
-        //doc ManifestValidator InsufficientManifestError
-        InsufficientManifestError := Eerie Error clone setErrorMsg(
-            "The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
-            "all requirements." .. 
-            "#{if(call evalArgAt(1) isNil, " ..
-                "\"\", \"\\n\" .. call evalArgAt(1))}")
-
-    )
-
-)
-
-Package ManifestValidator with := method(manifest,
-    klone := self clone
-    klone _manifest := manifest
-    klone _config := manifest contents parseJson
-    klone)
-
-Package ManifestValidator validate := method(
+    validate := method(
         parsed := self _config
 
         self _checkRequired("name")
@@ -293,46 +280,59 @@ Package ManifestValidator validate := method(
                 test = test or p at("path") isNil
                 test = test or p at("path") isEmpty
                 self _checkField(test,
-                    "The 'dependencies.packages[n].path' is required.")))
+                    "The 'dependencies.packages[n].path' is required."))))
+
+        # check's whether a field is not nil and not empty
+        # the `field` argument is key with subfields separated by dot:
+        # `foo.bar.baz`
+        # the optional `msg` argument is the message, which will be shown on
+        # invalid test
+        _checkRequired := method(field, msg,
+            value := self _valueForKey(field)
+            msg := msg ifNilEval(
+                "The \"#{field}\" field is required." interpolate)
+
+            if (value isNil or value isEmpty,
+                Exception raise(
+                    InsufficientManifestError with(self _manifest path, msg))))
+
+        # get config value for key of type `foo.bar.baz`
+        _valueForKey := method(key,
+            split := key split(".")
+            value := self _config
+            split foreach(key, value = value at(key))
+            value)
+
+        _checkEither := method(first, second,
+            valueA := self _valueForKey(first)
+            valueB := self _valueForKey(second)
+            msg := "Either \"#{first}\" or \"#{second}\" field is required." \
+                interpolate
+
+            if ((valueA isNil or valueA isEmpty) and \
+                (valueB isNil or valueB isEmpty),
+                Exception raise(
+                    InsufficientManifestError with(self _manifest path, msg))))
+
+        # the first argument is a boolean. If it's `true`,
+        # `InsufficientManifestError` will raise with the message at the second
+        # argument.
+        # The third argument is the manifest path.
+        _checkField := method(test, msg,
+            test ifTrue(
+                Exception raise(
+                    InsufficientManifestError with(self _manifest path, msg))))
 
 )
 
-# check's whether a field is not nil and not empty
-# the `field` argument is key with subfields separated by dot:
-# `foo.bar.baz`
-# the optional `msg` argument is the message, which will be shown on invalid
-# test
-Package ManifestValidator _checkRequired := method(field, msg,
-    value := self _valueForKey(field)
-    msg := msg ifNilEval("The \"#{field}\" field is required." interpolate)
+# ManifestValidator error types
+Package ManifestValidator do (
 
-    if (value isNil or value isEmpty,
-        Exception raise(
-            InsufficientManifestError with(self _manifest path, msg))))
+    //doc ManifestValidator InsufficientManifestError
+    InsufficientManifestError := Eerie Error clone setErrorMsg(
+        "The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
+        "all requirements." .. 
+        "#{if(call evalArgAt(1) isNil, " ..
+            "\"\", \"\\n\" .. call evalArgAt(1))}")
 
-# get config value for key of type `foo.bar.baz`
-Package ManifestValidator _valueForKey := method(key,
-    split := key split(".")
-    value := self _config
-    split foreach(key, value = value at(key))
-    value)
-
-Package ManifestValidator _checkEither := method(first, second,
-    valueA := self _valueForKey(first)
-    valueB := self _valueForKey(second)
-    msg := "Either \"#{first}\" or \"#{second}\" field is required." interpolate
-
-    if ((valueA isNil or valueA isEmpty) and (valueB isNil or valueB isEmpty),
-        Exception raise(
-            InsufficientManifestError with(self _manifest path, msg))))
-
-# the first argument is a boolean. If it's `true`,
-# `InsufficientManifestError` will raise with the message at the second
-# argument.
-# The third argument is the manifest path.
-Package ManifestValidator _checkField := method(test, msg,
-    test ifTrue(
-        Exception raise(
-            InsufficientManifestError with(self _manifest path, msg))))
-
-
+)
