@@ -12,7 +12,7 @@
     "protos": [
         "CFakeAddon"
     ],
-    "dependencies": {
+    "addons": {
         "packages": [
             {
                 "name": "BFakeAddon",

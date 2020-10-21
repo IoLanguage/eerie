@@ -226,9 +226,6 @@ Package ManifestValidator := Object clone do (
 
     _config := nil
     
-    Map squareBrackets := method(key, self at(key))
-
-
     with := method(manifest,
         klone := self clone
         klone _manifest := manifest
@@ -236,8 +233,6 @@ Package ManifestValidator := Object clone do (
         klone)
 
     validate := method(
-        parsed := self _config
-
         self _checkRequired("name")
         self _checkRequired("version")
         self _checkRequired("author")
@@ -245,41 +240,36 @@ Package ManifestValidator := Object clone do (
         self _checkEither("path.dir", "path.git")
 
         if (self _config at("path") at("git") isNil not,
-            self _checkRequired(
-                "path.git.url", 
-                """"path.git.url" is required for "path.git"."""))
+            self _checkRequired("path.git.url"))
 
-
+        # it's allowed to be empty for `protos`
         self _checkField(self _config at("protos") isNil,
             "The \"protos\" field is required.")
 
-        self _checkField(self _config at("protos") type != List type,
-            "The \"protos\" field should be an array.")
+        self _checkType("protos", List)
 
-        deps := self _config at("dependencies")
+        deps := self _config at("addons")
 
-        self _checkField(deps type != Map type, 
-            "The \"dependencies\" field should be an object.")
+        # `addons` is optional
+        if (deps isNil or deps isEmpty, return)
+
+        self _checkType("addons", Map)
 
         if (deps ?at("packages") isNil not and deps ?at("packages") isEmpty not,
 
-            test := deps at("packages") type != List type
-            self _checkField(test,
-                "The 'dependencies.packages' field should be an array.")
+            self _checkType("addons.packages", List)
 
             deps at("packages") ?foreach(p,
-                test = p at("name") isNil
-                test = test or p at("name") isEmpty
-                self _checkField(test,
+                self _checkField(
+                    p at("name") isNil or p at("name") isEmpty,
                     "The 'dependencies.packages[n].name' is required.")
 
-                test = test or p at("version") isNil
-                self _checkField(test,
+                self _checkField(
+                    p at("version") isNil,
                     "The 'dependencies.packages[n].version' is required.")
 
-                test = test or p at("path") isNil
-                test = test or p at("path") isEmpty
-                self _checkField(test,
+                self _checkField(
+                    p at("path") isNil or p at("path") isEmpty,
                     "The 'dependencies.packages[n].path' is required."))))
 
         # check's whether a field is not nil and not empty
@@ -290,7 +280,8 @@ Package ManifestValidator := Object clone do (
         _checkRequired := method(field, msg,
             value := self _valueForKey(field)
             msg := msg ifNilEval(
-                "The \"#{field}\" field is required." interpolate)
+                "The \"#{field}\" field is required and can't be empty." \
+                    interpolate)
 
             if (value isNil or value isEmpty,
                 Exception raise(
@@ -306,18 +297,47 @@ Package ManifestValidator := Object clone do (
         _checkEither := method(first, second,
             valueA := self _valueForKey(first)
             valueB := self _valueForKey(second)
-            msg := "Either \"#{first}\" or \"#{second}\" field is required." \
-                interpolate
+            msg := ("Either \"#{first}\" or \"#{second}\" field is required " .. 
+                "and can't be empty.") interpolate
 
             if ((valueA isNil or valueA isEmpty) and \
                 (valueB isNil or valueB isEmpty),
                 Exception raise(
                     InsufficientManifestError with(self _manifest path, msg))))
 
+        # check whether value specified by `key` is of type `input`
+        _checkType := method(key, input,
+            value := self _valueForKey(key)
+            msg := (
+                "The field \"#{key}\" should be #{self _jsonTypeFor(input)}." \
+                    interpolate)
+
+            if (value type != input type,
+                Exception raise(
+                    InsufficientManifestError with(self _manifest path, msg))))
+
+        # get json type name for argument type
+        _jsonTypeFor := method(input,
+            if (input type == Map type) then (
+                return "an object"
+            ) elseif (input type == List type) then (
+                return "an array"
+            ) elseif (input type == Number type) then (
+                return "a number"
+            ) elseif (input type == Sequence type) then (
+                return "a string"
+            ) elseif (input type == true type or input type == false type) \
+                then (
+                    return "a boolean"
+            ) elseif (input type == nil type) then (
+                return "null"
+            ) else (
+                return "undefined"
+            )
+        )
         # the first argument is a boolean. If it's `true`,
         # `InsufficientManifestError` will raise with the message at the second
         # argument.
-        # The third argument is the manifest path.
         _checkField := method(test, msg,
             test ifTrue(
                 Exception raise(
@@ -330,7 +350,7 @@ Package ManifestValidator do (
 
     //doc ManifestValidator InsufficientManifestError
     InsufficientManifestError := Eerie Error clone setErrorMsg(
-        "The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
+        "The manifest at #{call evalArgAt(0)} doesn't satisfy " ..
         "all requirements." .. 
         "#{if(call evalArgAt(1) isNil, " ..
             "\"\", \"\\n\" .. call evalArgAt(1))}")

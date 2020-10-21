@@ -112,6 +112,20 @@ PackageTest := UnitTest clone do (
             e error type,
             Package ManifestValidator InsufficientManifestError type)
 
+        # shouldn't raise an exception if protos is empty array
+        manifest setContents("""{
+            "name": "Test", 
+            "version": "0.1.0",
+            "author": "Test",
+            "path": {
+                "dir": "test"
+                },
+            "protos": []
+            }""")
+        Package ManifestValidator with(manifest) validate
+
+        # dependencies is optional, so an empty array shouldn't raise an
+        # exception
         manifest setContents("""{
             "name": "Test", 
             "version": "0.1.0",
@@ -120,7 +134,19 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
                 },
             "protos": [],
-            "dependencies": ""
+            "addons": []
+            }""")
+        Package ManifestValidator with(manifest) validate
+
+        manifest setContents("""{
+            "name": "Test", 
+            "version": "0.1.0",
+            "author": "Test",
+            "path": {
+                "dir": "test"
+                },
+            "protos": [],
+            "addons": { "packages": [ { } ] }
             }""")
         e = try (Package ManifestValidator with(manifest) validate)
         assertEquals(
@@ -135,22 +161,7 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
                 },
             "protos": [],
-            "dependencies": { "packages": [ { } ] }
-            }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
-
-        manifest setContents("""{
-            "name": "Test", 
-            "version": "0.1.0",
-            "author": "Test",
-            "path": {
-                "dir": "test"
-                },
-            "protos": [],
-            "dependencies": { 
+            "addons": { 
             "packages": [
                     { 
                         "name": "Test"
@@ -170,7 +181,7 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
                 },
             "protos": [],
-            "dependencies": { 
+            "addons": { 
             "packages": [
                     { 
                         "name": "Test",
@@ -191,7 +202,7 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
             },
             "protos": [],
-            "dependencies": { 
+            "addons": { 
             "packages": [
                     { 
                         "name": "Test",

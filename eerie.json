@@ -17,7 +17,7 @@
     "protos": [
         "Eerie"
     ],
-    "dependencies": {
+    "addons": {
         "packages": [
             {
                 "name": "Docio",

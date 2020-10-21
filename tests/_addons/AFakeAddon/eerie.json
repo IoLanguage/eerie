@@ -12,7 +12,7 @@
     "protos": [
         "AFakeAddon"
     ],
-    "dependencies": {
+    "addons": {
         "packages": [
             {
                 "name": "CFakeAddon",
