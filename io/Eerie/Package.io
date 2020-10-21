@@ -138,84 +138,7 @@ Package := Object clone do (
         if ((dir exists and manifest exists and ioDir exists) not,
             Exception raise(NotPackageError with(dir path)))
 
-        self _validateManifest(manifest))
-
-    _validateManifest := method(manifest,
-        parsed := manifest contents parseJson
-
-        # we don't check 'version' field `isEmpty` because it's checked better
-        # by `SemVer`
-        test := parsed at("name") isNil
-        test = test or parsed at("name") isEmpty 
-        self _checkField(test, "The 'name' field is required.", manifest path)
-
-        test = parsed at("version") isNil
-        self _checkField(test, "The 'version' field is required.", 
-            manifest path)
-
-        test = parsed at("author") isNil
-        test = test or parsed at("author") isEmpty
-        self _checkField(test, "The 'author' field is required.", manifest path)
-
-        test = test or parsed at("path") isNil
-        self _checkField(test, "The 'path' field is required.", manifest path)
-
-        test = parsed at("path") at("dir") isNil or \
-            parsed at("path") at("dir") isEmpty
-        test = test and parsed at("path") at("git") isNil
-        self _checkField(test,
-            "Either 'path.dir' or 'path.git' is required.", manifest path)
-
-        if (parsed at("path") at("git") isNil not,
-            test = parsed at("path") at("git") at("url") isNil or \
-                parsed at("path") at("git") at("url") isEmpty
-            self _checkField(test,
-                "'path.git.url' is required for 'path.git'.", manifest path))
-
-        test = parsed at("protos") isNil
-        self _checkField(test, "The 'protos' field is required.", manifest path)
-
-        test = test or parsed at("protos") type != "List"
-        self _checkField(test,
-            "The 'protos' field should be an array.",
-            manifest path)
-
-        deps := parsed at("dependencies")
-        self _checkField(deps type != "Map", 
-            "The 'dependencies' field should be an object.", manifest path)
-
-        if (deps ?at("packages") isNil not and \
-            deps ?at("packages") isEmpty not,
-
-            test = deps at("packages") type != "List"
-            self _checkField(test,
-                "The 'dependencies.packages' field should be an array.",
-                manifest path)
-
-            deps at("packages") ?foreach(p,
-                test = p at("name") isNil
-                test = test or p at("name") isEmpty
-                self _checkField(test,
-                    "The 'dependencies.packages[n].name' is required.",
-                    manifest path)
-
-                test = test or p at("version") isNil
-                self _checkField(test,
-                    "The 'dependencies.packages[n].version' is required.",
-                    manifest path)
-
-                test = test or p at("path") isNil
-                test = test or p at("path") isEmpty
-                self _checkField(test,
-                    "The 'dependencies.packages[n].path' is required.",
-                    manifest path))))
-
-    # the first argument is a boolean. If it's `true`,
-    # `InsufficientManifestException` will raise with the message at the second
-    # argument.
-    # The third argument is the manifest path.
-    _checkField := method(test, msg, path,
-        test ifTrue(Exception raise(InsufficientManifestError with(path, msg))))
+        ManifestValidator with(manifest) validate)
 
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
@@ -295,11 +218,121 @@ Package do (
         "The directory '#{call evalArgAt(0)}' is not recognised as an Eerie "..
         "package.")
 
-    //doc Package InsufficientManifestError
-    InsufficientManifestError := Eerie Error clone setErrorMsg(
-        "The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
+)
+
+Package do (
+    
+    ManifestValidator := Object clone do (
+
+        _manifest := nil
+
+        _config := nil
+        
+        Map squareBrackets := method(key, self at(key))
+    
+
+        //doc ManifestValidator InsufficientManifestError
+        InsufficientManifestError := Eerie Error clone setErrorMsg(
+            "The manifest at '#{call evalArgAt(0)}' doesn't satisfy " ..
             "all requirements." .. 
             "#{if(call evalArgAt(1) isNil, " ..
                 "\"\", \"\\n\" .. call evalArgAt(1))}")
 
+    )
+
 )
+
+Package ManifestValidator with := method(manifest,
+    klone := self clone
+    klone _manifest := manifest
+    klone _config := manifest contents parseJson
+    klone)
+
+Package ManifestValidator validate := method(
+        parsed := self _config
+
+        self _checkRequired("name")
+        self _checkRequired("version")
+        self _checkRequired("author")
+        self _checkRequired("path")
+        self _checkEither("path.dir", "path.git")
+
+        if (self _config at("path") at("git") isNil not,
+            self _checkRequired(
+                "path.git.url", 
+                """"path.git.url" is required for "path.git"."""))
+
+
+        self _checkField(self _config at("protos") isNil,
+            "The \"protos\" field is required.")
+
+        self _checkField(self _config at("protos") type != List type,
+            "The \"protos\" field should be an array.")
+
+        deps := self _config at("dependencies")
+
+        self _checkField(deps type != Map type, 
+            "The \"dependencies\" field should be an object.")
+
+        if (deps ?at("packages") isNil not and deps ?at("packages") isEmpty not,
+
+            test := deps at("packages") type != List type
+            self _checkField(test,
+                "The 'dependencies.packages' field should be an array.")
+
+            deps at("packages") ?foreach(p,
+                test = p at("name") isNil
+                test = test or p at("name") isEmpty
+                self _checkField(test,
+                    "The 'dependencies.packages[n].name' is required.")
+
+                test = test or p at("version") isNil
+                self _checkField(test,
+                    "The 'dependencies.packages[n].version' is required.")
+
+                test = test or p at("path") isNil
+                test = test or p at("path") isEmpty
+                self _checkField(test,
+                    "The 'dependencies.packages[n].path' is required.")))
+
+)
+
+# check's whether a field is not nil and not empty
+# the `field` argument is key with subfields separated by dot:
+# `foo.bar.baz`
+# the optional `msg` argument is the message, which will be shown on invalid
+# test
+Package ManifestValidator _checkRequired := method(field, msg,
+    value := self _valueForKey(field)
+    msg := msg ifNilEval("The \"#{field}\" field is required." interpolate)
+
+    if (value isNil or value isEmpty,
+        Exception raise(
+            InsufficientManifestError with(self _manifest path, msg))))
+
+# get config value for key of type `foo.bar.baz`
+Package ManifestValidator _valueForKey := method(key,
+    split := key split(".")
+    value := self _config
+    split foreach(key, value = value at(key))
+    value)
+
+Package ManifestValidator _checkEither := method(first, second,
+    valueA := self _valueForKey(first)
+    valueB := self _valueForKey(second)
+    msg := "Either \"#{first}\" or \"#{second}\" field is required." interpolate
+
+    if ((valueA isNil or valueA isEmpty) and (valueB isNil or valueB isEmpty),
+        Exception raise(
+            InsufficientManifestError with(self _manifest path, msg))))
+
+# the first argument is a boolean. If it's `true`,
+# `InsufficientManifestError` will raise with the message at the second
+# argument.
+# The third argument is the manifest path.
+Package ManifestValidator _checkField := method(test, msg,
+    test ifTrue(
+        Exception raise(
+            InsufficientManifestError with(self _manifest path, msg))))
+
+

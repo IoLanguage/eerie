@@ -29,29 +29,37 @@ PackageTest := UnitTest clone do (
         e := try (Package with(Directory with("tests/_faddons/NotAddon")))
         assertEquals(e error type, Package NotPackageError type))
 
-    testManifestValidation := method(
+    testManifestValidator := method(
         manifest := File with("tests/deleteme") setContents("{}")
-        e := try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e := try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{"name": "Test"}""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
             "version": "0.1.0"
             }""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test"
             }""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -59,8 +67,10 @@ PackageTest := UnitTest clone do (
             "author": "Test",
             "path": {}
             }""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -70,8 +80,10 @@ PackageTest := UnitTest clone do (
                     "git": {}
                 }
             }""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -81,8 +93,10 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
                 }
             }""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -93,8 +107,10 @@ PackageTest := UnitTest clone do (
                 },
             "protos": ""
             }""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -106,8 +122,10 @@ PackageTest := UnitTest clone do (
             "protos": [],
             "dependencies": ""
             }""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -119,8 +137,10 @@ PackageTest := UnitTest clone do (
             "protos": [],
             "dependencies": { "packages": [ { } ] }
             }""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -137,8 +157,10 @@ PackageTest := UnitTest clone do (
                     }
                 ]
             }}""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -156,8 +178,10 @@ PackageTest := UnitTest clone do (
                     }
                 ]
             }}""")
-        e = try (Package _validateManifest(manifest))
-        assertEquals(e error type, Package InsufficientManifestError type)
+        e = try (Package ManifestValidator with(manifest) validate)
+        assertEquals(
+            e error type,
+            Package ManifestValidator InsufficientManifestError type)
 
         manifest setContents("""{
             "name": "Test", 
@@ -178,9 +202,10 @@ PackageTest := UnitTest clone do (
                     }
                 ]
             }}""")
-        e = try (Package _validateManifest(manifest))
+        e = try (Package ManifestValidator with(manifest) validate)
         assertTrue(e isNil)
 
         manifest close remove
     )
+
 )
