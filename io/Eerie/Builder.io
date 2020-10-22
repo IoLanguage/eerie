@@ -90,7 +90,7 @@ Builder := Object clone do (
         files select(f, f name beginsWithSeq("._") not))
 
     _compileFile := method(src,
-        Eerie log("Compiling #{src name}")
+        Eerie log("🔨  Compiling #{src name}" asUTF8, "output")
 
         objName := src name replaceSeq(".cpp", ".o") \
             replaceSeq(".c", ".o") \
@@ -102,14 +102,16 @@ Builder := Object clone do (
             Eerie sh(self _compilerCommand setSrc(src) asSeq)))
 
     _buildStaticLib := method(
-        Eerie log("Linking #{self package staticLibFileName}")
+        Eerie log(
+            "🔗  Linking #{self package staticLibFileName}"asUTF8,
+            "output")
 
         self staticLibBuildStarted
 
         Eerie sh(self _staticLinkerCommand asSeq))
 
     _buildDynLib := method(
-        Eerie log("Linking #{self package dllFileName}")
+        Eerie log("🔗  Linking #{self package dllFileName}"asUTF8, "output")
 
         self dynLibBuildStarted
 

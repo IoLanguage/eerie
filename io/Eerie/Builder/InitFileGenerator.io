@@ -27,7 +27,7 @@ InitFileGenerator := Object clone do (
 
     # generates the file
     generate := method(
-        Eerie log("Generating #{self output path}")
+        Eerie log("🪄  Generating #{self output path}" asUTF8, "output")
 
         self output remove create open
 

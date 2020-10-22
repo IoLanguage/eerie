@@ -4,7 +4,7 @@
 This proto is a singleton. It's mainly for keeping `isGlobal` state and logging,
 but it also contains some helpful functions.*/
 
-Eerie := Object clone do(
+Eerie := Object clone do (
 
     //doc Eerie isGlobal Whether the global environment in use. Default `false`.
     //doc Eerie setIsGlobal
@@ -86,7 +86,7 @@ Eerie := Object clone do(
 
     _logMods := Map with(
         "info",         " - ",
-        "error",        " ! ",
+        "error",        "❗  "asMutable asUTF8,
         "console",      " > ",
         "debug",        " # ",
         "install",      " + ",

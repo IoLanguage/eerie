@@ -68,7 +68,7 @@ Installer := Object clone do (
 
         dependency buildio create
 
-        Eerie log("Compiling #{dependency name}")
+        Eerie log("🔨  Compiling #{dependency name}"asUTF8, "output")
 
         builder := Builder with(dependency)
         builder doFile(dependency buildio path)
