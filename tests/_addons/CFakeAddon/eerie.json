@@ -8,26 +8,24 @@
     "path": {
         "dir": "tests/_addons/CFakeAddon"
     },
-    "categories": [ ],
+    "categories": [],
     "protos": [
         "CFakeAddon"
     ],
-    "addons": {
-        "packages": [
-            {
-                "name": "BFakeAddon",
-                "version": "0.1",
-                "path": {
-                    "dir": "tests/_addons/BFakeAddon"
-                }
-            },
-            {
-                "name": "AFakeAddon",
-                "version": "0.1",
-                "path": {
-                    "dir": "tests/_addons/AFakeAddon"
-                }
+    "addons": [
+        {
+            "name": "BFakeAddon",
+            "version": "0.1",
+            "path": {
+                "dir": "tests/_addons/BFakeAddon"
             }
-        ]
-    }
+        },
+        {
+            "name": "AFakeAddon",
+            "version": "0.1",
+            "path": {
+                "dir": "tests/_addons/AFakeAddon"
+            }
+        }
+    ]
 }

@@ -90,10 +90,6 @@ Package := Object clone do (
     //doc Package buildio The `build.io` file.
     buildio := lazySlot(self dir fileNamed("build.io"))
 
-    /*doc Package packages 
-    Get the `List` of installed dependencies for this package.*/
-    packages := lazySlot(self addonsDir directories map(dir, Package with(dir)))
-
     //doc Package version Returns parsed version (`SemVer`) of the package.
     version ::= nil
     
@@ -107,14 +103,6 @@ Package := Object clone do (
 
     //doc Package downloader Instance of [[Downloader]] for this package.
     downloader ::= nil
-
-    /*doc Package uri 
-    Either local path or git url. Parsed from `path` field of `eerie.json`.*/
-    uri := method(
-        dir := self config at("path") at("dir")
-        if (dir isNil not, 
-            dir,
-            self config at("path") at("git") at("url")))
 
     /*doc Package with(dir) 
     Creates new package from provided `Directory`. Raises `NotPackageError` if
@@ -143,6 +131,18 @@ Package := Object clone do (
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
     global := method(Package with(Directory with(Eerie root)))
+
+    /*doc Package uri 
+    Either local path or git url. Parsed from `path` field of `eerie.json`.*/
+    uri := method(
+        dir := self config at("path") at("dir")
+        if (dir isNil not, 
+            dir,
+            self config at("path") at("git") at("url")))
+
+    /*doc Package packages 
+    Get the `List` of installed dependencies for this package.*/
+    packages := lazySlot(self addonsDir directories map(dir, Package with(dir)))
 
     /*doc Package appendPackage 
     Add a `Package` to the list of installed packages.*/
@@ -191,6 +191,10 @@ Package := Object clone do (
     <code>protos</code>, <code>packages</code>, <code>headers</code> or 
     <code>libs</code>.*/
     dependencies := method(category,
+        # TODO when we refactor dependencies -> addons, this should be
+        # refactored too
+        # TODO also from the docs it's not clear how this method is different
+        # from `packages`
         d := self config at("dependencies")
         if(category and d and d isEmpty not, d = d at(category))
         if(d isNil, list(), d))
@@ -248,29 +252,24 @@ Package ManifestValidator := Object clone do (
 
         self _checkType("protos", List)
 
-        deps := self _config at("addons")
-
         # `addons` is optional
-        if (deps isNil or deps isEmpty, return)
+        if (self _config at("addons") isNil or \
+            self _config at("addons") isEmpty, return)
 
-        self _checkType("addons", Map)
+        self _checkType("addons", List)
 
-        if (deps ?at("packages") isNil not and deps ?at("packages") isEmpty not,
+        self _config at("addons") foreach(dep,
+            self _checkField(
+                dep at("name") isNil or dep at("name") isEmpty,
+                "The \"addons[n].name\" is required.")
 
-            self _checkType("addons.packages", List)
+            self _checkField(
+                dep at("version") isNil,
+                "The \"addons[n].version\" is required.")
 
-            deps at("packages") ?foreach(p,
-                self _checkField(
-                    p at("name") isNil or p at("name") isEmpty,
-                    "The 'dependencies.packages[n].name' is required.")
-
-                self _checkField(
-                    p at("version") isNil,
-                    "The 'dependencies.packages[n].version' is required.")
-
-                self _checkField(
-                    p at("path") isNil or p at("path") isEmpty,
-                    "The 'dependencies.packages[n].path' is required."))))
+            self _checkField(
+                dep at("path") isNil or dep at("path") isEmpty,
+                "The \"addons[n].path\" is required.")))
 
         # check's whether a field is not nil and not empty
         # the `field` argument is key with subfields separated by dot:

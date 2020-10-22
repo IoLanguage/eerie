@@ -17,26 +17,24 @@
     "protos": [
         "Eerie"
     ],
-    "addons": {
-        "packages": [
-            {
-                "name": "Docio",
-                "version": "0.1",
-                "path": {
-                    "git": {
-                        "url": "https://github.com/IoLanguage/docio.git"
-                    }
-                }
-            },
-            {
-                "name": "Kano",
-                "version": "0.1",
-                "path": {
-                    "git": {
-                        "url": "https://github.com/IoLanguage/kano.git"
-                    }
+    "addons": [
+        {
+            "name": "Docio",
+            "version": "0.1",
+            "path": {
+                "git": {
+                    "url": "https://github.com/IoLanguage/docio.git"
                 }
             }
-        ]
-    }
+        },
+        {
+            "name": "Kano",
+            "version": "0.1",
+            "path": {
+                "git": {
+                    "url": "https://github.com/IoLanguage/kano.git"
+                }
+            }
+        }
+    ]
 }

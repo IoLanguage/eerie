@@ -146,7 +146,7 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
                 },
             "protos": [],
-            "addons": { "packages": [ { } ] }
+            "addons": [ { } ] 
             }""")
         e = try (Package ManifestValidator with(manifest) validate)
         assertEquals(
@@ -161,13 +161,12 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
                 },
             "protos": [],
-            "addons": { 
-            "packages": [
+            "addons": [
                     { 
                         "name": "Test"
                     }
                 ]
-            }}""")
+            }""")
         e = try (Package ManifestValidator with(manifest) validate)
         assertEquals(
             e error type,
@@ -181,14 +180,13 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
                 },
             "protos": [],
-            "addons": { 
-            "packages": [
+            "addons": [
                     { 
                         "name": "Test",
                         "version": "0.1"
                     }
                 ]
-            }}""")
+            }""")
         e = try (Package ManifestValidator with(manifest) validate)
         assertEquals(
             e error type,
@@ -202,8 +200,7 @@ PackageTest := UnitTest clone do (
                 "dir": "test"
             },
             "protos": [],
-            "addons": { 
-            "packages": [
+            "addons": [
                     { 
                         "name": "Test",
                         "version": "0.1",
@@ -212,7 +209,7 @@ PackageTest := UnitTest clone do (
                         }
                     }
                 ]
-            }}""")
+            }""")
         e = try (Package ManifestValidator with(manifest) validate)
         assertTrue(e isNil)
 
