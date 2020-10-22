@@ -4,7 +4,7 @@ DirectoryDownloader := Eerie Downloader clone do(
     )
 
     download := method(
-        Directory cp(self uri, self path)
+        self uri copyTo(self path)
         return true)
 
     update := getSlot("download")

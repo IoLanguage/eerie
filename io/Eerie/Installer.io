@@ -28,7 +28,7 @@ Installer := Object clone do (
 
         pkgDestination createIfAbsent
 
-        Directory cp(dependency dir, pkgDestination)
+        dependency dir copyTo(pkgDestination)
 
         self _installBinaries(dependency)
 

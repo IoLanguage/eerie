@@ -118,15 +118,16 @@ Eerie do (
         "Environment variable EERIEDIR did not set.")
 )
 
-//doc Directory cp Copy the content of source `Directory` to a `Destination`.
-Directory cp := method(source, destination,
+/*doc Directory copyTo 
+Copy content of a directory into destination directory path.*/
+Directory copyTo := method(destination,
     destination createIfAbsent
     absoluteDest := Path absolute(destination path)
 
     # keep path to the current directory to return when we're done
     wd := Directory currentWorkingDirectory
     # change directory, to copy only what's inside the source
-    Directory setCurrentWorkingDirectory(source path)
+    Directory setCurrentWorkingDirectory(self path)
 
 
     Directory clone walk(item,
