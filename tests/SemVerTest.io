@@ -125,4 +125,17 @@ SemVerTest := UnitTest clone do(
             SemVer fromSeq("1.0.0-rc") \
                 _comparePre(SemVer fromSeq("1.0.0-alpha") pre)))
 
+        testLoyality := method(
+            assertEquals(
+                SemVer fromSeq("v.1.0.1"),
+                SemVer fromSeq("1.0.1"))
+
+            assertEquals(
+                SemVer fromSeq("Version 10.0.1-Beta"),
+                SemVer fromSeq("ver.10.0.1-BETA"))
+
+            assertEquals(
+                SemVer fromSeq("Release version 99.0.1-RC.11"),
+                SemVer fromSeq("V99.0.1-rc.11")))
+
 )

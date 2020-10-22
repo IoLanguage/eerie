@@ -31,7 +31,7 @@ SemVer := Object clone do(
     `Sequence`.*/
     fromSeq := method(verSeq,
         res := self clone
-        spl := verSeq split("-")
+        spl := self _stripWord(verSeq) split("-")
         if(spl isEmpty or spl size > 2,
             Exception raise(ErrorNotRecognised clone)) 
 
@@ -39,6 +39,14 @@ SemVer := Object clone do(
 
         if(spl at(1) isNil not, res _parsePre(spl at(1)))
         res)
+
+    # strips anything like "v", "V", "version" etc.
+    _stripWord := method(seq,
+        index := seq asLowercase findSeqs(
+            list("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "alpha",
+                "beta", "rc"))
+        if (index isNil, Exception raise(ErrorNotRecognised clone))
+        seq splitAt(index index) at(1))
 
     # Parse A.B.C
     _parseNormal := method(verSeq,
