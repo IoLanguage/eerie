@@ -29,9 +29,10 @@ ArchiveDownloader := Eerie Downloader clone do(
                     Downloader FailedDownloadError with(self url)))
             self url = tmpFile path)
 
-        Eerie sh(self format cmd interpolate) # TODO: does it compatible with Windows?
+        # TODO: does it compatible with Windows?
+        Eerie sh(self format cmd interpolate) 
 
-        # If archive contains an directory with all the code we need to move
+        # If archive contains a directory with all the code we need to move
         # everything out of there
         (self root directories size == 1 and self root files isEmpty) ifTrue(
             extraDir := self root directories first name

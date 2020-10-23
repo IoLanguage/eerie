@@ -16,13 +16,15 @@
     "addons": [
         {
             "name": "Docio",
-            "version": "0.1",
-            "url": "https://github.com/IoLanguage/docio.git"
+            "version": "0.1"
         },
         {
             "name": "Kano",
-            "version": "0.1",
-            "url": "https://github.com/IoLanguage/kano.git"
+            "version": "0.1"
+        },
+        {
+            "name": "Socket",
+            "version": "0.1"
         }
     ]
 }

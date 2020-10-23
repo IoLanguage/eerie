@@ -10,6 +10,8 @@ Database := Object clone do (
     //doc Database dir `Directory` of the database.
     dir := method(Directory with(Eerie root .. "/db"))
 
+    _cachedConfig := nil
+
     init := method(if (self dir exists not, self _clone))
 
     _clone := method(
@@ -40,10 +42,20 @@ Database := Object clone do (
         if (manifest isNil, return nil)
 
         split := key split(".")
-        value := manifest contents parseJson
+        value := self _parseManifest(manifest)
         split foreach(key, value = value at(key))
 
         value)
+
+    # use cached config is possible, otherwise - cache it
+    _parseManifest := method(manifest,
+        if (self _cachedConfig isNil, 
+            self _cachedConfig = manifest contents parseJson)
+
+        if (self _cachedConfig at("name") != manifest baseName,
+            self _cachedConfig = manifest contents parseJson)
+
+        self _cachedConfig)
 
     /*doc Database manifestFor(name) 
     Returns manifest `File` for package `name` if it's in the database,

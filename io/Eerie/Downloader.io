@@ -5,16 +5,11 @@ package dependency into the `_tmp` directory.*/
 
 Downloader := Object clone do(
 
-    # TODO сначала downloader должен проверять базу eerie, есть ли там пакет.
-    # Если есть, то берем ссылку оттуда
-
-    /*doc Downloader package 
-    The `Package` for which downloader downloads the dependency.*/
-    package := nil
-
     //doc Downloader url 
     url ::= nil
 
+    # TODO rename to "destinationDir" and remove `root` - always return
+    # `Directory`
     //doc Downloader path
     path ::= nil
 
