@@ -30,136 +30,57 @@ PackageTest := UnitTest clone do (
         assertEquals(e error type, Package NotPackageError type))
 
     testManifestValidator := method(
-        manifest := File with("tests/deleteme") setContents("{}")
-        e := try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
+        self _assertManifestError("{}")
 
-        manifest setContents("""{"name": "Test"}""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
+        self _assertManifestError("""{"name": "Test"}""")
 
-        manifest setContents("""{
+        self _assertManifestError("""{
             "name": "Test", 
             "version": "0.1.0"
             }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
 
-        manifest setContents("""{
+        self _assertManifestError("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test"
             }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
 
-        manifest setContents("""{
+        self _assertManifestError("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test",
-            "path": {}
+            "url": ""
             }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
 
-        manifest setContents("""{
+        self _assertManifestError("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test",
-            "path": {
-                    "git": {}
-                }
+            "url": "path/to/package"
             }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
 
-        manifest setContents("""{
+        self _assertManifestError("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test",
-            "path": {
-                "dir": "test"
-                }
-            }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
-
-        manifest setContents("""{
-            "name": "Test", 
-            "version": "0.1.0",
-            "author": "Test",
-            "path": {
-                "dir": "test"
-                },
+            "url": "path/to/package",
             "protos": ""
             }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
 
-        # shouldn't raise an exception if protos is empty array
-        manifest setContents("""{
+        self _assertManifestError("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test",
-            "path": {
-                "dir": "test"
-                },
-            "protos": []
-            }""")
-        Package ManifestValidator with(manifest) validate
-
-        # dependencies is optional, so an empty array shouldn't raise an
-        # exception
-        manifest setContents("""{
-            "name": "Test", 
-            "version": "0.1.0",
-            "author": "Test",
-            "path": {
-                "dir": "test"
-                },
-            "protos": [],
-            "addons": []
-            }""")
-        Package ManifestValidator with(manifest) validate
-
-        manifest setContents("""{
-            "name": "Test", 
-            "version": "0.1.0",
-            "author": "Test",
-            "path": {
-                "dir": "test"
-                },
+            "url": "path/to/package",
             "protos": [],
             "addons": [ { } ] 
             }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
 
-        manifest setContents("""{
+        self _assertManifestError("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test",
-            "path": {
-                "dir": "test"
-                },
+            "url": "path/to/package",
             "protos": [],
             "addons": [
                     { 
@@ -167,18 +88,34 @@ PackageTest := UnitTest clone do (
                     }
                 ]
             }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertEquals(
-            e error type,
-            Package ManifestValidator InsufficientManifestError type)
 
-        manifest setContents("""{
+        # shouldn't raise an exception if protos is empty array
+        self _assertManifestLegal("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test",
-            "path": {
-                "dir": "test"
-                },
+            "url": "path/to/package",
+            "protos": []
+            }""")
+
+        # dependencies is optional, so an empty array shouldn't raise an
+        # exception
+        self _assertManifestLegal("""{
+            "name": "Test", 
+            "version": "0.1.0",
+            "author": "Test",
+            "url": "path/to/package",
+            "protos": [],
+            "addons": []
+            }""")
+
+        # this shouldn't raise an exception, the dependency supposed to be
+        # published
+        self _assertManifestLegal("""{
+            "name": "Test", 
+            "version": "0.1.0",
+            "author": "Test",
+            "url": "path/to/package",
             "protos": [],
             "addons": [
                     { 
@@ -186,34 +123,19 @@ PackageTest := UnitTest clone do (
                         "version": "0.1"
                     }
                 ]
-            }""")
-        e = try (Package ManifestValidator with(manifest) validate)
+            }"""))
+
+    _assertManifestError := method(contents,
+        manifest := File with("tests/deleteme") setContents(contents)
+        e := try (Package ManifestValidator with(manifest) validate)
         assertEquals(
             e error type,
             Package ManifestValidator InsufficientManifestError type)
+        manifest remove)
 
-        manifest setContents("""{
-            "name": "Test", 
-            "version": "0.1.0",
-            "author": "Test",
-            "path": {
-                "dir": "test"
-            },
-            "protos": [],
-            "addons": [
-                    { 
-                        "name": "Test",
-                        "version": "0.1",
-                        "path": {
-                            "dir": "tests/_addons/AFakeAddon"
-                        }
-                    }
-                ]
-            }""")
-        e = try (Package ManifestValidator with(manifest) validate)
-        assertTrue(e isNil)
-
-        manifest close remove
-    )
+    _assertManifestLegal := method(contents,
+        manifest := File with("tests/deleteme") setContents(contents)
+        Package ManifestValidator with(manifest) validate
+        manifest remove)
 
 )

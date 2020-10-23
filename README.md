@@ -224,20 +224,17 @@ contains fields and their descriptions.
 | `author`                           | `string`        | The author name.                                                             | **REQUIRED**                         |
 | `readme`                           | `string`        | Path to the README file.                                                     | **REQUIRED** for published packages  |
 | `website`                          | `string`        | Package's website address.                                                   | **OPTIONAL**                         |
-| `path`                             | `object`        | The object, which describes from where to install package.                   | **REQUIRED**                         |
-| `path.dir`                         | `string`        | Path to local directory.                                                     | **REQUIRED** if none other specified |
-| `path.git`                         | `object`        | Git details.                                                                 | **REQUIRED** if none other specified |
-| `path.git.url`                     | `string`        | The git link to the package.                                                 | **REQUIRED**                         |
-| `path.git.branch`                  | `string`        | Git branch.                                                                  | **OPTIONAL**                         |
-| `path.git.tag`                     | `string`        | Git tag.                                                                     | **OPTIONAL**                         |
+| `url`                              | `string`        | From where the package should be installed.                                  | **REQUIRED**                         |
+|                                    |                 | Can be a directory, git URL or archive (tarball or zip).                     |                                      |
+| `branch`                           | `string`        | Git branch.                                                                  | **OPTIONAL**                         |
 | `categories`                       | `array<string>` | Categories to which the package applies.                                     | **OPTIONAL**                         |
 | `protos`                           | `array<string>` | Protos which the package exposes.                                            | **REQUIRED**                         |
-| `addons`                           | `object`        | Dependencies of the package.                                                 | **OPTIONAL**                         |
-| `addons.packages`                  | `array<object>` | List of Eerie packages on which the package is dependent.                    | **OPTIONAL**                         |
-| `addons.packages[n].name`          | `string`        | Name of the package.                                                         | **REQUIRED**                         |
-| `addons.packa.packages[n].version` | `string`        | The version of the package. Can be shortened.                                | **REQUIRED**                         |
+| `addons`                           | `array`         | Dependencies of the package.                                                 | **OPTIONAL**                         |
+| `addons[n].name`                   | `string`        | Name of the package.                                                         | **REQUIRED**                         |
+| `addons[n].version`                | `string`        | The version of the package. Can be shortened.                                | **REQUIRED**                         |
 |                                    |                 | The value `"0.1"`, for example, includes all `"0.1"` patches until `"0.2.0"` |                                      |
-| `addons.packages[n].path`          | `object`        | See `path`.                                                                  | **REQUIRED**                         |
+| `addons[n].url`                    | `string`        | See `url`.                                                                   | **REQUIRED** if not published        |
+| `addons[n].branch`                 | `string`        | See `branch`.                                                                | **OPTIONAL**                         |
 
 
 

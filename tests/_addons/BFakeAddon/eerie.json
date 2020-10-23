@@ -5,9 +5,7 @@
     "author": "Test",
     "readme": "",
     "website": "https://iolanguage.github.io/eerie",
-    "path": {
-        "dir": "tests/_addons/BFakeAddon"
-    },
+    "url": "tests/_addons/BFakeAddon",
     "categories": [],
     "protos": [
         "BFakeAddon"
@@ -16,16 +14,12 @@
         {
             "name": "CFakeAddon",
             "version": "0.1",
-            "path": {
-                "dir": "tests/_addons/CFakeAddon"
-            }
+            "url": "tests/_addons/CFakeAddon"
         },
         {
             "name": "AFakeAddon",
             "version": "0.1",
-            "path": {
-                "dir": "tests/_addons/AFakeAddon"
-            }
+            "url": "tests/_addons/AFakeAddon"
         }
     ]
 }

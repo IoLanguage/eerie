@@ -240,11 +240,7 @@ Package ManifestValidator := Object clone do (
         self _checkRequired("name")
         self _checkRequired("version")
         self _checkRequired("author")
-        self _checkRequired("path")
-        self _checkEither("path.dir", "path.git")
-
-        if (self _config at("path") at("git") isNil not,
-            self _checkRequired("path.git.url"))
+        self _checkRequired("url")
 
         # it's allowed to be empty for `protos`
         self _checkField(self _config at("protos") isNil,
@@ -265,11 +261,7 @@ Package ManifestValidator := Object clone do (
 
             self _checkField(
                 dep at("version") isNil,
-                "The \"addons[n].version\" is required.")
-
-            self _checkField(
-                dep at("path") isNil or dep at("path") isEmpty,
-                "The \"addons[n].path\" is required.")))
+                "The \"addons[n].version\" is required.")))
 
         # check's whether a field is not nil and not empty
         # the `field` argument is key with subfields separated by dot:

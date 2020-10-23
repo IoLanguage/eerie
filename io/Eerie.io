@@ -6,6 +6,9 @@ but it also contains some helpful functions.*/
 
 Eerie := Object clone do (
 
+    //doc Eerie databaseUrl Git URL for database repo.
+    databaseUrl := "https://github.com/IoLanguage/eerie-db.git"
+
     //doc Eerie isGlobal Whether the global environment in use. Default `false`.
     //doc Eerie setIsGlobal
     isGlobal ::= false
