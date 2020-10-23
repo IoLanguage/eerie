@@ -34,8 +34,8 @@ Database := Object clone do (
     Returns manifest `File` for package `name` if it's in the database,
     otherwise returns `nil`.*/
     manifestFor := method(name,
-        # TODO
-        name
-    )
+        manifest := File with(self dir path .. "/db/#{name}.json" interpolate)
+        if (manifest exists not, return nil)
+        manifest)
 
 )

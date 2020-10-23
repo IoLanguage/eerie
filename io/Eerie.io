@@ -72,9 +72,9 @@ Eerie := Object clone do (
         stdOut := cmdOut stdout
         stdErr := cmdOut stderr
 
-        prevDir isNil ifFalse(Directory setCurrentWorkingDirectory(prevDir))
-
         Eerie _cleanRunCommand
+
+        prevDir isNil ifFalse(Directory setCurrentWorkingDirectory(prevDir))
         
         if(cmdOut exitStatus != 0,
             Exception raise(
