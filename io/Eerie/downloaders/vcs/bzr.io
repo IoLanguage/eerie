@@ -1,11 +1,11 @@
 # WARNING: Not tested
 bzr := Object clone do(
-  check := method(uri,
+  check := method(url,
     # TODO: More intelligent check
-    uri containsSeq("bzr://"))
+    url containsSeq("bzr://"))
 
   cmd         := "bzr"
-  download    := list("checkout --lightweight #{self uri} #{self path}")
+  download    := list("checkout --lightweight #{self url} #{self path}")
   update      := list("update")
   hasUpdates  := method(
     # TODO: Find out if there is a way to determine if

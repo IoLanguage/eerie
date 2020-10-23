@@ -103,7 +103,7 @@ Builder := Object clone do (
 
     _buildStaticLib := method(
         Eerie log(
-            "🔗  Linking #{self package staticLibFileName}"asUTF8,
+            "🧩  Linking #{self package staticLibFileName}"asUTF8,
             "output")
 
         self staticLibBuildStarted
@@ -111,7 +111,7 @@ Builder := Object clone do (
         Eerie sh(self _staticLinkerCommand asSeq))
 
     _buildDynLib := method(
-        Eerie log("🔗  Linking #{self package dllFileName}"asUTF8, "output")
+        Eerie log("🧩  Linking #{self package dllFileName}"asUTF8, "output")
 
         self dynLibBuildStarted
 

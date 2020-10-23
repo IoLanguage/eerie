@@ -186,19 +186,6 @@ Package := Object clone do (
         p := self config at("protos")
         if(p isNil, list(), p))
 
-    /*doc Package dependencies([category])
-    Returns list of dependencies this package has. <code>category</code> can be 
-    <code>protos</code>, <code>packages</code>, <code>headers</code> or 
-    <code>libs</code>.*/
-    dependencies := method(category,
-        # TODO when we refactor dependencies -> addons, this should be
-        # refactored too
-        # TODO also from the docs it's not clear how this method is different
-        # from `packages`
-        d := self config at("dependencies")
-        if(category and d and d isEmpty not, d = d at(category))
-        if(d isNil, list(), d))
-
     /*doc Package runHook(hookName) 
     Runs Io script with hookName in package's `hooks` directory if it exists.*/
     runHook := method(hook,

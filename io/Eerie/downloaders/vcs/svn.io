@@ -1,12 +1,12 @@
 svn := Object clone do(
-    check := method(uri,
-        if(uri containsSeq("git://") or uri containsSeq(".git"), return false)
-        r := System runCommand("svn info " .. uri)
+    check := method(url,
+        if(url containsSeq("git://") or url containsSeq(".git"), return false)
+        r := System runCommand("svn info " .. url)
         r exitStatus == 0 and r stderr containsSeq("Not a valid") not
     )
 
     cmd         := "svn"
-    download    := list("co #{self uri} #{self path}")
+    download    := list("co #{self url} #{self path}")
     update      := list("up")
 
     hasUpdates  := method(path,

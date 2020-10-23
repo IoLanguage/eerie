@@ -6,16 +6,32 @@ but it also contains some helpful functions.*/
 
 Eerie := Object clone do (
 
-    //doc Eerie databaseUrl Git URL for database repo.
-    databaseUrl := "https://github.com/IoLanguage/eerie-db.git"
-
     //doc Eerie isGlobal Whether the global environment in use. Default `false`.
     //doc Eerie setIsGlobal
     isGlobal ::= false
     
+    //doc Eerie database Get instance of `Database` Eerie uses.
+    database := nil
+
     init := method(
         # call this to check whether EERIEDIR set
-        self root)
+        self root
+        self database := Database clone
+        if (self database needsUpdate, self _warnDbUpdate))
+
+    _warnDbUpdate := method(
+        Eerie log("❕  The database is outdated" asUTF8, "output"))
+
+    //doc Eerie root Returns value of EERIEDIR environment variable.
+    root := method(
+        path := System getEnvironmentVariable("EERIEDIR") \
+            ?stringByExpandingTilde
+        if(path isNil or path isEmpty,
+            Exception raise(EerieDirNotSetError with("")))
+        path)
+
+    //doc Eerie dbDir Get `Directory` of database.
+    dbDir := method(Directory with(self root .. "/db/db"))
 
     //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
     platform := System platform split at(0) asLowercase
@@ -37,25 +53,20 @@ Eerie := Object clone do (
     //doc Eerie ioHeadersPath Returns path (`Sequence`) to io headers.
     ioHeadersPath := method(Eerie root .. "/ioheaders")
 
-    //doc Eerie root Returns value of EERIEDIR environment variable.
-    root := method(
-        path := System getEnvironmentVariable("EERIEDIR") \
-            ?stringByExpandingTilde
-        if(path isNil or path isEmpty,
-            Exception raise(EerieDirNotSetError with("")))
-        path)
-
-    /*doc Eerie sh(cmd[, dir=cwd])
+    /*doc Eerie sh(cmd[, silent=false, path=cwd])
     Executes system command. Raises exception with `Eerie SystemCommandError` on
-    failure.*/
-    sh := method(cmd, dir,
-        Eerie log(cmd, "console")
+    failure. Will not print any output if `silent` is `true`.
+
+    Returns the object returned by `System runCommand`.*/
+    sh := method(cmd, silent, path,
+        if (silent not, Eerie log(cmd, "console"))
+        
         prevDir := nil
         dirPrefix := ""
-        if(dir != nil and dir != ".",
-            dirPrefix = "cd " .. dir .. " && "
+        if(path != nil and path != ".",
+            dirPrefix = "cd " .. path .. " && "
             prevDir = Directory currentWorkingDirectory
-            Directory setCurrentWorkingDirectory(dir))
+            Directory setCurrentWorkingDirectory(path))
 
         cmdOut := System runCommand(dirPrefix .. cmd)
         stdOut := cmdOut stdout
@@ -69,7 +80,8 @@ Eerie := Object clone do (
             Exception raise(
                 SystemCommandError with(cmd, cmdOut exitStatus, stdErr)))
 
-        cmdOut exitStatus)
+        cmdOut)
+
 
     # remove *-stdout and *-stderr files, which are kept in result of
     # System runCommand call

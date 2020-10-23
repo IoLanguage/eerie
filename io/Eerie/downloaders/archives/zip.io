@@ -1,4 +1,4 @@
-zip := Object clone do(
-  extensions  := list("zip")
-  cmd         := "unzip #{self uri} -d #{self path}"
+zip := Object clone do (
+    extensions := list("zip")
+    cmd := "unzip #{self url} -d #{self path}"
 )

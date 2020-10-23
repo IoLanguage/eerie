@@ -18,7 +18,7 @@ VcsDownloader := Eerie Downloader clone do(
     )
 
     chooseVcs := lazySlot(
-        self setChosenVcs(self vcs getSlot(self whichVcs(self uri)))
+        self setChosenVcs(self vcs getSlot(self whichVcs(self url)))
     )
 
     // Reimplementation of default Downloader methods
@@ -49,7 +49,7 @@ VcsDownloader := Eerie Downloader clone do(
         )
 
         # FIXME this should be replaced with exception catch
-        statusCode := Eerie sh((self chosenVcs cmd) .. " " .. args, dir)
+        statusCode := Eerie sh(self chosenVcs cmd .. " " .. args, false, dir)
         if(statusCode == 0, return true, return false)
     )
 

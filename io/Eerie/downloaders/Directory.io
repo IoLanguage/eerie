@@ -1,10 +1,10 @@
 DirectoryDownloader := Eerie Downloader clone do(
-    canDownload := method(uri,
-        Directory with(uri) exists
+    canDownload := method(url,
+        Directory with(url) exists
     )
 
     download := method(
-        self uri copyTo(self path)
+        self url copyTo(self path)
         return true)
 
     update := getSlot("download")
@@ -14,7 +14,7 @@ DirectoryDownloader := Eerie Downloader clone do(
         # not really what we need.
         # TODO: 
         # Directory doesen't provide lastDataChange method
-        #original  := File with(self uri)  lastDataChangeDate
+        #original  := File with(self url)  lastDataChangeDate
         #copy      := File with(self path) lastDataChangeDate
         #original > copy
 
