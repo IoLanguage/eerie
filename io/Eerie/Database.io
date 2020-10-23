@@ -7,7 +7,7 @@ Database := Object clone do (
     //doc Database url Git URL for database repo.
     url := "https://github.com/IoLanguage/eerie-db.git"
 
-    //doc Database dir Directory of database.
+    //doc Database dir `Directory` of the database.
     dir := method(Directory with(Eerie root .. "/db"))
 
     init := method(if (self dir exists not, self _clone))
@@ -30,7 +30,22 @@ Database := Object clone do (
         Eerie sh("git fetch --prune", true, self dir path)
         Eerie sh("git merge", true, self dir path))
 
-    /*doc Database manifestFor 
+    /*doc Database valueFor(pkgName, key)
+    Returns value at `key` (`Sequence`) from package (`pkgName` (`Sequence`))
+    manifest if the package in the database, otherwise returns `nil`. 
+
+    The `key` is a field name with subfields separated by dot: `foo.bar.baz`.*/
+    valueFor := method(pkgName, key,
+        manifest := self manifestFor(pkgName)
+        if (manifest isNil, return nil)
+
+        split := key split(".")
+        value := manifest contents parseJson
+        split foreach(key, value = value at(key))
+
+        value)
+
+    /*doc Database manifestFor(name) 
     Returns manifest `File` for package `name` if it's in the database,
     otherwise returns `nil`.*/
     manifestFor := method(name,

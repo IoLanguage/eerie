@@ -20,7 +20,7 @@ Downloader := Object clone do(
 
     /*doc Downloader root Directory object pointing to
     [[Downloader path]].*/
-    root := method(self root = Directory with(self path))
+    root := lazySlot(Directory with(self path))
 
     //doc Downloader with(url, path) Creates a new [[Downloader]].
     with := method(uri_, path_, self clone setUri(uri_) setPath(path_))
@@ -30,6 +30,9 @@ Downloader := Object clone do(
     downloader is found, a clone with provided URI and path is returned.
     Otherwise an exception is thrown.*/
     detect := method(uri_, path_,
+        # TODO uri -> query
+        uri := Eerie database valueFor(uri_, "url") ifNilEval(uri_)
+
         self instances foreachSlot(slotName, downloader,
             downloader canDownload(uri_) ifTrue(
                 Eerie log("Using #{slotName} for #{uri_}", "debug")
