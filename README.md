@@ -7,8 +7,6 @@ The package manager for Io.
 
 ## Installation
 
-There's a big chance you already installed it with Io. Follow the below
-instructions only if you're sure you didn't.
 
 ### Linux, macOS
 
