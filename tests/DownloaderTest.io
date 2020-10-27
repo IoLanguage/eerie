@@ -6,4 +6,5 @@ DownloaderTest := UnitTest clone do (
     testDetect := method(
 
     )
+
 )

@@ -11,7 +11,7 @@ testsEndingWith := method(str,
 testsStartingAndEndingWith := method(startStr, endStr,
     testsDir files select(file, 
         baseName := file baseName
-        baseName startsWithSeq(startStr) and baseName endsWithSeq(endStr)))
+        baseName beginsWithSeq(startStr) and baseName endsWithSeq(endStr)))
 
 testWithName := method(str, File with(testsDir path .. "/" .. str .. ".io"))
 
