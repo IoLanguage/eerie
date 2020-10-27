@@ -8,5 +8,5 @@ git := Object clone do(
         "clone #{self url} #{self destDir path}",
         "submodule init",
         "submodule update")
-    
+
 )
