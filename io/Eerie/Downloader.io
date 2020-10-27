@@ -66,7 +66,7 @@ Downloader do (
 
 //doc Downloader instances Contains all Downloader clones
 Downloader instances := Object clone do (
-    doRelativeFile("downloaders/Vcs.io")
-    doRelativeFile("downloaders/Archive.io")
-    doRelativeFile("downloaders/Directory.io")
+    doRelativeFile("downloaders/vcs.io")
+    doRelativeFile("downloaders/archive.io")
+    doRelativeFile("downloaders/directory.io")
 )

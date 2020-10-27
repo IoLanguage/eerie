@@ -3,9 +3,9 @@ Importer addSearchPath("io/Eerie")
 
 DownloaderTest := UnitTest clone do (
 
-    doFile("io/Eerie/downloaders/Directory.io")
-    doFile("io/Eerie/downloaders/Vcs.io")
-    doFile("io/Eerie/downloaders/Archive.io")
+    doFile("io/Eerie/downloaders/directory.io")
+    doFile("io/Eerie/downloaders/vcs.io")
+    doFile("io/Eerie/downloaders/archive.io")
 
     testDetect := method(
         Database dir := Directory with("tests/db")
