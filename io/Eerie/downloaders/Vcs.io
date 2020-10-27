@@ -1,8 +1,8 @@
 VcsDownloader := Eerie Downloader clone do(
     vcs := Object clone do(
         doRelativeFile("vcs/git.io")
-        doRelativeFile("vcs/svn.io")
-        doRelativeFile("vcs/hg.io")
+        # doRelativeFile("vcs/svn.io")
+        # doRelativeFile("vcs/hg.io")
     )
 
     chosenVcs ::= nil
