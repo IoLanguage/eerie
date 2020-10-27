@@ -62,13 +62,11 @@ Eerie := Object clone do (
         if (silent not, Eerie log(cmd, "console"))
         
         prevDir := nil
-        dirPrefix := ""
         if(path != nil and path != ".",
-            dirPrefix = "cd " .. path .. " && "
             prevDir = Directory currentWorkingDirectory
             Directory setCurrentWorkingDirectory(path))
 
-        cmdOut := System runCommand(dirPrefix .. cmd)
+        cmdOut := System runCommand(cmd)
         stdOut := cmdOut stdout
         stdErr := cmdOut stderr
 
