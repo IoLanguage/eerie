@@ -1,8 +1,8 @@
 //metadoc Downloader category API
 /*metadoc Downloader description 
-The proto the purpose of which is to detect how and then to download a package.
-The `Downloader` itself is abstract, look specific implementations for
-particular strategies (directory, archive or version control system (VCS)).*/
+The purpose of this proto is to detect how and then to download a package. The
+`Downloader` itself is abstract, look specific implementations for particular
+strategies (directory, archive or version control system (VCS)).*/
 
 Downloader := Object clone do (
 
@@ -21,17 +21,23 @@ Downloader := Object clone do (
     downloader should download.*/
     with := method(url, dir, self clone setUrl(url) setDestDir(dir))
 
-    /*doc Downloader detect(url, path)
-    Looks for [[Downloader]] which understands provided URI. If suitable
-    downloader is found, a clone with provided URI and path is returned.
-    Otherwise an exception is thrown.*/
-    detect := method(query, path,
+    /*doc Downloader detect(query, dir)
+    - `query` - package name, URL or path to a local directory
+    - `dir` - destination `Directory` to where to downloader should download
+
+    First it tries to find the package in the database and then it looks for an
+    instance of [[Downloader]], which understands provided URL.
+    
+    If a suitable downloader is found, returns an instance of it initialized
+    using `Downloader with(url, dir)`, otherwise raises an exception with
+    `Downloader DetectError`.*/
+    detect := method(query, dir,
         uri := Eerie database valueFor(query, "url") ifNilEval(query)
 
         self instances foreachSlot(slotName, downloader,
-            downloader canDownload(query) ifTrue(
+            downloader canDownload(uri) ifTrue(
                 Eerie log("Using #{slotName} for #{query}", "debug")
-                return downloader with(query, path)))
+                return downloader with(uri, dir)))
 
         Exception raise(DetectError with(query)))
 
