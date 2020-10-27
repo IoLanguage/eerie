@@ -1,6 +1,5 @@
 Importer addSearchPath("io")
 Importer addSearchPath("io/Eerie")
-Importer addSearchPath("io/Eerie/downloaders")
 
 DownloaderTest := UnitTest clone do (
 
@@ -18,28 +17,36 @@ DownloaderTest := UnitTest clone do (
         assertEquals(downloader type, DirectoryDownloader type)
         assertEquals(downloader url, db valueFor(pkgName, "url"))
 
-        # url := "foo/bar/baz"
-        # downloader = Downloader detect(url, destDir)
-        # assertEquals(downloader type, DirectoryDownloader type)
-        # assertEquals(downloader url, url)
+        self _expectDownloaderTypeFor("tests/db", DirectoryDownloader type)
 
-        url := "https://github.com/test/test.git"
-        downloader = Downloader detect(url, destDir)
-        assertEquals(downloader type, VcsDownloader type)
-        assertEquals(downloader url, url)
+        self _expectDownloaderTypeFor(
+            "https://github.com/test/test.git",
+            VcsDownloader type)
 
-        url := "https://something.com/package.zip"
-        downloader = Downloader detect(url, destDir)
-        assertEquals(downloader type, ArchiveDownloader type)
-        assertEquals(downloader url, url)
+        self _expectDownloaderTypeFor(
+            "https://something.com/package.zip",
+            ArchiveDownloader type)
         
-        url := "https://something.com/package.tar.gz"
-        downloader = Downloader detect(url, destDir)
-        assertEquals(downloader type, ArchiveDownloader type)
-        assertEquals(downloader url, url)
+        self _expectDownloaderTypeFor(
+            "foo/bar/package.zip",
+            ArchiveDownloader type)
+
+        self _expectDownloaderTypeFor(
+            "https://something.com/package.tar.gz",
+            ArchiveDownloader type)
+
+        self _expectDownloaderTypeFor(
+            "foo/bar/package.tar.gz",
+            ArchiveDownloader type)
 
         url := "https://google.com"
         e := try (Downloader detect(url, destDir))
         assertEquals(e error type, Downloader DetectError type))
+
+    _expectDownloaderTypeFor := method(url, expected,
+        destDir := Directory with("tests/rm_me_downloader_dest")
+        downloader := Downloader detect(url, destDir)
+        assertEquals(downloader type, expected)
+        assertEquals(downloader url, url))
 
 )
