@@ -38,12 +38,4 @@ VcsDownloader := Eerie Downloader clone do(
         statusCode := Eerie sh(self chosenVcs cmd .. " " .. args, false, dir)
         if(statusCode == 0, return true, return false))
 
-    update = method(
-        self chooseVcs
-        self runCommands(self chosenVcs update))
-
-    hasUpdates = method(
-        self chooseVcs
-        self chosenVcs hasUpdates(self destDir path))
-
 )
