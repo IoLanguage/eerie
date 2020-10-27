@@ -1,11 +1,11 @@
 VcsDownloader := Eerie Downloader clone do(
-    vcs := Object clone do(
-        doRelativeFile("vcs/git.io")
-        # doRelativeFile("vcs/svn.io")
-        # doRelativeFile("vcs/hg.io")
-    )
 
     chosenVcs ::= nil
+
+    vcs := Object clone do (
+        doRelativeFile("vcs/git.io")
+        doRelativeFile("vcs/svn.io")
+    )
 
     whichVcs := method(_uri,
         self vcs slotNames foreach(name,
@@ -14,28 +14,31 @@ VcsDownloader := Eerie Downloader clone do(
                 break))
         nil)
 
-    chooseVcs := lazySlot(
-        self setChosenVcs(self vcs getSlot(self whichVcs(self url))))
-
-    // Reimplementation of default Downloader methods
     canDownload = method(_uri, self whichVcs(_uri) != nil)
 
     download = method(
-        self chooseVcs
-        self destDir files isEmpty ifTrue(self destDir remove)
-        self runCommands(self chosenVcs download))
+        self _chooseVcs
+        if (self destDir files isEmpty, 
+            self destDir remove)
+        self _runCommands(self chosenVcs download))
 
-    runCommands := method(cmds,
-        cmds foreach(cmd, self vcsCmd(cmd interpolate))
+    _chooseVcs := lazySlot(
+        self setChosenVcs(self vcs getSlot(self whichVcs(self url))))
 
-        true)
+    _runCommands := method(cmds,
+        cmds foreach(cmd, self _vcsCmd(cmd interpolate)))
 
-    vcsCmd := method(args,
+    _vcsCmd := method(args,
         dir := nil
-        Directory with(self destDir path) exists ifTrue(dir = self destDir path)
 
-        # FIXME this should be replaced with exception catch
-        statusCode := Eerie sh(self chosenVcs cmd .. " " .. args, false, dir)
-        if(statusCode == 0, return true, return false))
+        if (Directory with(self destDir path) exists, 
+            dir = self destDir path)
+
+        e := try (
+            Eerie sh(self chosenVcs cmd .. " " .. args, false, dir))
+
+        e catch (
+            Exception raise(
+                Downloader DownloadError with(self url, e error message))))
 
 )

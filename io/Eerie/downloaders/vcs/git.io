@@ -1,4 +1,4 @@
-git := Object clone do(
+git := Object clone do (
 
     cmd := "git"
 

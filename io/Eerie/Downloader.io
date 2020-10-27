@@ -50,13 +50,20 @@ Downloader := Object clone do (
     canDownload := method(url, false)
 
     /*doc Downloader download
-    Downloads package from `self url` to `self path`.*/
-    download := method(false)
+    Downloads package from `self url` to `self path`. 
+
+    Raises `Downloader DownloadError` on failure.*/
+    download := method()
 
 )
 
 # Error types
 Downloader do (
+
+    //doc Downloader DownloadError
+    DownloadError := Eerie Error clone setErrorMsg(
+        "Failed download package from #{call evalArgAt(0)}:\n" ..
+        "#{call evalArgAt(1)}")
 
     //doc Downloader DetectError
     DetectError := Eerie Error clone setErrorMsg(

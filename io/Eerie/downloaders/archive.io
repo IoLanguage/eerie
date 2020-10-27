@@ -1,5 +1,6 @@
-ArchiveDownloader := Eerie Downloader clone do(
-    formats := Object clone do(
+ArchiveDownloader := Eerie Downloader clone do (
+
+    formats := Object clone do (
         doRelativeFile("archives/targz.io")
         doRelativeFile("archives/tarbz2.io")
         doRelativeFile("archives/7zip.io")
@@ -10,37 +11,44 @@ ArchiveDownloader := Eerie Downloader clone do(
     whichFormat := method(uri_,
         self formats slotNames foreach(name,
             self formats getSlot(name) extensions foreach(ext,
-                uri_ containsSeq("." .. ext) ifTrue(
-                    return(name))))
+                if (uri_ containsSeq("." .. ext), return name)))
 
         nil)
 
-    canDownload := method(uri_, self whichFormat(uri_) != nil)
+    canDownload = method(uri_, self whichFormat(uri_) != nil)
 
-    download := method(
+    download = method(
         self format := self formats getSlot(self whichFormat(self url))
         tmpFile := nil
 
-        self url containsSeq("http") ifTrue(
+        if (self url containsSeq("http"),
+            # TODO we should create a Url downloader, for which we download
+            # first and then we locally determine what kind of downloader we
+            # should use next
             tmpFile = Package global tmpDir fileNamed(self url split("/") last)
             URL with(self url) fetchToFile(tmpFile)
-            tmpFile exists ifFalse(
+
+            if (tmpFile exists not,
                 Exception raise(
-                    Downloader FailedDownloadError with(self url)))
+                    Downloader DownloadError with(
+                        self url,
+                        "Error fetching to temporary file.")))
+
             self url = tmpFile path)
 
-        # TODO: does it compatible with Windows?
-        Eerie sh(self format cmd interpolate) 
+        e := try (Eerie sh(self format cmd interpolate))
+
+        e catch (
+            Exception raise(
+                Downloader DownloadError with(self url, e error message)))
 
         # If archive contains a directory with all the code we need to move
         # everything out of there
-        (self destDir directories size == 1 and self destDir files isEmpty) ifTrue(
+        if (self destDir directories size == 1 and self destDir files isEmpty,
             extraDir := self destDir directories first name
-            Directory with(self destDir path .. "/" .. extraDir) moveTo(self destDir path))
+            Directory with(
+                self destDir path .. "/" .. extraDir) moveTo(self destDir path))
 
-        tmpFile ?remove
+        tmpFile ?remove)
 
-        true)
-
-    hasUpdates := method(false)
 )

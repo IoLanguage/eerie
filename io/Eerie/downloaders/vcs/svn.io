@@ -1,4 +1,4 @@
-svn := Object clone do(
+svn := Object clone do (
 
     cmd := "svn"
 
