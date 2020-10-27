@@ -1,40 +1,39 @@
 //metadoc Downloader category API
 /*metadoc Downloader description 
-The abstract proto the purpose of which is to detect how and then to download a
-package dependency into the `_tmp` directory.*/
+The proto the purpose of which is to detect how and then to download a package.
+The `Downloader` itself is abstract, look specific implementations for
+particular strategies (directory, archive or version control system (VCS)).*/
 
-Downloader := Object clone do(
+Downloader := Object clone do (
 
-    //doc Downloader url 
+    /*doc Downloader url 
+    URL from which `Downloader` should download the package.*/
+    //doc Downloader setUrl `Downloader url` setter.
     url ::= nil
 
-    # TODO rename to "destinationDir" and remove `root` - always return
-    # `Directory`
-    //doc Downloader path
-    path ::= nil
+    //doc Downloader destDir The destination `Directory`, to where to download.
+    //doc Downloader setDestDir `Downloader destDir` setter. 
+    destDir ::= nil
 
-    /*doc Downloader root Directory object pointing to
-    [[Downloader path]].*/
-    root := lazySlot(Directory with(self path))
-
-    //doc Downloader with(url, path) Creates a new [[Downloader]].
-    with := method(uri_, path_, self clone setUri(uri_) setPath(path_))
+    /*doc Downloader with(url, dir) 
+    [[Downloader]] initializer, where `url` is a `Sequence` from where the
+    downloader should download, and `dir` is a `Directory` into which the
+    downloader should download.*/
+    with := method(url, dir, self clone setUrl(url) setDestDir(dir))
 
     /*doc Downloader detect(url, path)
     Looks for [[Downloader]] which understands provided URI. If suitable
     downloader is found, a clone with provided URI and path is returned.
     Otherwise an exception is thrown.*/
-    detect := method(uri_, path_,
-        # TODO uri -> query
-        uri := Eerie database valueFor(uri_, "url") ifNilEval(uri_)
+    detect := method(query, path,
+        uri := Eerie database valueFor(query, "url") ifNilEval(query)
 
         self instances foreachSlot(slotName, downloader,
-            downloader canDownload(uri_) ifTrue(
-                Eerie log("Using #{slotName} for #{uri_}", "debug")
-                return(downloader with(uri_, path_))))
+            downloader canDownload(query) ifTrue(
+                Eerie log("Using #{slotName} for #{query}", "debug")
+                return downloader with(query, path)))
 
-        Exception raise(
-            "Don't know how to download package from #{uri_}" interpolate))
+        Exception raise(DetectError with(query)))
 
     /*doc Downloader canDownload(url) 
     Returns `true` if it understands provided URI and `false` otherwise.*/
@@ -44,20 +43,14 @@ Downloader := Object clone do(
     Downloads package from `self url` to `self path`.*/
     download := method(false)
 
-    //doc Downloader hasUpdates
-    hasUpdates := method(false)
-
-    //doc Downloader update Updates the package.
-    update := method(true)
-
 )
 
 # Error types
 Downloader do (
 
-    //doc Downloader FailedDownloadError
-    FailedDownloadError := Eerie Error clone setErrorMsg(
-        "Fetching package from #{call evalArgAt(0)} failed.")
+    //doc Downloader DetectError
+    DetectError := Eerie Error clone setErrorMsg(
+        "Don't know hot to download the package from #{call evalArgAt(0)}")
 
 )
 

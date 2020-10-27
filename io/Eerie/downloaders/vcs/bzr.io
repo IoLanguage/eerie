@@ -5,7 +5,7 @@ bzr := Object clone do(
     url containsSeq("bzr://"))
 
   cmd         := "bzr"
-  download    := list("checkout --lightweight #{self url} #{self path}")
+  download    := list("checkout --lightweight #{self url} #{self destDir path}")
   update      := list("update")
   hasUpdates  := method(
     # TODO: Find out if there is a way to determine if

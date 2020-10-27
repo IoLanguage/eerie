@@ -6,7 +6,7 @@ svn := Object clone do(
     )
 
     cmd         := "svn"
-    download    := list("co #{self url} #{self path}")
+    download    := list("co #{self url} #{self destDir path}")
     update      := list("up")
 
     hasUpdates  := method(path,

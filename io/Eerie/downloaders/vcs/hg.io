@@ -6,7 +6,7 @@ hg := Object clone do(
     )
 
     cmd         := "hg"
-    download    := list("clone #{self url} #{self path}")
+    download    := list("clone #{self url} #{self destDir path}")
     update      := list("update tip")
     hasUpdates  := method(true)
 )

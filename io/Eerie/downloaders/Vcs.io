@@ -22,7 +22,7 @@ VcsDownloader := Eerie Downloader clone do(
 
     download = method(
         self chooseVcs
-        self root files isEmpty ifTrue(self root remove)
+        self destDir files isEmpty ifTrue(self destDir remove)
         self runCommands(self chosenVcs download))
 
     runCommands := method(cmds,
@@ -32,7 +32,7 @@ VcsDownloader := Eerie Downloader clone do(
 
     vcsCmd := method(args,
         dir := nil
-        Directory with(self path) exists ifTrue(dir = self path)
+        Directory with(self destDir path) exists ifTrue(dir = self destDir path)
 
         # FIXME this should be replaced with exception catch
         statusCode := Eerie sh(self chosenVcs cmd .. " " .. args, false, dir)
@@ -44,6 +44,6 @@ VcsDownloader := Eerie Downloader clone do(
 
     hasUpdates = method(
         self chooseVcs
-        self chosenVcs hasUpdates(self path))
+        self chosenVcs hasUpdates(self destDir path))
 
 )

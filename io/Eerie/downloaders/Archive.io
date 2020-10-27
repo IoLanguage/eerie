@@ -34,9 +34,9 @@ ArchiveDownloader := Eerie Downloader clone do(
 
         # If archive contains a directory with all the code we need to move
         # everything out of there
-        (self root directories size == 1 and self root files isEmpty) ifTrue(
-            extraDir := self root directories first name
-            Directory with(self path .. "/" .. extraDir) moveTo(self path))
+        (self destDir directories size == 1 and self destDir files isEmpty) ifTrue(
+            extraDir := self destDir directories first name
+            Directory with(self destDir path .. "/" .. extraDir) moveTo(self destDir path))
 
         tmpFile ?remove
 

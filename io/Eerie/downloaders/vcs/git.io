@@ -5,7 +5,7 @@ git := Object clone do(
     )
 
     cmd         := "git"
-    download    := list("clone #{self url} #{self path}", "submodule init", "submodule update")
+    download    := list("clone #{self url} #{self destDir path}", "submodule init", "submodule update")
     update      := list("pull", "submodule update")
 
     # Unfortunately, this isn't working as expected and there seems to be
