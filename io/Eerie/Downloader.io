@@ -15,15 +15,19 @@ Downloader := Object clone do (
     //doc Downloader setDestDir `Downloader destDir` setter. 
     destDir ::= nil
 
-    /*doc Downloader with(url, dir) 
+    /*doc Downloader with(url, root) 
     [[Downloader]] initializer, where `url` is a `Sequence` from where the
-    downloader should download, and `dir` is a `Directory` into which the
-    downloader should download.*/
-    with := method(url, dir, self clone setUrl(url) setDestDir(dir))
+    downloader should download, and `root` is a `Directory` where the downloader
+    will create a directory (`Downloader destDir`) with random name to download
+    package into it.*/
+    with := method(url, root,
+        destName := Random bytes(16) asHex
+        self clone setUrl(url) setDestDir(root createSubdirectory(destName)))
 
-    /*doc Downloader detect(query, dir)
+    /*doc Downloader detect(query, root)
     - `query` - package name, URL or path to a local directory
-    - `dir` - destination `Directory` to where to downloader should download
+    - `root` - root `Directory` where the downloader will create a directory to
+    where to download package
 
     First it tries to find the package in the database and then it looks for an
     instance of [[Downloader]], which understands provided URL.

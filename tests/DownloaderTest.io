@@ -9,11 +9,11 @@ DownloaderTest := UnitTest clone do (
 
     testDetect := method(
         Database dir := Directory with("tests/db")
-        destDir := Directory with("tests/rm_me_downloader_dest")
+        destRoot := Directory with("tests/rm_me_downloader_dest")
 
         db := Database clone
         pkgName := "AFakeAddon"
-        downloader := Downloader detect(pkgName, destDir)
+        downloader := Downloader detect(pkgName, destRoot)
         assertEquals(downloader type, DirectoryDownloader type)
         assertEquals(downloader url, db valueFor(pkgName, "url"))
 
@@ -40,12 +40,12 @@ DownloaderTest := UnitTest clone do (
             ArchiveDownloader type)
 
         url := "https://google.com"
-        e := try (Downloader detect(url, destDir))
+        e := try (Downloader detect(url, destRoot))
         assertEquals(e error type, Downloader DetectError type))
 
     _expectDownloaderTypeFor := method(url, expected,
-        destDir := Directory with("tests/rm_me_downloader_dest")
-        downloader := Downloader detect(url, destDir)
+        destRoot := Directory with("tests/rm_me_downloader_dest")
+        downloader := Downloader detect(url, destRoot)
         assertEquals(downloader type, expected)
         assertEquals(downloader url, url))
 
