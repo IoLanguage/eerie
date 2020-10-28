@@ -205,7 +205,7 @@ contains fields and their descriptions.
 | `readme`                           | `string`        | Path to the README file.                                                     | **REQUIRED** for published packages  |
 | `website`                          | `string`        | Package's website address.                                                   | **OPTIONAL**                         |
 | `url`                              | `string`        | From where the package should be installed.                                  | **REQUIRED**                         |
-|                                    |                 | Can be a directory, git URL or archive (tarball or zip).                     |                                      |
+|                                    |                 | Can be a path to directory or a git URL.                                     |                                      |
 | `branch`                           | `string`        | Git branch.                                                                  | **OPTIONAL**                         |
 | `categories`                       | `array<string>` | Categories to which the package applies.                                     | **OPTIONAL**                         |
 | `protos`                           | `array<string>` | Protos which the package exposes.                                            | **REQUIRED**                         |
@@ -213,7 +213,7 @@ contains fields and their descriptions.
 | `addons[n].name`                   | `string`        | Name of the package.                                                         | **REQUIRED**                         |
 | `addons[n].version`                | `string`        | The version of the package. Can be shortened.                                | **REQUIRED**                         |
 |                                    |                 | The value `"0.1"`, for example, includes all `"0.1"` patches until `"0.2.0"` |                                      |
-| `addons[n].url`                    | `string`        | See `url`.                                                                   | **REQUIRED** if not published        |
+| `addons[n].url`                    | `string`        | See `url`.                                                                   | **OPTIONAL** for published           |
 | `addons[n].branch`                 | `string`        | See `branch`.                                                                | **OPTIONAL**                         |
 
 

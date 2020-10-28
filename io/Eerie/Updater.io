@@ -37,6 +37,16 @@ Updater := Object clone do (
         klone _checkSamePackage
         klone)
 
+    update := method(
+        # TODO
+        # updateVersion == packageVersion
+        #     nothing to update
+        # updateVersion > packageVersion
+        #     update to updateVersion
+        # updateVersion < packageVersion
+        #     DOWNGRADE to updateVersion
+    )
+
     # check whether we trying to update the same package
     _checkSamePackage := method(
         if (self targetPackage name != self newerPackage name,
