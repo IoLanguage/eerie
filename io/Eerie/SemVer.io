@@ -15,22 +15,32 @@ should be shortened from the end. For example, `0.1.0-beta` is legal, but
 */
 
 SemVer := Object clone do(
+
     //doc SemVer major Major version number (i.e. `A` in `A.B.C-D.E`).
     major := nil
+
     //doc SemVer minor Minor version number (i.e. `B` in `A.B.C-D.E`).
     minor := nil
+
     //doc SemVer patch Patch number (i.e. `B` in `A.B.C-D.E`).
     patch := nil
+
     /*doc SemVer pre Pre-release status (i.e. `D` in `A.B.C-D.E`, `ALPHA`,
     `BETA` or `RC`).*/
     pre := nil
+    
     //doc SemVer preNumber Pre-release version number (i.e. `E` in `A.B.C-D.E`).
     preNumber := nil
+
+    /*doc SemVer originalSeq 
+    The `Sequence` from which this `SemVer` was initialized.*/
+    originalSeq := nil
 
     /*doc SemVer fromSeq(versionSeq) Init `SemVer` instance from the given
     `Sequence`.*/
     fromSeq := method(verSeq,
         res := self clone
+        res originalSeq = verSeq
         spl := self _stripWord(verSeq) split("-")
         if(spl isEmpty or spl size > 2,
             Exception raise(ErrorNotRecognised clone)) 
@@ -74,6 +84,33 @@ SemVer := Object clone do(
         preNum := spl at(1) ?asNumber
         if(preNum ?isNan, Exception raise(ErrorIlligibleVersioning clone))
         self preNumber = spl at(1) ?asNumber)
+
+    /*doc SemVer nextVersion 
+    Get next version from known numbers. For example, if the version is
+    shortened to "v1.0" it will return version "v1.1".*/
+    nextVersion := method(
+        # we make a temporary clone of self to modify it and then init a new
+        # `SemVer` from it. This way we get a `SemVer` with correct `originalSeq`
+        tempVer := self clone
+
+        if (self isPre and self preNumber) then (
+           tempVer preNumber = tempVer preNumber + 1
+        ) elseif (self isPre) then (
+           tempVer pre = self _nextPre(tempVer pre)
+       ) elseif (self patch isNil not) then (
+           tempVer patch = tempVer patch + 1
+       ) elseif (self minor isNil not) then (
+           tempVer minor = tempVer minor + 1
+       ) else (
+           tempVer major = tempVer major + 1)
+
+       return SemVer fromSeq(tempVer asSeq))
+
+    _nextPre := method(word,
+        if (word == "ALPHA") then (
+            return "BETA"
+        ) elseif (word == "BETA") then (
+            return "RC"))
 
     /*doc SemVer isPre Returns `true` if the version is pre-release and `false`
     otherwise.*/

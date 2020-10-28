@@ -101,9 +101,6 @@ Package := Object clone do (
         self config atPut("name", v)
         self)
 
-    //doc Package downloader Instance of [[Downloader]] for this package.
-    downloader ::= nil
-
     /*doc Package with(dir) 
     Creates new package from provided `Directory`. Raises `NotPackageError` if
     the directory is not an Eerie package. Use this to initialize a `Package`.*/
@@ -171,11 +168,16 @@ Package := Object clone do (
     //doc Package removePackage(`Package`) Removes the given package.
     removePackage := method(package, self packages remove(package))
 
+    //doc Package remove Removes self.
+    remove := method(
+        self dir remove
+        self packages := list())
+
     /*doc Package hasNativeCode 
     Returns `true` if the package has native code and `false` otherwise.*/
     hasNativeCode := method(
-        self sourceDir files isEmpty not or(self sourceDir directories isEmpty
-            not))
+        self sourceDir files isEmpty not or(
+            self sourceDir directories isEmpty not))
 
     /*doc Package hasBinaries
     Returns `true` if the `Package binDir` has files and `false` otherwise.*/

@@ -138,4 +138,20 @@ SemVerTest := UnitTest clone do(
             SemVer fromSeq("Release version 99.0.1-RC.11"),
             SemVer fromSeq("V99.0.1-rc.11")))
 
+    testNextVersion := method(
+        assertEquals(SemVer fromSeq("1") nextVersion, SemVer fromSeq("2"))
+        assertEquals(SemVer fromSeq("1.0") nextVersion, SemVer fromSeq("1.1"))
+        assertEquals(
+            SemVer fromSeq("1.0.0") nextVersion,
+            SemVer fromSeq("1.0.1"))
+        assertEquals(
+            SemVer fromSeq("1.0.0-alpha") nextVersion,
+            SemVer fromSeq("1.0.0-beta"))
+        assertEquals(
+            SemVer fromSeq("1.0.0-beta") nextVersion,
+            SemVer fromSeq("1.0.0-rc"))
+        assertEquals(
+            SemVer fromSeq("1.0.0-beta.1") nextVersion,
+            SemVer fromSeq("1.0.0-beta.2")))
+
 )
