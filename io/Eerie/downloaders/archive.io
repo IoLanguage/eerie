@@ -1,3 +1,10 @@
+# We support only git and directory downloaders yet, but archive can be added in
+# the future.
+#
+# For this we need a library for doing HTTP and HTTPS requests. We should add a
+# downloader, which will download the file via URL and then locally detect which
+# downloader we should use next.
+
 ArchiveDownloader := Eerie Downloader clone do (
 
     formats := Object clone do (
@@ -21,6 +28,7 @@ ArchiveDownloader := Eerie Downloader clone do (
         self format := self formats getSlot(self whichFormat(self url))
         tmpFile := nil
 
+        # FIXME `Socket` (`URL`) doesn't work with https, so http only
         if (self url containsSeq("http"),
             # TODO we should create a Url downloader, for which we download
             # first and then we locally determine what kind of downloader we
