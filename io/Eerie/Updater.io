@@ -19,7 +19,8 @@ Updater := Object clone do (
     A [[SemVer]] to which the updater should update. This can be shortened:
     - 1 - for all versions until 2.0.0-alpha
     - 1.0 - for all versions until 1.1.0-alpha*/
-    targetVersion := nil
+    //doc Updater setTargetVersion(SemVer) `Updater targetVersion` setter.
+    targetVersion ::= nil
 
     /*doc Updater with(target, newer, version)
     Initializer, where:
@@ -43,11 +44,10 @@ Updater := Object clone do (
 
     # find highest available version
     _highestVersion := method(
-        nextVer := self targetVersion nextVersion
-        highest := self targetPackage version
+        highest := self targetVersion
 
         self _availableVersions foreach(ver, 
-            if (ver < self targetVersion and ver > highest and(
+            if (ver <= self targetVersion and(
                 ver isPre == self targetVersion isPre), 
                 highest = ver))
 
