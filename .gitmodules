@@ -1,0 +1,3 @@
+[submodule "tests/_tmp/CFakeAddonUpdate"]
+	path = tests/_tmp/CFakeAddonUpdate
+	url = https://github.com/IoLanguage/CFakeAddonUpdate.git
