@@ -17,7 +17,7 @@ UpdaterTest := UnitTest clone do (
         targetVer := SemVer fromSeq("0.1")
         updater := Updater with(target, update, targetVer)
 
-        assertEquals(41, updater _availableVersions size))
+        assertEquals(22, updater _availableVersions size))
 
     testHighestUpdate := method(
         target := Package with(Directory with("tests/_addons/CFakeAddon"))
