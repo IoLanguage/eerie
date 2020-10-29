@@ -29,13 +29,13 @@ Transaction := Object clone do(
     acquireLock := method(
         pid := if(lockFile exists, lockFile openForReading contents, nil)
         (pid == System thisProcessPid asString) ifTrue(
-            Eerie log("Trying to acquire lock but its already present.", "debug")
+            Logger log("Trying to acquire lock but its already present.", "debug")
             return(true))
 
         _checkAbandonedLock
 
         while(self lockFile exists,
-            Eerie log("[#{Date now}] Process #{pid} has lock. Waiting for process to finish...", "error")
+            Logger log("[#{Date now}] Process #{pid} has lock. Waiting for process to finish...", "error")
             System sleep(5))
 
         self lockFile close \
@@ -75,11 +75,11 @@ Transaction := Object clone do(
         self items isEmpty ifTrue(return(self releaseLock))
 
         self items = self items select(action,
-            #Eerie log("Preparing #{action name} for #{action pkg uri}...")
+            #Logger log("Preparing #{action name} for #{action pkg uri}...")
             action prepare ifTrue(self resolveDeps(action pkg)))
 
         self items reverse foreach(action,
-            Eerie log("#{action asVerb} #{action pkg name}...")
+            Logger log("#{action asVerb} #{action pkg name}...")
             action execute)
 
         self releaseLock)
@@ -92,7 +92,7 @@ Transaction := Object clone do(
     //doc Transaction addAction(action)
     addAction := method(action,
         self items contains(action) ifFalse(
-            Eerie log("#{action name} #{action pkg name}", "transaction")
+            Logger log("#{action name} #{action pkg name}", "transaction")
             self items append(action))
         self)
 
@@ -106,7 +106,7 @@ Transaction := Object clone do(
         self addAction(Eerie Action named("Remove") with(package)))
 
     resolveDeps := method(package,
-        Eerie log("Resolving dependencies for #{package name}")
+        Logger log("Resolving dependencies for #{package name}")
         deps := package config at("dependencies")
         if(deps == nil or deps ?keys ?isEmpty,
             return(true))
@@ -123,7 +123,7 @@ Transaction := Object clone do(
                     package name, protoName)))))
 
         self depsCheckedFor append(package uri)
-        Eerie log("Missing pkgs: #{toInstall map(name)}", "debug")
+        Logger log("Missing pkgs: #{toInstall map(name)}", "debug")
         toInstall foreach(pkg, 
             Eerie Transaction clone install(pkg) run)
         true)

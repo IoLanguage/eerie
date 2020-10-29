@@ -20,7 +20,7 @@ Eerie := Object clone do (
         if (self database needsUpdate, self _warnDbUpdate))
 
     _warnDbUpdate := method(
-        Eerie log("❕  The database is outdated" asUTF8, "output"))
+        Logger log("❕ [[yellow;The database is outdated" asUTF8, "output"))
 
     //doc Eerie root Returns value of EERIEDIR environment variable.
     root := method(
@@ -59,7 +59,7 @@ Eerie := Object clone do (
 
     Returns the object returned by `System runCommand`.*/
     sh := method(cmd, silent, path,
-        if (silent not, Eerie log(cmd, "console"))
+        if (silent not, Logger log(cmd, "console"))
         
         prevDir := nil
         if(path != nil and path != ".",
@@ -89,23 +89,6 @@ Eerie := Object clone do (
                 file name endsWithSeq("-stderr")) \
                     foreach(remove))
 
-    /*doc Eerie log(message, mode) Displays the message to the user. Mode can be
-    `"info"`, `"error"`, `"console"`, `"debug"` or `"output"`.*/
-    log := method(str, mode,
-        mode ifNil(mode = "info")
-        stream := if (mode == "error", File standardError, File standardOutput)
-        msg := ((self _logMods at(mode)) .. str) interpolate(call sender)
-        stream write(msg, "\n"))
-
-    _logMods := Map with(
-        "info",         " - ",
-        "error",        "❗  "asMutable asUTF8,
-        "console",      " > ",
-        "debug",        " # ",
-        "install",      " + ",
-        "transaction",  "-> ",
-        "output",       "")
-
 )
 
 //doc Eerie Error Eerie modules subclass this error for their error types.
@@ -129,6 +112,26 @@ Eerie do (
     //doc Eerie EerieDirNotSetError
     EerieDirNotSetError := Error clone setErrorMsg(
         "Environment variable EERIEDIR did not set.")
+)
+
+Eerie clone = Eerie do (
+
+    //doc Eerie Package [Package](package.html)
+    doRelativeFile("Eerie/Package.io")
+    
+    //doc Eerie Downloader [Downloader](downloader.html)
+    doRelativeFile("Eerie/Downloader.io")
+    
+    //doc Eerie Installer [Installer](installer.html)
+    doRelativeFile("Eerie/Installer.io")
+    
+    //doc Eerie Transaction [Transaction](transaction.html)
+    doRelativeFile("Eerie/Transaction.io")
+    
+    //doc Eerie Action [Action](action.html)
+    doRelativeFile("Eerie/Action.io")
+
+    init
 )
 
 /*doc Directory copyTo 
@@ -155,18 +158,3 @@ Directory copyTo := method(destination,
             Directory createIfAbsent(newPath)))
 
     Directory setCurrentWorkingDirectory(wd))
-
-Eerie clone = Eerie do (
-    //doc Eerie Package [Package](package.html)
-    doRelativeFile("Eerie/Package.io")
-    //doc Eerie Downloader [Downloader](downloader.html)
-    doRelativeFile("Eerie/Downloader.io")
-    //doc Eerie Installer [Installer](installer.html)
-    doRelativeFile("Eerie/Installer.io")
-    //doc Eerie Transaction [Transaction](transaction.html)
-    doRelativeFile("Eerie/Transaction.io")
-    //doc Eerie Action [Action](action.html)
-    doRelativeFile("Eerie/Action.io")
-
-    init
-)

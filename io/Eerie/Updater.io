@@ -76,16 +76,18 @@ Updater := Object clone do (
 
     _logUpdate := method(version,
         if (version > self targetPackage version) then (
-            Eerie log("⬆ Updating #{self targetPackage name} " asUTF8 ..
+            Logger log("⬆ [[cyan bold;Updating [[reset;" asUTF8 ..
+                "#{self targetPackage name} " ..
                 "from v#{self targetPackage version asSeq} " ..
                 "to v#{version asSeq}", "output")
         ) elseif (version < self targetPackage version) then (
-            Eerie log(
-                "⬇ Downgrading #{self targetPackage name} " asUTF8 ..
+            Logger log(
+                "⬇ [[cyan bold;Downgrading [[reset;" asUTF8 .. 
+                "#{self targetPackage name} " ..
                 "from v#{self targetPackage version asSeq} " ..
                 "to v#{version asSeq}", "output")
         ) else (
-            Eerie log(
+            Logger log(
                 "☑  #{self targetPackage name} " asUTF8 .. 
                 "v#{self targetPackage version asSeq} " ..
                 "is already updated", "output")))

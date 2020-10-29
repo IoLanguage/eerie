@@ -137,7 +137,7 @@ StaticLinkerCommandUnixExt := Object clone do (
     _ar := method(
         System getEnvironmentVariable("AR") ifNilEval("ar"))
 
-    _arFlags := "rcu "
+    _arFlags := "rc "
 
     _ranlib := method(
         System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))

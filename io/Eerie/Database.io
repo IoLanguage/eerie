@@ -15,8 +15,8 @@ Database := Object clone do (
     init := method(if (self dir exists not, self _clone))
 
     _clone := method(
-        Eerie log("Database not found")
-        Eerie log("🔄  Cloning database" asUTF8, "output")
+        Logger log("Database not found")
+        Logger log("🔄 [[cyan bold;Cloning [[reset;database" asUTF8, "output")
         Eerie sh("git clone #{self url} #{self dir path}" interpolate, true))
 
     /*doc Database needsUpdate 
@@ -30,7 +30,7 @@ Database := Object clone do (
 
     //doc Database update Sync database with remote.
     update := method(
-        Eerie log("🔄  Updating database" asUTF8, "output")
+        Logger log("🔄 [[cyan bold;Updating [[reset;database" asUTF8, "output")
         Eerie sh("git fetch --prune", true, self dir path)
         Eerie sh("git merge", true, self dir path))
 

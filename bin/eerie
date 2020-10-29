@@ -149,7 +149,7 @@ Namespaces Options do(
     """Uses verbose output - debug messages, shell commands - everything will be printed.
     Watch out for information overload."""
     Eerie _isVerbose = true
-    Eerie log = Eerie getSlot("_log"))
+    Logger log = Eerie getSlot("_log"))
 
   v := option(
     """Prints Eerie version."""
@@ -161,6 +161,6 @@ Namespaces Options do(
 
 e := try(Kano run)
 e catch(Exception,
-    Eerie log("ERROR: " .. e error message, "error")
+    Logger log("ERROR: " .. e error message, "error")
     Eerie _isVerbose ifTrue(e coroutine backTraceString println)
     System exit(1))

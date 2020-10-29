@@ -40,7 +40,7 @@ Downloader := Object clone do (
 
         self instances foreachSlot(slotName, downloader,
             downloader canDownload(uri) ifTrue(
-                Eerie log("Using #{slotName} for #{query}", "debug")
+                Logger log("Using #{slotName} for #{query}", "debug")
                 return downloader with(uri, dir)))
 
         Exception raise(DetectError with(query)))

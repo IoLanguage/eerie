@@ -3,7 +3,7 @@ Install := Eerie Action clone do(
 
    prepare := method(
        if(Eerie installedPackages detect(name asLowercase == self pkg name asLowercase),
-           Eerie log("Package with name #{self pkg name} already installed.", "info")
+           Logger log("Package with name #{self pkg name} already installed.", "info")
            return false)
 
        Directory with(self pkg path) create
@@ -14,7 +14,7 @@ Install := Eerie Action clone do(
 
            runHook("beforeDownload")
 
-           Eerie log("Fetching #{name}", "info")
+           Logger log("Fetching #{name}", "info")
 
            if(downloader canDownload(downloader uri) not,
                Exception raise(

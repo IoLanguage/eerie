@@ -159,7 +159,7 @@ Package := Object clone do (
         old isNil ifTrue(
             msg := "Tried to update package which is not yet installed."
             msg = msg .. " (#{package name})"
-            Eerie log(msg, "debug")
+            Logger log(msg, "debug")
             return false)
 
         self packages remove(old) append(package)
@@ -193,12 +193,14 @@ Package := Object clone do (
     runHook := method(hook,
         f := File with("#{self dir}/hooks/#{hook}.io" interpolate)
         f exists ifTrue(
-            Eerie log("Launching #{hook} hook for #{self name}", "debug")
+            Logger log(
+                "[[cyan bold;Launching [[reset;#{hook} hook for #{self name}",
+                "debug")
             ctx := Object clone
             e := try(ctx doFile(f path))
             e catch(
-                Eerie log("#{hook} failed.", "error")
-                Eerie log(e message, "debug"))
+                Logger log("#{hook} failed.", "error")
+                Logger log(e message, "debug"))
             f close))
 
 )

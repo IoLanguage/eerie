@@ -80,11 +80,11 @@ appendEnvVariables := method(
         shfile := File with(shfile stringByExpandingTilde)
         shfile exists ifFalse(
             shfile create
-            Eerie log("Created #{shfile path}"))
+            Logger log("Created #{shfile path}"))
 
         shfile contents containsSeq("EERIEDIR") ifFalse(
             shfile appendToContents(shellScript)
-            Eerie log("Added new environment variables to #{shfile path}")))
+            Logger log("Added new environment variables to #{shfile path}")))
 
     # set envvars permanently on Windows
     if(isWindows and(shrc size == 0),

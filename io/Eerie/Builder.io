@@ -52,7 +52,8 @@ Builder := Object clone do (
     `Installer build` instead.*/
     build := method(
         if (package hasNativeCode not, 
-            Eerie log("The package #{self package name} has no code to compile")
+            Logger log(
+                "The package #{self package name} has no code to compile")
             return)
 
         self _depsManager checkMissing
@@ -90,7 +91,8 @@ Builder := Object clone do (
         files select(f, f name beginsWithSeq("._") not))
 
     _compileFile := method(src,
-        Eerie log("🔨  Compiling #{src name}" asUTF8, "output")
+        Logger log("🔨 [[cyan bold;Compiling[[reset; #{src name}" asUTF8,
+            "output")
 
         objName := src name replaceSeq(".cpp", ".o") \
             replaceSeq(".c", ".o") \
@@ -102,8 +104,10 @@ Builder := Object clone do (
             Eerie sh(self _compilerCommand setSrc(src) asSeq)))
 
     _buildStaticLib := method(
-        Eerie log(
-            "🧩  Linking #{self package staticLibFileName}"asUTF8,
+
+        Logger log(
+            "🧩 [[cyan bold;Linking [[reset;" asUTF8 .. 
+            "#{self package staticLibFileName}",
             "output")
 
         self staticLibBuildStarted
@@ -111,7 +115,10 @@ Builder := Object clone do (
         Eerie sh(self _staticLinkerCommand asSeq))
 
     _buildDynLib := method(
-        Eerie log("🧩  Linking #{self package dllFileName}"asUTF8, "output")
+        Logger log(
+            "🧩 [[cyan bold;Linking [[reset;" asUTF8 .. 
+            "#{self package dllFileName}",
+            "output")
 
         self dynLibBuildStarted
 
@@ -124,8 +131,9 @@ Builder := Object clone do (
 
         if (Eerie platform != "windows", return)
 
-        Eerie log(
-            "Removing manifest file #{self _dynLinkerCommand manifestPath}")
+        Logger log(
+            "[[cyan bold;Removing[[reset; manifest file " .. 
+            "#{self _dynLinkerCommand manifestPath}")
         
         File with(self _dynLinkerCommand manifestPath) remove)
 

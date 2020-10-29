@@ -106,7 +106,7 @@ We use style when you close a bracket on the last line. For example:
 **CORRECT**
 ```Io
     _buildStaticLib := method(
-        Eerie log("Building #{self _staticLinkerCommand outputName}")
+        Logger log("Building #{self _staticLinkerCommand outputName}")
 
         self staticLibBuildStarted
 
@@ -117,7 +117,7 @@ We use style when you close a bracket on the last line. For example:
 **WRONG**
 ```Io
     _buildStaticLib := method(
-        Eerie log("Building #{self _staticLinkerCommand outputName}")
+        Logger log("Building #{self _staticLinkerCommand outputName}")
 
         self staticLibBuildStarted
 
