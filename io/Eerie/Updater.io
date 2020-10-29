@@ -37,7 +37,15 @@ Updater := Object clone do (
         klone _checkSamePackage
         klone)
 
+    # check whether we trying to update the same package
+    _checkSamePackage := method(
+        if (self targetPackage name != self newerPackage name,
+            Exception raise(DifferentPackageError with(""))))
+
+    //doc Updater update Update `targetPackage` with `newerPackage`.
     update := method(
+        version := self _highestVersion
+        self _logUpdate(version)
         # TODO
         # updateVersion == packageVersion
         #     nothing to update
@@ -46,11 +54,6 @@ Updater := Object clone do (
         # updateVersion < packageVersion
         #     DOWNGRADE to updateVersion
     )
-
-    # check whether we trying to update the same package
-    _checkSamePackage := method(
-        if (self targetPackage name != self newerPackage name,
-            Exception raise(DifferentPackageError with(""))))
 
     # find highest available version
     _highestVersion := method(
@@ -66,7 +69,26 @@ Updater := Object clone do (
     # collect available versions from git tags as a list
     _availableVersions := method(
         cmdOut := Eerie sh("git tag", true, self newerPackage dir path)
-        cmdOut stdout splitNoEmpties("\n") map(tag, SemVer fromSeq(tag)))
+        res := cmdOut stdout splitNoEmpties("\n") map(tag, SemVer fromSeq(tag))
+        if (res isEmpty,
+            Exception raise(NoVersionsError with(newerPackage name)))
+        res)
+
+    _logUpdate := method(version,
+        if (version > self targetPackage version) then (
+            Eerie log("⬆ Updating #{self targetPackage name} " asUTF8 ..
+                "from v#{self targetPackage version asSeq} " ..
+                "to v#{version asSeq}", "output")
+        ) elseif (version < self targetPackage version) then (
+            Eerie log(
+                "⬇ Downgrading #{self targetPackage name} " asUTF8 ..
+                "from v#{self targetPackage version asSeq} " ..
+                "to v#{version asSeq}", "output")
+        ) else (
+            Eerie log(
+                "☑  #{self targetPackage name} " asUTF8 .. 
+                "v#{self targetPackage version asSeq} " ..
+                "is already updated", "output")))
 
 )
 
@@ -76,5 +98,9 @@ Updater do (
     //doc Updater DifferentPackageError
     DifferentPackageError := Eerie Error clone setErrorMsg(
         "An attempt to update a package with a different one.")
+
+    //doc Updater NoVersionsError
+    NoVersionsError := Eerie Error clone setErrorMsg(
+        "The package '#{call evalArgAt(0)}' has no tagged versions.")
 
 )
