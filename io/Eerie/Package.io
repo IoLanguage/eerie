@@ -193,15 +193,11 @@ Package := Object clone do (
     runHook := method(hook,
         f := File with("#{self dir}/hooks/#{hook}.io" interpolate)
         f exists ifTrue(
-            Logger log(
-                "[[cyan bold;Launching [[reset;#{hook} hook for #{self name}",
-                "debug")
+            Logger log("Launching #{hook} hook for #{self name}", "debug")
             ctx := Object clone
             e := try(ctx doFile(f path))
-            e catch(
-                Logger log("#{hook} failed.", "error")
-                Logger log(e message, "debug"))
-            f close))
+            f close
+            e catch(Exception raise(FailedRunHookError with(hook, e message)))))
 
 )
 
@@ -212,6 +208,10 @@ Package do (
     NotPackageError := Eerie Error clone setErrorMsg(
         "The directory '#{call evalArgAt(0)}' is not recognised as an Eerie "..
         "package.")
+
+    //doc Package FailedRunHookError
+    FailedRunHookError := Eerie Error clone setErrorMsg(
+        "Failed run hook \"#{call evalArgAt(0)}\":\n#{call evalArgAt(1)}")
 
 )
 
