@@ -14,7 +14,7 @@ EerieTest := UnitTest clone do (
         backup := System getEnvironmentVariable("EERIEDIR")
         System setEnvironmentVariable("EERIEDIR", "")
         e := try (Eerie init)
-        assertEquals(e error type, Eerie EerieDirNotSetError type)
-        System setEnvironmentVariable("EERIEDIR", backup))
+        System setEnvironmentVariable("EERIEDIR", backup)
+        assertEquals(e error type, Eerie EerieDirNotSetError type))
 
 )

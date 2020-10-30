@@ -1,5 +1,5 @@
 Importer addSearchPath("io")
-Importer addSearchPath("Eerie")
+Importer addSearchPath("io/Eerie")
 
 LoggerTest := UnitTest clone do (
 

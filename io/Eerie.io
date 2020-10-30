@@ -115,22 +115,8 @@ Eerie do (
 
 Eerie clone = Eerie do (
 
-    //doc Eerie Package [Package](package.html)
-    doRelativeFile("Eerie/Package.io")
-    
-    //doc Eerie Downloader [Downloader](downloader.html)
-    doRelativeFile("Eerie/Downloader.io")
-    
-    //doc Eerie Installer [Installer](installer.html)
-    doRelativeFile("Eerie/Installer.io")
-    
-    //doc Eerie Transaction [Transaction](transaction.html)
-    doRelativeFile("Eerie/Transaction.io")
-    
-    //doc Eerie Action [Action](action.html)
-    doRelativeFile("Eerie/Action.io")
-
     init
+
 )
 
 /*doc Directory copyTo 
