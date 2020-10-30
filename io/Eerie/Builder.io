@@ -91,7 +91,7 @@ Builder := Object clone do (
         files select(f, f name beginsWithSeq("._") not))
 
     _compileFile := method(src,
-        Logger log("🔨 [[cyan bold;Compiling[[reset; #{src name}" asUTF8,
+        Logger log("🔨 [[cyan bold;Compiling[[reset; #{src name}" ,
             "output")
 
         objName := src name replaceSeq(".cpp", ".o") \
@@ -106,7 +106,7 @@ Builder := Object clone do (
     _buildStaticLib := method(
 
         Logger log(
-            "🧩 [[cyan bold;Linking [[reset;" asUTF8 .. 
+            "🧩 [[cyan bold;Linking [[reset;" .. 
             "#{self package staticLibFileName}",
             "output")
 
@@ -116,7 +116,7 @@ Builder := Object clone do (
 
     _buildDynLib := method(
         Logger log(
-            "🧩 [[cyan bold;Linking [[reset;" asUTF8 .. 
+            "🧩 [[cyan bold;Linking [[reset;" .. 
             "#{self package dllFileName}",
             "output")
 

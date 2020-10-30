@@ -29,7 +29,7 @@ InitFileGenerator := Object clone do (
     generate := method(
 
         Logger log(
-            "🪄  [[cyan bold;Generating [[reset;" asUTF8 ..
+            "🪄  [[cyan bold;Generating [[reset;" ..
             "#{self output path}",
             "output")
 

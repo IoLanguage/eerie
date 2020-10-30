@@ -20,7 +20,7 @@ Eerie := Object clone do (
         if (self database needsUpdate, self _warnDbUpdate))
 
     _warnDbUpdate := method(
-        Logger log("❕ [[yellow;The database is outdated" asUTF8, "output"))
+        Logger log("❕ [[yellow;The database is outdated" , "output"))
 
     //doc Eerie root Returns value of EERIEDIR environment variable.
     root := method(

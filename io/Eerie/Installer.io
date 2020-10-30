@@ -24,7 +24,7 @@ Installer := Object clone do (
             Exception raise(DirectoryExistsError with(
                 dependency name, pkgDestination path)))
 
-        Logger log("📥 [[cyan bold;Installing [[reset;#{dependency name}"asUTF8, 
+        Logger log("📥 [[cyan bold;Installing [[reset;#{dependency name}", 
             "output")
 
         self build(dependency)
@@ -72,7 +72,7 @@ Installer := Object clone do (
         dependency buildio create
 
         Logger log(
-            "🔨 [[cyan bold;Building [[reset;#{dependency name}" asUTF8,
+            "🔨 [[cyan bold;Building [[reset;#{dependency name}" ,
             "output")
 
         builder := Builder with(dependency)

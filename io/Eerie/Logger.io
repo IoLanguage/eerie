@@ -33,7 +33,7 @@ Logger := Object clone do (
 
             File standardOutput)
         self _parseMode(mode, stream)
-        self _parse(str interpolate(call sender), stream)
+        self _parse(str asUTF8 interpolate(call sender), stream)
         stream write("\n")
         Rainbow isStderr = false)
 

@@ -95,19 +95,19 @@ Updater := Object clone do (
 
     _logUpdate := method(version,
         if (version > self _targetPackage version) then (
-            Logger log("⬆ [[cyan bold;Updating [[reset;" asUTF8 ..
+            Logger log("⬆ [[cyan bold;Updating [[reset;" ..
                 "#{self _targetPackage name} " ..
                 "from v#{self _targetPackage version asSeq} " ..
                 "to v#{version asSeq}", "output")
         ) elseif (version < self _targetPackage version) then (
             Logger log(
-                "⬇ [[cyan bold;Downgrading [[reset;" asUTF8 .. 
+                "⬇ [[cyan bold;Downgrading [[reset;" .. 
                 "#{self _targetPackage name} " ..
                 "from v#{self _targetPackage version asSeq} " ..
                 "to v#{version asSeq}", "output")
         ) else (
             Logger log(
-                "☑  #{self _targetPackage name} " asUTF8 .. 
+                "☑  #{self _targetPackage name} " .. 
                 "v#{self _targetPackage version asSeq} " ..
                 "is already updated", "output")))
 
