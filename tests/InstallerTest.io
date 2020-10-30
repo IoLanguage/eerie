@@ -14,11 +14,18 @@ InstallerTest := UnitTest clone do (
         self package addonsDir remove
         self package destBinDir remove)
 
-    testValidation := method(
+    testPackageSet := method(
         installer := Installer clone
 
         e := try (installer _checkPackageSet)
         assertEquals(e error type, Installer PackageNotSetError type))
+
+    testHasDep := method(
+        dependency := Package with(Directory with("tests/_addons/DFakeAddon"))
+        installer := Installer with(self package)
+
+        e := try (installer install(dependency))
+        assertEquals(e error type, Installer NoDependencyError type))
 
     testInstall := method(
         # this package has binaries, so we check binaries installation too

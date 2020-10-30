@@ -17,7 +17,7 @@ Database := Object clone do (
     _clone := method(
         Logger log("Database not found")
         Logger log("🔄 [[cyan bold;Cloning [[reset;database" , "output")
-        Eerie sh("git clone #{self url} #{self dir path}" interpolate, true))
+        Eerie sh("git clone #{self url} #{self dir path}", true))
 
     /*doc Database needsUpdate 
     Returns whether database is outdated (`true`) or not (`false`).*/

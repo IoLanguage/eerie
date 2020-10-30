@@ -5,13 +5,6 @@ UpdaterTest := UnitTest clone do (
 
     package := Package with(Directory with("tests/_addons/AFakeAddon"))
 
-    testHasDep := method(
-        update := Package with(Directory with("tests/_addons/DFakeAddon"))
-        updater := Updater with(self package, update)
-
-        e := try (updater _checkHasDep)
-        assertEquals(e error type, Updater NoDependencyError type))
-
     testCheckInstalled := method(
         update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
         updater := Updater with(self package, update)

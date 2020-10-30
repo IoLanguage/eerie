@@ -66,7 +66,7 @@ Eerie := Object clone do (
             prevDir = Directory currentWorkingDirectory
             Directory setCurrentWorkingDirectory(path))
 
-        cmdOut := System runCommand(cmd)
+        cmdOut := System runCommand(cmd interpolate(call sender))
         stdOut := cmdOut stdout
         stdErr := cmdOut stderr
 

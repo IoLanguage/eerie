@@ -31,31 +31,19 @@ Updater := Object clone do (
         klone)
 
     /*doc Updater update 
-    Update target dependency. It will install dependency first if it's not
-    installed.*/
+    Install update.*/
     update := method(
-        self _checkHasDep
+        self package _checkHasDep(self newer)
         self _checkInstalled
         self _initTargetVersion
 
         version := self _highestVersion
 
         self _logUpdate(version)
-        self _checkGitBranch
+        self package _checkGitBranch(self newer)
         self _checkGitTag(version)
         self _removeOld
         self _installNew)
-
-    # check whether `package` has dependency (i.e. in eerie.json) with
-    # `newer name`
-    _checkHasDep := method(
-        dep := self package config at("addons") \
-            detect(at("name") == self newer name)
-
-        if (dep isNil,
-            Exception raise(NoDependencyError with(
-                self package name,
-                self newer name))))
 
     # check whether `package` has target dependency
     _checkInstalled := method(
@@ -108,14 +96,6 @@ Updater := Object clone do (
                 "v#{self _targetPackage version asSeq} " ..
                 "is already updated", "output")))
 
-    # switch to specified branch if needed
-    _checkGitBranch := method(
-        branch := self newer config at("branch")
-
-        if (branch isNil, return)
-
-        Eerie sh("git checkout #{branch}", false, self newer dir path))
-
     _checkGitTag := method(version,
         Eerie sh("git checkout tags/#{version originalSeq}", 
             false,
@@ -135,11 +115,6 @@ Updater := Object clone do (
 
 # Updater error types
 Updater do (
-
-    //doc Updater NoDependencyError
-    NoDependencyError := Eerie Error clone setErrorMsg(
-        "The package \"#{call evalArgAt(0)}\" " .. 
-        "has no dependency \"#{call evalArgAt(1)}\".")
 
     //doc Updater NoVersionsError
     NoVersionsError := Eerie Error clone setErrorMsg(

@@ -175,6 +175,13 @@ Package := Object clone do (
         self dir remove
         self packages := list())
 
+    /*doc Package configForDependencyName
+    Returns config object (`Map`) from `addons` array of `eerie.json` by its
+    name.*/
+    configForDependencyName := method(name,
+        addons := self config at("addons")
+        addons detect(at("name") == name))
+
     /*doc Package hasNativeCode 
     Returns `true` if the package has native code and `false` otherwise.*/
     hasNativeCode := method(
