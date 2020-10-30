@@ -80,7 +80,6 @@ Eerie := Object clone do (
 
         cmdOut)
 
-
     # remove *-stdout and *-stderr files, which are kept in result of
     # System runCommand call
     _cleanRunCommand := method(
@@ -89,6 +88,7 @@ Eerie := Object clone do (
                 file name endsWithSeq("-stderr")) \
                     foreach(remove))
 
+    Logger log("Some error", "error")
 )
 
 //doc Eerie Error Eerie modules subclass this error for their error types.

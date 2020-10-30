@@ -69,7 +69,7 @@ Installer := Object clone do (
         dependency buildio create
 
         Logger log(
-            "🔨 [[cyan bold;Compiling [[reset;#{dependency name}" asUTF8,
+            "🔨 [[cyan bold;Building [[reset;#{dependency name}" asUTF8,
             "output")
 
         builder := Builder with(dependency)

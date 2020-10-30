@@ -27,13 +27,18 @@ Logger := Object clone do (
     `"console"`, `"debug"` or `"output"`.*/
     log := method(str, mode,
         mode ifNil(mode = "info")
-        self _parseMode(mode)
-        self _parse(str interpolate(call sender))
-        write("\n"))
+        stream := if (mode == "error", File standardError, File standardOutput)
+        self _parseMode(mode, stream)
+        self _parse(str interpolate(call sender), stream)
+        stream write("\n")
+        Rainbow isStderr = false)
 
-    _parseMode := method(mode,
-        if (mode == "error", Rainbow bold redBg)
-        write(self _logMods at(mode))
+    _parseMode := method(mode, stream,
+        if (mode == "error", 
+            Rainbow isStderr = true
+            Rainbow bold redBg)
+
+        stream write(self _logMods at(mode))
 
         if (mode == "console") then (
             Rainbow gray
@@ -42,21 +47,21 @@ Logger := Object clone do (
         ) else (
             Rainbow reset)
 
-        if (mode != "output", write(" ")))
+        if (mode != "output", stream write(" ")))
 
-    _parse := method(str,
-        str split("[[") foreach(part, self _parsePart(part))
+    _parse := method(str, stream,
+        str split("[[") foreach(part, self _parsePart(part, stream))
         Rainbow reset)
 
-    _parsePart := method(part,
+    _parsePart := method(part, stream,
         split := part splitNoEmpties(";")
         if (split isEmpty) then (
             return
         ) elseif (split size == 1) then (
-            write(split at(0))
+            stream write(split at(0))
         ) else (
             Rainbow doString(split at(0))
-            write(split at(1))))
+            stream write(split at(1))))
 
 )
 

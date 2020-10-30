@@ -11,7 +11,7 @@ The package manager for Io.
 ### Linux, macOS
 
 ```shell
-$ git clone https://github.com/IoLanguage/eerie.git
+$ git clone --recursive https://github.com/IoLanguage/eerie.git
 $ cd eerie
 $ . ./install_unix.sh
 ```
