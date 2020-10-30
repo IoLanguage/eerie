@@ -1,46 +1,60 @@
-testsDir := Directory with("tests")
+Runner := Object clone do (
+    _testsDir := Directory with("tests")
 
-query := lazySlot(System args at(1))
+    _query := System args at(1)
 
-testsStartingWith := method(str,
-    testsDir files select(file, file baseName beginsWithSeq(str)))
+    run := method(
+        self _runSetup
+        if(self _query isNil not,
+            self _runQuery,
+            self _runAll))
 
-testsEndingWith := method(str,
-    testsDir files select(file, file baseName endsWithSeq(str)))
+    # run setup script if it exists
+    _runSetup := method(
+        file := File with(System launchPath .. "/setup.io")
+        if (file exists, Lobby doFile(file path)))
 
-testsStartingAndEndingWith := method(startStr, endStr,
-    testsDir files select(file, 
-        baseName := file baseName
-        baseName beginsWithSeq(startStr) and baseName endsWithSeq(endStr)))
+    _runQuery := method(
+        self _parseQuery(self _query) foreach(file, 
+            try(Lobby doFile(file path)) ?showStack)
 
-testWithName := method(str, File with(testsDir path .. "/" .. str .. ".io"))
+        System exit(if(FileCollector run size > 0, 1, 0)))
 
-countPlaceholders := method(str, 
-    number := 0
-    str foreach(char, (char == "*" at(0)) ifTrue(number = number + 1))
-    number)
+    _parseQuery := method(str,
+        if (self _countPlaceholders(str) > 1) then (
+            Exception raise("Only one '*' placeholder is allowed in query.")
+        ) elseif (str beginsWithSeq("*")) then (
+            return self _testsEndingWith(str afterSeq("*"))
+        ) elseif (str endsWithSeq("*")) then (
+            return self _testsStartingWith(str beforeSeq("*"))
+        ) elseif (str containsSeq("*")) then (
+            args := str split("*")
+            return self _testsStartingAndEndingWith(args at(0), args at(1))
+        ) else (
+            return self _testWithName(str)))
 
-parseQuery := method(str,
-    if (countPlaceholders(str) > 1) then (
-        Exception raise("Only one '*' placeholder is allowed in query.")
-    ) elseif (str beginsWithSeq("*")) then (
-        return testsEndingWith(str afterSeq("*"))
-    ) elseif (str endsWithSeq("*")) then (
-        return testsStartingWith(str beforeSeq("*"))
-    ) elseif (str containsSeq("*")) then (
-        args := str split("*")
-        return testsStartingAndEndingWith(args at(0), args at(1))
-    ) else (
-        return testWithName(str)))
+    _countPlaceholders := method(str, 
+        number := 0
+        str foreach(char, (char == "*" at(0)) ifTrue(number = number + 1))
+        number)
 
-# run
+    _testsEndingWith := method(str,
+        self _testsDir files select(file, file baseName endsWithSeq(str)))
 
-if(System args size > 1) then (
-    # Run specific tests.
-    parseQuery(query) foreach(file, try(doFile(file path)) ?showStack)
+    _testsStartingWith := method(str,
+        self _testsDir files select(file, file baseName beginsWithSeq(str)))
 
-    System exit(if(FileCollector run size > 0, 1, 0))
-) else (
-    # Run all tests in the current directory.
-    System exit(if(TestSuite run size > 0, 1, 0)))
 
+    _testsStartingAndEndingWith := method(startStr, endStr,
+        self _testsDir files select(file, 
+            baseName := file baseName
+            baseName beginsWithSeq(startStr) and baseName endsWithSeq(endStr)))
+
+    _testWithName := method(str, 
+        File with(self _testsDir path .. "/" .. str .. ".io"))
+
+    _runAll := method(System exit(if(TestSuite run size > 0, 1, 0)))
+
+)
+
+Runner run

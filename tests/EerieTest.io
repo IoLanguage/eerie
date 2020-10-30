@@ -3,14 +3,6 @@ Importer addSearchPath("io/Eerie")
 
 EerieTest := UnitTest clone do (
 
-    setUp := method(
-        # this way we set global addons directory
-        System setEnvironmentVariable("EERIEDIR", 
-            Directory currentWorkingDirectory .. "/tests"))
-
-    tearDown := method(
-        System setEnvironmentVariable("EERIEDIR", System launchPath))
-
     testSetGlobal := method(
         Eerie 
         assertFalse(Eerie isGlobal)
@@ -19,8 +11,10 @@ EerieTest := UnitTest clone do (
         assertTrue(Eerie isGlobal))
 
     testExceptionWithoutEeridir := method(
+        backup := System getEnvironmentVariable("EERIEDIR")
         System setEnvironmentVariable("EERIEDIR", "")
         e := try (Eerie init)
-        assertEquals(e error type, Eerie EerieDirNotSetError type))
+        assertEquals(e error type, Eerie EerieDirNotSetError type)
+        System setEnvironmentVariable("EERIEDIR", backup))
 
 )

@@ -51,7 +51,7 @@ Eerie := Object clone do (
         System platform containsAnyCaseSeq("mingw")))
 
     //doc Eerie ioHeadersPath Returns path (`Sequence`) to io headers.
-    ioHeadersPath := method(Eerie root .. "/ioheaders")
+    ioHeadersPath := method(Path with(Eerie root, "ioheaders"))
 
     /*doc Eerie sh(cmd[, silent=false, path=cwd])
     Executes system command. Raises exception with `Eerie SystemCommandError` on

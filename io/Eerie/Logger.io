@@ -28,6 +28,7 @@ Logger := Object clone do (
     _logMods := Map with(
         "info",         " -",
         "error",        " ERROR: ",
+        "warning",      " WARNING: ",
         "console",      " >",
         "debug",        " #",
         "install",      " +",
@@ -38,6 +39,7 @@ Logger := Object clone do (
     Displays the message to the user. Mode can be `"info"`, `"error"`,
     `"console"`, `"debug"` or `"output"`.*/
     log := method(str, mode,
+        self _checkMode(mode)
         mode ifNil(mode = "info")
         if (self _shouldPrint(mode) not, return)
 
@@ -53,6 +55,12 @@ Logger := Object clone do (
 
         Rainbow isStderr = false)
 
+    _checkMode := method(mode,
+        if (mode isNil, return)
+        
+        if (self _logMods keys contains(mode) not, 
+            Exception raise(UnknownModeError with(mode))))
+
     # considers `filter` value to return a bool whether logger should print
     # output
     _shouldPrint := method(mode,
@@ -63,20 +71,20 @@ Logger := Object clone do (
         if (self filter == "error") then (
             return list("error")
         ) elseif (self filter == "warning") then (
-            return list("error")
+            return list("error", "warning")
         ) elseif (self filter == "info") then (
-            return list("error", "output", "info", "install")
+            return list("error", "warning", "output", "info", "install")
         ) elseif (self filter == "debug") then (
-            return list("error", "output", "info", "install", "debug",
-                "console")
+            return list("error", "warning", "output", "info", "install",
+                "debug", "console")
         ) elseif (self filter == "trace") then (
-            return list("error", "output", "info", "install", "debug",
-                "console", "transaction")
+            return self _logMods keys
         ) else (
             Exception raise(UnknownFilterError with(self filter))))
 
     _parseMode := method(mode, stream,
         if (mode == "error", Rainbow bold redBg)
+        if (mode == "warning", Rainbow bold black yellowBg)
 
         stream write(self _logMods at(mode))
 
@@ -113,5 +121,9 @@ Logger do (
     //doc Logger UnknownFilterError
     UnknownFilterError := Eerie Error clone setErrorMsg(
         "Unknown logger filter: \"#{call evalArgAt(0)}\"")
+
+    //doc Logger UnknownModeError
+    UnknownModeError := Eerie Error clone setErrorMsg(
+        "Unknown logger mode: \"#{call evalArgAt(0)}\"")
 
 )

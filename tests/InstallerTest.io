@@ -6,18 +6,13 @@ InstallerTest := UnitTest clone do (
     
     package := Package with(Directory with("tests/_addons/AFakeAddon"))
 
-    eerieDirBackup := System getEnvironmentVariable("EERIEDIR")
-
     setUp := method(
         self package addonsDir remove
-        self package destBinDir remove
-        System setEnvironmentVariable(
-            "EERIEDIR", Directory currentWorkingDirectory))
+        self package destBinDir remove)
 
     tearDown := method(
         self package addonsDir remove
-        self package destBinDir remove
-        System setEnvironmentVariable("EERIEDIR", self eerieDirBackup))
+        self package destBinDir remove)
 
     testValidation := method(
         installer := Installer clone
