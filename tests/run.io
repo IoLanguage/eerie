@@ -1,5 +1,5 @@
 Runner := Object clone do (
-    _testsDir := Directory with("tests")
+    _testsDir := Directory with(Path absolute("tests"))
 
     _query := System args at(1)
 
@@ -11,7 +11,8 @@ Runner := Object clone do (
 
     # run setup script if it exists
     _runSetup := method(
-        file := File with(System launchPath .. "/setup.io")
+        file := File with(Directory currentWorkingDirectory ..
+            "/tests/setup.io")
         if (file exists, Lobby doFile(file path)))
 
     _runQuery := method(
@@ -53,7 +54,9 @@ Runner := Object clone do (
     _testWithName := method(str, 
         File with(self _testsDir path .. "/" .. str .. ".io"))
 
-    _runAll := method(System exit(if(TestSuite run size > 0, 1, 0)))
+    _runAll := method(
+        DirectoryCollector setPath(_testsDir path)
+        System exit(if(DirectoryCollector run size > 0, 1, 0)))
 
 )
 
