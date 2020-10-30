@@ -5,14 +5,6 @@ UpdaterTest := UnitTest clone do (
 
     package := Package with(Directory with("tests/_addons/AFakeAddon"))
 
-    setUp := method(
-        dep := self package packageNamed("CFakeAddon")
-        if (dep isNil not, self package removePackage(dep)))
-
-    tearDown := method(
-        dep := self package packageNamed("CFakeAddon")
-        if (dep isNil not, self package removePackage(dep)))
-    
     testHasDep := method(
         update := Package with(Directory with("tests/_addons/DFakeAddon"))
         updater := Updater with(self package, update)
@@ -21,13 +13,11 @@ UpdaterTest := UnitTest clone do (
         assertEquals(e error type, Updater NoDependencyError type))
 
     testCheckInstalled := method(
-        assertTrue(self package packageNamed("CFakeAddon") isNil)
-
         update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
         updater := Updater with(self package, update)
-        updater _checkInstalled
 
-        assertFalse(self package packageNamed("CFakeAddon") isNil))
+        e := try (updater _checkInstalled)
+        assertEquals(e error type, Updater NotInstalledError type))
 
     testInitTargetVersion := method(
         update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))

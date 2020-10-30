@@ -39,10 +39,12 @@ Updater := Object clone do (
         self _initTargetVersion
 
         version := self _highestVersion
-        self _logUpdate(version)
 
-        self _checkBranch
-    )
+        self _logUpdate(version)
+        self _checkGitBranch
+        self _checkGitTag(version)
+        self _removeOld
+        self _installNew)
 
     # check whether `package` has dependency (i.e. in eerie.json) with
     # `newer name`
@@ -58,13 +60,8 @@ Updater := Object clone do (
     # check whether `package` has target dependency
     _checkInstalled := method(
         self _targetPackage = package packageNamed(self newer name)
-
         if (self _targetPackage isNil, 
-            Logger log("Package [[bold;#{self newer name}" ..
-                "[[reset; is not installed", 
-                "output")
-            installer := Installer with(self package)
-            installer install(self newer)))
+            Exception raise(NotInstalledError with(self newer name))))
 
     # set target version
     _initTargetVersion := method(
@@ -112,12 +109,27 @@ Updater := Object clone do (
                 "is already updated", "output")))
 
     # switch to specified branch if needed
-    _checkBranch := method(
+    _checkGitBranch := method(
         branch := self newer config at("branch")
 
         if (branch isNil, return)
 
         Eerie sh("git checkout #{branch}", false, self newer dir path))
+
+    _checkGitTag := method(version,
+        Eerie sh("git checkout tags/#{version originalSeq}", 
+            false,
+            self newer dir path))
+
+    # removes the old version of the dependency
+    _removeOld := method(
+        old := self package packageNamed(self newer name)
+        self package removePackage(old))
+
+    # installs the `newer` package
+    _installNew := method(
+        installer := Installer with(self package)
+        installer install(self newer))
 
 )
 
@@ -132,5 +144,9 @@ Updater do (
     //doc Updater NoVersionsError
     NoVersionsError := Eerie Error clone setErrorMsg(
         "The package '#{call evalArgAt(0)}' has no tagged versions.")
+
+    //doc Updater NotInstalledError
+    NotInstalledError := Eerie Error clone setErrorMsg(
+        "The dependency '#{call evalArgAt(0)}' is not installed.")
 
 )
