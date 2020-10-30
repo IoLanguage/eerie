@@ -1,0 +1,25 @@
+{
+    "name": "DFakeAddon",
+    "version": "0.1.0",
+    "description": "A fake addon for testing.",
+    "author": "Test",
+    "readme": "",
+    "website": "https://iolanguage.github.io/eerie",
+    "url": "tests/_addons/DFakeAddon",
+    "categories": [],
+    "protos": [
+        "DFakeAddon"
+    ],
+    "addons": [
+        {
+            "name": "CFakeAddon",
+            "version": "0.1",
+            "url": "tests/_addons/CFakeAddon"
+        },
+        {
+            "name": "BFakeAddon",
+            "version": "0.1",
+            "url": "tests/_addons/BFakeAddon"
+        }
+    ]
+}

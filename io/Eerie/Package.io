@@ -166,7 +166,9 @@ Package := Object clone do (
         true)
 
     //doc Package removePackage(`Package`) Removes the given package.
-    removePackage := method(package, self packages remove(package))
+    removePackage := method(package,
+        package ?remove
+        self packages remove(package))
 
     //doc Package remove Removes self.
     remove := method(

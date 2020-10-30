@@ -24,6 +24,9 @@ Installer := Object clone do (
             Exception raise(DirectoryExistsError with(
                 dependency name, pkgDestination path)))
 
+        Logger log("📥 [[cyan bold;Installing [[reset;#{dependency name}"asUTF8, 
+            "output")
+
         self build(dependency)
 
         pkgDestination createIfAbsent
