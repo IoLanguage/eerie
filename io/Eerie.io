@@ -88,7 +88,6 @@ Eerie := Object clone do (
                 file name endsWithSeq("-stderr")) \
                     foreach(remove))
 
-    Logger log("Some error", "error")
 )
 
 //doc Eerie Error Eerie modules subclass this error for their error types.

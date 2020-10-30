@@ -27,16 +27,18 @@ Logger := Object clone do (
     `"console"`, `"debug"` or `"output"`.*/
     log := method(str, mode,
         mode ifNil(mode = "info")
-        stream := if (mode == "error", File standardError, File standardOutput)
+        stream := if (mode == "error",
+            Rainbow isStderr = true
+            File standardError,
+
+            File standardOutput)
         self _parseMode(mode, stream)
         self _parse(str interpolate(call sender), stream)
         stream write("\n")
         Rainbow isStderr = false)
 
     _parseMode := method(mode, stream,
-        if (mode == "error", 
-            Rainbow isStderr = true
-            Rainbow bold redBg)
+        if (mode == "error", Rainbow bold redBg)
 
         stream write(self _logMods at(mode))
 
