@@ -13,6 +13,18 @@ Logger log("[[red;Hello, [[bold;World")
 
 Logger := Object clone do (
 
+    //doc Logger filter Get log filter value (see `Logger setFilter`).
+    /*doc Logger setFilter(Sequence)
+    Set filter to one of:
+    - `"error"` (only errors will be logged)
+    - `"warning"` (errors and warnings)
+    - `"info"` (error, warnings on some additional info)
+    - `"debug"` (errors, warnings, additional info and debug message)
+    - `"trace"` (everything)
+
+    The default is `"info"`*/
+    filter ::= "info"
+
     _logMods := Map with(
         "info",         " -",
         "error",        " ERROR: ",
@@ -27,15 +39,41 @@ Logger := Object clone do (
     `"console"`, `"debug"` or `"output"`.*/
     log := method(str, mode,
         mode ifNil(mode = "info")
+        if (self _shouldPrint(mode) not, return)
+
         stream := if (mode == "error",
             Rainbow isStderr = true
             File standardError,
 
             File standardOutput)
+
         self _parseMode(mode, stream)
         self _parse(str asUTF8 interpolate(call sender), stream)
         stream write("\n")
+
         Rainbow isStderr = false)
+
+    # considers `filter` value to return a bool whether logger should print
+    # output
+    _shouldPrint := method(mode,
+        self _filterToModes contains(mode))
+
+    # returns list of modes for current `filter` value
+    _filterToModes := method(
+        if (self filter == "error") then (
+            return list("error")
+        ) elseif (self filter == "warning") then (
+            return list("error")
+        ) elseif (self filter == "info") then (
+            return list("error", "output", "info", "install")
+        ) elseif (self filter == "debug") then (
+            return list("error", "output", "info", "install", "debug",
+                "console")
+        ) elseif (self filter == "trace") then (
+            return list("error", "output", "info", "install", "debug",
+                "console", "transaction")
+        ) else (
+            Exception raise(UnknownFilterError with(self filter))))
 
     _parseMode := method(mode, stream,
         if (mode == "error", Rainbow bold redBg)
@@ -68,3 +106,12 @@ Logger := Object clone do (
 )
 
 Logger clone := Logger
+
+# Logger error types
+Logger do (
+
+    //doc Logger UnknownFilterError
+    UnknownFilterError := Eerie Error clone setErrorMsg(
+        "Unknown logger filter: \"#{call evalArgAt(0)}\"")
+
+)
