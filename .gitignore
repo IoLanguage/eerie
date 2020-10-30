@@ -1,9 +1,9 @@
-./_addons
-./_bin
-./_build
-./_tmp
-./db
-./iolang
+_addons/
+_bin/
+_build/
+_tmp/
+db/
+iolang/
 ./tests/_addons/CFakeAddon/_build
 ./tests/deleteme
 ./tests/installer
