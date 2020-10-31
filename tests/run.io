@@ -1,7 +1,11 @@
 Runner := Object clone do (
-    _testsDir := Directory with(Path absolute("tests"))
+    _testsDir := Directory with("tests")
 
     _query := System args at(1)
+
+    init := method(
+        if (self _testsDir exists not, 
+            Exception raise(TestsDirNotExistsError)))
 
     run := method(
         self _runSetup
@@ -11,8 +15,7 @@ Runner := Object clone do (
 
     # run setup script if it exists
     _runSetup := method(
-        file := File with(Directory currentWorkingDirectory ..
-            "/tests/setup.io")
+        file := self _testsDir fileNamed("setup.io")
         if (file exists, Lobby doFile(file path)))
 
     _runQuery := method(
@@ -23,7 +26,7 @@ Runner := Object clone do (
 
     _parseQuery := method(str,
         if (self _countPlaceholders(str) > 1) then (
-            Exception raise("Only one '*' placeholder is allowed in query.")
+            Exception raise(PlaceholderError)
         ) elseif (str beginsWithSeq("*")) then (
             return self _testsEndingWith(str afterSeq("*"))
         ) elseif (str endsWithSeq("*")) then (
@@ -55,9 +58,20 @@ Runner := Object clone do (
         File with(self _testsDir path .. "/" .. str .. ".io"))
 
     _runAll := method(
-        DirectoryCollector setPath(_testsDir path)
+        DirectoryCollector setPath(self _testsDir path)
         System exit(if(DirectoryCollector run size > 0, 1, 0)))
 
 )
 
-Runner run
+# error types
+Runner do (
+
+    PlaceholderError := Error with(
+        "Only one '*' placeholder is allowed in query.")
+
+    TestsDirNotExistsError := Error with(
+        "Directory 'tests' not found.")
+
+)
+
+Runner clone run
