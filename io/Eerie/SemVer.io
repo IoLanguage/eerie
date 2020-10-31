@@ -42,8 +42,7 @@ SemVer := Object clone do(
         res := self clone
         res originalSeq = verSeq
         spl := self _stripWord(verSeq) split("-")
-        if(spl isEmpty or spl size > 2,
-            Exception raise(ErrorNotRecognised clone)) 
+        if(spl isEmpty or spl size > 2, Exception raise(ErrorNotRecognised)) 
 
         res _parseNormal(spl at(0))
 
@@ -55,14 +54,14 @@ SemVer := Object clone do(
         index := seq asLowercase findSeqs(
             list("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "alpha",
                 "beta", "rc"))
-        if (index isNil, Exception raise(ErrorNotRecognised clone))
+        if (index isNil, Exception raise(ErrorNotRecognised))
         seq splitAt(index index) at(1))
 
     # Parse A.B.C
     _parseNormal := method(verSeq,
         spl := verSeq split(".")
         if(spl isEmpty or spl at(0) ?asNumber ?isNan or spl size > 3,
-            Exception raise(ErrorNotRecognised clone)) 
+            Exception raise(ErrorNotRecognised)) 
 
         self major = spl at(0) asNumber
         self minor = spl at(1) ?asNumber
@@ -70,19 +69,19 @@ SemVer := Object clone do(
 
     # Parse D.C
     _parsePre := method(verSeq,
-        if(self patch isNil, Exception raise(ErrorIlligibleVersioning clone))
+        if(self patch isNil, Exception raise(ErrorIlligibleVersioning))
 
         spl := verSeq split(".")
-        if(spl isEmpty, Exception raise(ErrorNotRecognised clone)) 
+        if(spl isEmpty, Exception raise(ErrorNotRecognised)) 
 
         st := spl at(0) asUppercase
         legal := list("ALPHA", "BETA", "RC")
-        if(legal contains(st) not, Exception raise(ErrorParsePre clone))
+        if(legal contains(st) not, Exception raise(ErrorParsePre))
 
         self pre = st
 
         preNum := spl at(1) ?asNumber
-        if(preNum ?isNan, Exception raise(ErrorIlligibleVersioning clone))
+        if(preNum ?isNan, Exception raise(ErrorIlligibleVersioning))
         self preNumber = spl at(1) ?asNumber)
 
     /*doc SemVer nextVersion 
@@ -138,7 +137,7 @@ SemVer := Object clone do(
     < := method(right, self compare(right) == -1)
 
     compare := method(right,
-        if (right type != self type, Exception raise(ErrorWrongType clone))
+        if (right type != self type, Exception raise(ErrorWrongType))
 
         if (self major == right major and(self minor == right minor) and(
             self patch == right patch) and(self pre == right pre) and(
@@ -168,10 +167,9 @@ SemVer := Object clone do(
         ) elseif (self preNumber < right preNumber) then (
             return -1
         ) elseif (self preNumber > right preNumber) then (
-            return 1
-        )
+            return 1)
 
-        Exception raise(ErrorUnreachable clone))
+        Exception raise(ErrorUnreachable))
 
     # compares only pre part of SemVer
     # returns -1 if this pre is less then the argument's one
@@ -190,10 +188,12 @@ SemVer := Object clone do(
             return -1
         )
 
-        Exception raise(ErrorUnreachable clone))
+        Exception raise(ErrorUnreachable))
+
 )
 
 SemVer do (
+
     ErrorNotRecognised := Error with(
         "The sequence is not recognised as semantic version.")
 
@@ -207,4 +207,5 @@ SemVer do (
         "It's a bug if you see this message.")
 
     ErrorWrongType := Error with("Wrong type used in operation.")
+
 )
