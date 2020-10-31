@@ -14,6 +14,16 @@ Publisher := Object clone do (
     Get git tag name, which will be used for the release.*/
     gitTag := method("v" .. self package version asSeq)
 
+    /*doc Publisher shouldPush 
+    Whether git push should be performed after release. `true`, `false` or
+    `nil`.
+
+    If it's `nil` the publisher will prompt you during the release process.
+
+    Default is `nil`.*/
+    //doc Publisher setShouldPush `shouldPush` setter.
+    shouldPush ::= nil
+
     /*doc Publisher with(Package) 
     Use this initializer to instantiate `Publisher`.*/
     with := method(pkg, self clone setPackage(pkg))
@@ -36,15 +46,20 @@ Publisher := Object clone do (
         self validate
         self _checkHasGitChanges
         self _addGitTag
+        self _promptPush
 
         Logger log(
             "🎉 [[magenta;Successfully released [[bold;#{self package name} " ..
             "v#{self package version asSeq}[[reset magenta;![[reset;\n\n" .. 
             "Now publish it in Eerie database.\n" .. 
             "Look [[green;https://github.com/IoLanguage/eerie-db[[reset; " .. 
-            "for instructions.\n\n" .. 
-            "Oh, and don't forget to \"git push origin #{self gitTag}\"!",
-            "output"))
+            "for instructions.")
+
+        if (self shouldPush,
+            self _gitPush,
+            Logger log(
+                "\nOh, and don't forget to \"git push origin #{self gitTag}\"!",
+                "output")))
 
     _checkPackageSet := method(
         if (self package isNil, Exception raise(PackageNotSetError with(""))))
@@ -80,6 +95,23 @@ Publisher := Object clone do (
     _checkGitTagExists := method(
         # TODO
         Exception raise(GitTagExistsError with(self gitTag, self package name)))
+
+    _promptPush := method(
+        if (self shouldPush isNil not, return)
+        
+        stream := File standardInput
+
+        answer := "-"
+        while (answer isEmpty not and answer != "y" and answer != "n",
+            answer = stream readLine(
+                "Do you want to push the changes? [Yn]\n") asLowercase)
+
+        self setShouldPush(answer isEmpty or answer == "y"))
+
+    _gitPush := method(
+        Eerie sh("git push origin #{self gitTag}", 
+            false, 
+            self package dir path))
 
 )
 
