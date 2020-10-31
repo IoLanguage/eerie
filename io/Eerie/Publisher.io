@@ -1,13 +1,18 @@
 //metadoc Publisher category API
 /*metadoc Publisher description 
 The purpose of this proto is to prepare to and publish a package. Currently it's
-able to prepare (`Publisher release`) only.*/
+able to prepare (`Publisher release`) only. Publishing is supposed to be done
+manually, look https://github.com/IoLanguage/eerie-db for instructions.*/
 
 Publisher := Object clone do (
 
     //doc Publisher package The package wich the publisher will publish/release.
     //doc Publisher setPackage `Publisher package` setter.
     package ::= nil
+
+    /*doc Publisher gitTag 
+    Get git tag name, which will be used for the release.*/
+    gitTag := method("v" .. self package version asSeq)
 
     /*doc Publisher with(Package) 
     Use this initializer to instantiate `Publisher`.*/
@@ -22,35 +27,37 @@ Publisher := Object clone do (
         # unimplemented
     )
 
-    /*doc Publisher publish
+    /*doc Publisher release
     This method validates the `package` and creates a new git tag for release.
 
     This should be done before you publish the package in Eerie database.*/
     release := method(
         self _checkPackageSet
-        self _validate
+        self validate
         self _checkHasGitChanges
         self _addGitTag
 
         Logger log(
             "🎉 [[magenta;Successfully released [[bold;#{self package name} " ..
             "v#{self package version asSeq}[[reset magenta;![[reset;\n\n" .. 
-            "[[reset;Now publish it in Eerie database.\n" .. 
-            "Check " .. 
-            "[[green;https://github.com/IoLanguage/eerie-db[[reset; " .. 
+            "Now publish it in Eerie database.\n" .. 
+            "Look [[green;https://github.com/IoLanguage/eerie-db[[reset; " .. 
             "for instructions.\n\n" .. 
-            "Oh, and don't forget to git push your changes!",
+            "Oh, and don't forget to \"git push origin #{self gitTag}\"!",
             "output"))
 
     _checkPackageSet := method(
-        if (self package isNil, Exception raise(PackageNotSetError with("")))
-    )
+        if (self package isNil, Exception raise(PackageNotSetError with(""))))
 
-    _validate := method(
+    /*doc Publisher validate
+    Check whether the `package` satisfies all the requirements for published
+    packages.*/
+    validate := method(
         # TODO check whether the package satisfies all the requirements for
         # published packages:
         # - version is newer then the previous one (first check db, 
         #   then git tags)
+        #   * shouldn't be shortened as well
         # - has non-empty README.md
         # - has LICENSE
         # - ...?
@@ -62,18 +69,17 @@ Publisher := Object clone do (
     )
 
     _addGitTag := method(
-        name := "v" .. self package version asSeq
-        self _checkGitTagExists(name)
+        self _checkGitTagExists
 
         Eerie sh(
-            "git tag -a #{name} -m " ..
+            "git tag -a #{self gitTag} -m " ..
             "'New release generated automatically by Eerie Publisher'",
-            true, 
+            false, 
             self package dir path))
 
-    _checkGitTagExists := method(tag,
+    _checkGitTagExists := method(
         # TODO
-        Exception raise(GitTagExistsError with(tag, self package name)))
+        Exception raise(GitTagExistsError with(self gitTag, self package name)))
 
 )
 
