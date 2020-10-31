@@ -91,9 +91,6 @@ Builder := Object clone do (
         files select(f, f name beginsWithSeq("._") not))
 
     _compileFile := method(src,
-        Logger log("🔨 [[cyan bold;Compiling[[reset; #{src name}" ,
-            "output")
-
         objName := src name replaceSeq(".cpp", ".o") \
             replaceSeq(".c", ".o") \
                 replaceSeq(".m", ".o")
@@ -101,10 +98,11 @@ Builder := Object clone do (
         obj := self package objsBuildDir fileNamed(objName)
 
         if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
+            Logger log("📄 [[cyan bold;Compiling[[reset; #{src name}" ,
+                "output")
             Eerie sh(self _compilerCommand setSrc(src) asSeq)))
 
     _buildStaticLib := method(
-
         Logger log(
             "🧩 [[cyan bold;Linking [[reset;" .. 
             "#{self package staticLibFileName}",
