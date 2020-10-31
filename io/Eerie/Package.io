@@ -323,9 +323,8 @@ Package ManifestValidator := Object clone do (
             ) elseif (input type == nil type) then (
                 return "null"
             ) else (
-                return "undefined"
-            )
-        )
+                return "undefined"))
+
         # the first argument is a boolean. If it's `true`,
         # `InsufficientManifestError` will raise with the message at the second
         # argument.

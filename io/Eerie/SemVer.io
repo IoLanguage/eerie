@@ -185,8 +185,7 @@ SemVer := Object clone do(
         ) elseif (self pre == "BETA" and right == "ALPHA") then (
             return 1
         ) else (
-            return -1
-        )
+            return -1)
 
         Exception raise(ErrorUnreachable))
 
