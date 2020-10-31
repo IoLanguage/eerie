@@ -70,7 +70,7 @@ SemVerTest := UnitTest clone do(
 
     testAsSeq := method(
         ver := SemVer fromSeq("0.1.1-Beta.15")
-        assertEquals("0.1.1-BETA.15", ver asSeq)
+        assertEquals("0.1.1-beta.15", ver asSeq)
 
         ver = SemVer fromSeq("0.1.1")
         assertEquals("0.1.1", ver asSeq)

@@ -123,7 +123,7 @@ SemVer := Object clone do(
         self patch isNil ifFalse(res = res .. "." .. self patch)
         self pre isNil ifFalse(res = res .. "-" .. self pre)
         self preNumber isNil ifFalse(res = res .. "." .. self preNumber)
-        res)
+        res asLowercase)
 
     == := method(right, self compare(right) == 0)
     != := method(right, self compare(right) != 0)
