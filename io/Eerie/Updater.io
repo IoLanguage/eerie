@@ -43,7 +43,12 @@ Updater := Object clone do (
         self _checkGitBranch(self newer name)
         self _checkGitTag(version)
         self _removeOld
-        self _installNew)
+        self _installNew
+
+        Logger log(
+            "☑  [[magenta bold;#{self newer name}[[reset; is " ..
+            "[[magenta bold;v#{version asSeq}[[reset; now",
+            "output"))
 
     # check whether `package` is installed
     _checkInstalled := method(

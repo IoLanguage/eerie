@@ -70,7 +70,7 @@ Publisher := Object clone do (
     validate := method(
         # TODO check whether the package satisfies all the requirements for
         # published packages:
-        # - version is newer then the previous one (first check db, 
+        # - version is newer than the previous one (first check db, 
         #   then git tags)
         #   * shouldn't be shortened as well
         # - has non-empty README.md
