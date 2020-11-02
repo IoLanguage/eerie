@@ -26,7 +26,7 @@ UpdaterTest := UnitTest clone do (
         update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
         updater := Updater with(self package, update)
 
-        assertEquals(22, updater _availableVersions size))
+        assertEquals(23, updater _availableVersions size))
 
     testHighestVersion := method(
         update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
@@ -43,7 +43,7 @@ UpdaterTest := UnitTest clone do (
         assertEquals(updater _highestVersion, SemVer fromSeq("0.1.0-rc.2"))
 
         updater _targetVersion = SemVer fromSeq("0.1")
-        assertEquals(updater _highestVersion, SemVer fromSeq("0.1.3"))
+        assertEquals(updater _highestVersion, SemVer fromSeq("0.1.4"))
 
         updater _targetVersion = SemVer fromSeq("0.2")
         assertEquals(updater _highestVersion, SemVer fromSeq("0.2.9"))
@@ -56,5 +56,29 @@ UpdaterTest := UnitTest clone do (
 
         updater _targetVersion = SemVer fromSeq("2.0.0-rc.1")
         assertEquals(updater _highestVersion, SemVer fromSeq("2.0.0-rc.1")))
+
+    testUpdate := method(
+        tmpPkgDir := Directory with("tests/_tmp/Test") create remove
+        package := Package with(Directory with("tests/_addons/AFakeAddon"))
+        package dir copyTo(tmpPkgDir)
+        package = Package with(tmpPkgDir)
+
+        installer := Installer with(package)
+        installer install(
+            Package with(Directory with("tests/_addons/CFakeAddon")))
+
+        dep := package packageNamed("CFakeAddon")
+        assertEquals(dep version, SemVer fromSeq("0.1.0"))
+
+        update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
+        updater := Updater with(package, update)
+
+        updater update
+        dep = package packageNamed("CFakeAddon")
+        assertEquals(dep version, SemVer fromSeq("0.1.4"))
+
+        package remove
+
+    )
 
 )

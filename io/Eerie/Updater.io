@@ -15,12 +15,12 @@ Updater := Object clone do (
     newer := nil
 
     # The `Package`, which the updater should update.
-    _targetPackage := nil
+    _targetPackage := lazySlot(self package packageNamed(self newer name))
 
     # version, to which the dependency will be updated
     _targetVersion := nil
 
-    /*doc Updater with(package, newer, version)
+    /*doc Updater with(package, newer)
     Initializer, where:
     - package - the `Package` dependencies of which the updater should update
     - newer - a new version of a `package` dependency*/
@@ -33,21 +33,20 @@ Updater := Object clone do (
     /*doc Updater update 
     Install update.*/
     update := method(
-        self package _checkHasDep(self newer)
+        self package checkHasDep(self newer name)
         self _checkInstalled
         self _initTargetVersion
 
         version := self _highestVersion
 
         self _logUpdate(version)
-        self package _checkGitBranch(self newer)
+        self _checkGitBranch(self newer name)
         self _checkGitTag(version)
         self _removeOld
         self _installNew)
 
-    # check whether `package` has target dependency
+    # check whether `package` is installed
     _checkInstalled := method(
-        self _targetPackage = package packageNamed(self newer name)
         if (self _targetPackage isNil, 
             Exception raise(NotInstalledError with(self newer name))))
 
@@ -82,8 +81,9 @@ Updater := Object clone do (
         if (version > self _targetPackage version) then (
             Logger log("⬆ [[cyan bold;Updating [[reset;" ..
                 "#{self _targetPackage name} " ..
-                "from v#{self _targetPackage version asSeq} " ..
-                "to v#{version asSeq}", "output")
+                "from [[magenta bold;" ..
+                "v#{self _targetPackage version asSeq}[[reset; " ..
+                "to [[magenta bold;v#{version asSeq}", "output")
         ) elseif (version < self _targetPackage version) then (
             Logger log(
                 "⬇ [[cyan bold;Downgrading [[reset;" .. 
@@ -95,6 +95,13 @@ Updater := Object clone do (
                 "☑  #{self _targetPackage name} " .. 
                 "v#{self _targetPackage version asSeq} " ..
                 "is already updated", "output")))
+
+    _checkGitBranch := method(name,
+        branch := self package gitBranchForDep(name)
+
+        if (branch isNil, return)
+
+        Eerie sh("git checkout #{branch}", false, self newer dir path))
 
     _checkGitTag := method(version,
         Eerie sh("git checkout tags/#{version originalSeq}", 

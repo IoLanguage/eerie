@@ -20,12 +20,12 @@ InstallerTest := UnitTest clone do (
         e := try (installer _checkPackageSet)
         assertEquals(e error type, Installer PackageNotSetError type))
 
-    testHasDep := method(
+    testNoDep := method(
         dependency := Package with(Directory with("tests/_addons/DFakeAddon"))
         installer := Installer with(self package)
 
         e := try (installer install(dependency))
-        assertEquals(e error type, Installer NoDependencyError type))
+        assertEquals(e error type, Package NoDependencyError type))
 
     testInstall := method(
         # this package has binaries, so we check binaries installation too

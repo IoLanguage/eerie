@@ -22,8 +22,11 @@ Logger := Object clone do (
     - `"debug"` (errors, warnings, additional info and debug message)
     - `"trace"` (everything)
 
-    The default is `"info"`*/
-    filter ::= "info"
+    The default is `"info"`.
+
+    You can also set this value using `EERIE_LOG_FILTER` environment variable.*/
+    filter ::= lazySlot(
+        System getEnvironmentVariable("EERIE_LOG_FILTER") ifNilEval("info"))
 
     _logMods := Map with(
         "info",         " -",

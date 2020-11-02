@@ -59,6 +59,7 @@ Eerie := Object clone do (
 
     Returns the object returned by `System runCommand`.*/
     sh := method(cmd, silent, path,
+        cmd = cmd interpolate(call sender)
         if (silent not, Logger log(cmd, "console"))
         
         prevDir := nil
@@ -66,7 +67,7 @@ Eerie := Object clone do (
             prevDir = Directory currentWorkingDirectory
             Directory setCurrentWorkingDirectory(path))
 
-        cmdOut := System runCommand(cmd interpolate(call sender))
+        cmdOut := System runCommand(cmd)
         stdOut := cmdOut stdout
         stdErr := cmdOut stderr
 

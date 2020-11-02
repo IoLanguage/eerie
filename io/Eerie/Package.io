@@ -192,6 +192,46 @@ Package := Object clone do (
     Returns `true` if the `Package binDir` has files and `false` otherwise.*/
     hasBinaries := method(self binDir exists and self binDir files isEmpty not)
 
+    /*doc Package gitBranchForDep(name) 
+    Get git branch (`Sequence` or `nil`) for dependency name (`Sequence`).
+    
+    There are two scenarios for `branch` configuration:
+
+    1. The user can specify branch per dependency in `addons`:
+    ```
+    ...
+    "addons": [
+        {
+           ...
+           "branch": "develop"
+        }
+    ]
+    ...
+
+    ```
+    
+    2. The developer can specify main `"branch"` for the package.
+    
+    The first scenario has more priority, so we try to get the user specified
+    branch first and then if it's `nil` we check the developer's one.*/
+    gitBranchForDep := method(depName,
+        self checkHasDep(depName)
+        depConfig := self configForDependencyName(depName)
+        branch := depConfig at("branch")
+        package := self packageNamed(depName)
+        branch ifNilEval(package ?config ?at("branch")))
+
+    /*doc Package checkHasDep(name)
+    Check whether the package has dependency (i.e. in eerie.json) with the
+    specified name (`Sequence`).
+
+    Raises `Package NoDependencyError` if it doesn't.*/
+    checkHasDep := method(depName,
+        depConfig := self configForDependencyName(depName)
+
+        if (depConfig isNil,
+            Exception raise(NoDependencyError with(self name, depName))))
+
     //doc Package providesProtos Returns list of protos this package provides.
     providesProtos := method(
         p := self config at("protos")
@@ -221,6 +261,11 @@ Package do (
     //doc Package FailedRunHookError
     FailedRunHookError := Eerie Error clone setErrorMsg(
         "Failed run hook \"#{call evalArgAt(0)}\":\n#{call evalArgAt(1)}")
+
+    //doc Package NoDependencyError
+    NoDependencyError := Eerie Error clone setErrorMsg(
+        "The package \"#{call evalArgAt(0)}\" has no dependency " .. 
+        "\"#{call evalArgAt(1)}\" in #{Package manifestName}.")
 
 )
 

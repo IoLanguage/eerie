@@ -18,7 +18,7 @@ Installer := Object clone do (
     Returns `true` if the package installed successfully.*/
     install := method(dependency,
         self _checkPackageSet
-        self _checkHasDep(dependency)
+        self package checkHasDep(dependency name)
 
         pkgDestination := self _destination(dependency)
         if (pkgDestination exists, 
@@ -45,46 +45,17 @@ Installer := Object clone do (
     _checkPackageSet := method(
         if (self package isNil, Exception raise(PackageNotSetError clone)))
 
-    # check whether `package` has dependency (i.e. in eerie.json) with
-    # `dependency name`
-    _checkHasDep := method(dependency,
-        depConfig := self package configForDependencyName(dependency name)
-
-        if (depConfig isNil,
-            Exception raise(NoDependencyError with(
-                self package name,
-                dependency name))))
-
     # this is the directory inside `addonsDir` which represents the package and
     # contains its sources
     _destination := method(dependency,
         self package addonsDir directoryNamed(dependency name))
 
-    # there are two scenarios for `branch` configuration:
-    # 1. The user can specify branch per dependency in `addons`:
-    # ...
-    # "addons": [
-    #     {
-    #        ...
-    #        "branch": "develop"
-    #     }
-    # ]
-    # ...
-    #
-    # 2. The developer can specify main `"branch"` for the package.
-    #
-    # The first scenario has more priority, so we try to get the user specified
-    # branch first and then if it's `nil` we check the developer's one.
-    #
-    # (we already sure here that the `package` has `dependency name`)
     _checkGitBranch := method(dependency,
-        depConfig := self package configForDependencyName(dependency name)
-        branch := depConfig at("branch")
-        branch = branch ifNilEval(dependency config at("branch"))
+        branch := self package gitBranchForDep(dependency name)
 
         if (branch isNil, return)
 
-        Eerie sh("git checkout #{branch}", false, self newer dir path))
+        Eerie sh("git checkout #{branch}", false, dependency dir path))
 
     /*doc Installer build(Package) Compiles the `Package` if it has
     native code. Returns `true` if the package was compiled and `false`
@@ -168,11 +139,6 @@ Installer do (
 
     //doc Installer PackageNotSetError
     PackageNotSetError := Eerie Error clone setErrorMsg("Package didn't set.")
-
-    //doc Installer NoDependencyError
-    NoDependencyError := Eerie Error clone setErrorMsg(
-        "The package \"#{call evalArgAt(0)}\" has no dependency " .. 
-        "\"#{call evalArgAt(1)}\" in #{Package manifestName}.")
 
     //doc Installer DirectoryExistsError
     DirectoryExistsError := Eerie Error clone setErrorMsg("Can't install " ..

@@ -25,6 +25,12 @@ PackageTest := UnitTest clone do (
         bPackage := Package with(Directory with("tests/_addons/BFakeAddon"))
         assertTrue(bPackage hasBinaries))
 
+    testHasDep := method(
+        package := Package with(Directory with("tests/_addons/AFakeAddon"))
+
+        e := try (package checkHasDep("shouldntexist"))
+        assertEquals(e error type, Package NoDependencyError type))
+
     testDirectoryValidation := method(
         e := try (Package with(Directory with("tests/_faddons/NotAddon")))
         assertEquals(e error type, Package NotPackageError type))
