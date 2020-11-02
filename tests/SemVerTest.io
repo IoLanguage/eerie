@@ -154,4 +154,11 @@ SemVerTest := UnitTest clone do(
             SemVer fromSeq("1.0.0-beta.1") nextVersion,
             SemVer fromSeq("1.0.0-beta.2")))
 
+    testIsShorened := method(
+        assertTrue(SemVer fromSeq("1") isShortened)
+        assertTrue(SemVer fromSeq("1.0") isShortened)
+        assertFalse(SemVer fromSeq("1.0.0") isShortened)
+        assertTrue(SemVer fromSeq("1.0.0-beta") isShortened)
+        assertFalse(SemVer fromSeq("1.0.0-beta.1") isShortened))
+
 )

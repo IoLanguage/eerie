@@ -13,8 +13,11 @@ Builder := Object clone do (
     doRelativeFile("Builder/DependencyManager.io")
     doRelativeFile("Builder/InitFileGenerator.io")
     
-    /*doc Builder shouldGenerateInit Whether `Builder` should generate
-    IoAddonNameInit.c file for your package. Default to `true`.*/
+    /*doc Builder shouldGenerateInit 
+    Whether `Builder` should generate IoAddonNameInit.c file for your package.
+
+    Default to `true`.*/
+    //doc Builder setShouldGenerateInit `shouldGenerateInit` setter.
     shouldGenerateInit ::= true
 
     //doc Builder package Get the `Package` the `Builder` will build.
@@ -62,7 +65,12 @@ Builder := Object clone do (
 
         self _copyHeaders
 
-        if (self shouldGenerateInit, self _initFileGenerator generate)
+        if (self shouldGenerateInit,
+            Logger log(
+                "🪄  [[brightBlue bold;Generating [[reset;" ..
+                "#{self _initFileGenerator output path}",
+                "output")
+            self _initFileGenerator generate)
 
         self _cFiles foreach(src, self _compileFile(src))
 
@@ -98,13 +106,13 @@ Builder := Object clone do (
         obj := self package objsBuildDir fileNamed(objName)
 
         if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
-            Logger log("📄 [[cyan bold;Compiling[[reset; #{src name}" ,
+            Logger log("📄 [[brightBlue bold;Compiling[[reset; #{src name}" ,
                 "output")
             Eerie sh(self _compilerCommand setSrc(src) asSeq)))
 
     _buildStaticLib := method(
         Logger log(
-            "🧩 [[cyan bold;Linking [[reset;" .. 
+            "🧩 [[brightBlue bold;Linking [[reset;" .. 
             "#{self package staticLibFileName}",
             "output")
 
@@ -114,7 +122,7 @@ Builder := Object clone do (
 
     _buildDynLib := method(
         Logger log(
-            "🧩 [[cyan bold;Linking [[reset;" .. 
+            "🧩 [[brightBlue bold;Linking [[reset;" .. 
             "#{self package dllFileName}",
             "output")
 
@@ -130,8 +138,8 @@ Builder := Object clone do (
         if (Eerie platform != "windows", return)
 
         Logger log(
-            "[[cyan bold;Removing[[reset; manifest file " .. 
-            "#{self _dynLinkerCommand manifestPath}")
+            "[[brightBlue bold;Removing[[reset; manifest file " .. 
+            "#{self _dynLinkerCommand manifestPath}", "output")
         
         File with(self _dynLinkerCommand manifestPath) remove)
 

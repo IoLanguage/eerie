@@ -27,12 +27,6 @@ InitFileGenerator := Object clone do (
 
     # generates the file
     generate := method(
-
-        Logger log(
-            "🪄  [[cyan bold;Generating [[reset;" ..
-            "#{self output path}",
-            "output")
-
         self output remove create open
 
         self _writeHead

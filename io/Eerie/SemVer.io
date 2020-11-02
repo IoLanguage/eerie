@@ -111,6 +111,10 @@ SemVer := Object clone do(
         ) elseif (word == "BETA") then (
             return "RC"))
 
+    //doc SemVer isShortened Returns a boolean whether the version is shortened.
+    isShortened := method(
+        self patch isNil or (self isPre and self preNumber isNil))
+
     /*doc SemVer isPre Returns `true` if the version is pre-release and `false`
     otherwise.*/
     isPre := method(self pre isNil not)
