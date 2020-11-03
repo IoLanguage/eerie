@@ -6,7 +6,28 @@ Command := Object clone do (
 
 )
 
+
+CompilerCommandWinExt := Object clone do (
+
+    _cc := method(System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
+
+    _ccOutFlag := "-Fo"
+
+)
+
+CompilerCommandUnixExt := Object clone do (
+    
+    _cc := method(System getEnvironmentVariable("CC") ifNilEval("cc"))
+    
+    _ccOutFlag := "-o "
+
+)
+
 CompilerCommand := Command clone do (
+
+    if (Eerie platform == "windows", 
+        prependProto(CompilerCommandWinExt),
+        prependProto(CompilerCommandUnixExt)) 
 
     package := nil
 
@@ -67,26 +88,6 @@ CompilerCommand := Command clone do (
 
 )
 
-CompilerCommandWinExt := Object clone do (
-
-    _cc := method(System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
-
-    _ccOutFlag := "-Fo"
-
-)
-
-CompilerCommandUnixExt := Object clone do (
-    
-    _cc := method(System getEnvironmentVariable("CC") ifNilEval("cc"))
-    
-    _ccOutFlag := "-o "
-
-)
-
-if (Eerie platform == "windows", 
-    CompilerCommand prependProto(CompilerCommandWinExt),
-    CompilerCommand prependProto(CompilerCommandUnixExt)) 
-
 # CompilerCommand error types
 CompilerCommand do (
 
@@ -95,7 +96,33 @@ CompilerCommand do (
 
 )
 
+StaticLinkerCommandWinExt := Object clone do (
+
+    _ar := "link -lib -nologo"
+
+    _arFlags := "-out:"
+
+    _ranlib := nil
+
+)
+
+StaticLinkerCommandUnixExt := Object clone do (
+
+    _ar := method(
+        System getEnvironmentVariable("AR") ifNilEval("ar"))
+
+    _arFlags := "rc "
+
+    _ranlib := method(
+        System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))
+
+)
+
 StaticLinkerCommand := Command clone do (
+
+    if (Eerie platform == "windows",
+        prependProto(StaticLinkerCommandWinExt),
+        prependProto(StaticLinkerCommandUnixExt)) 
     
     package := nil
 
@@ -122,33 +149,40 @@ StaticLinkerCommand := Command clone do (
 
 )
 
-StaticLinkerCommandWinExt := Object clone do (
+DynamicLinkerCommandWinExt := Object clone do (
 
-    _ar := "link -lib -nologo"
+    _linkerCmd := "link -link -nologo"
 
-    _arFlags := "-out:"
+    _dirPathFlag := "-libpath:"
 
-    _ranlib := nil
+    libFlag := ""
 
-)
+    _libSuffix := ".lib"
 
-StaticLinkerCommandUnixExt := Object clone do (
-
-    _ar := method(
-        System getEnvironmentVariable("AR") ifNilEval("ar"))
-
-    _arFlags := "rc "
-
-    _ranlib := method(
-        System getEnvironmentVariable("RANLIB") ifNilEval("ranlib"))
+    _outFlag := "-out:"
 
 )
 
-if (Eerie platform == "windows",
-    StaticLinkerCommand prependProto(StaticLinkerCommandWinExt),
-    StaticLinkerCommand prependProto(StaticLinkerCommandUnixExt)) 
+DynamicLinkerCommandUnixExt := Object clone do (
+
+    _linkerCmd := method(
+        System getEnvironmentVariable("CC") ifNilEval("cc"))
+
+    _dirPathFlag := "-L"
+
+    libFlag := "-l"
+
+    _libSuffix := ""
+
+    _outFlag := "-o "
+
+)
 
 DynamicLinkerCommand := Command clone do (
+
+    if (Eerie platform == "windows",
+        prependProto(DynamicLinkerCommandWinExt),
+        prependProto(DynamicLinkerCommandUnixExt)) 
 
     package := nil
 
@@ -237,36 +271,3 @@ DynamicLinkerCommand := Command clone do (
         " -outputresource:" .. self package dllPath)
 
 )
-
-DynamicLinkerCommandWinExt := Object clone do (
-
-    _linkerCmd := "link -link -nologo"
-
-    _dirPathFlag := "-libpath:"
-
-    libFlag := ""
-
-    _libSuffix := ".lib"
-
-    _outFlag := "-out:"
-
-)
-
-DynamicLinkerCommandUnixExt := Object clone do (
-
-    _linkerCmd := method(
-        System getEnvironmentVariable("CC") ifNilEval("cc"))
-
-    _dirPathFlag := "-L"
-
-    libFlag := "-l"
-
-    _libSuffix := ""
-
-    _outFlag := "-o "
-
-)
-
-if (Eerie platform == "windows",
-    DynamicLinkerCommand prependProto(DynamicLinkerCommandWinExt),
-    DynamicLinkerCommand prependProto(DynamicLinkerCommandUnixExt)) 

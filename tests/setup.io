@@ -1,4 +1,5 @@
-# this is setup file
+Importer addSearchPath("io")
+Importer addSearchPath("io/Eerie")
 
 System setEnvironmentVariable("EERIEDIR", Directory currentWorkingDirectory)
 System setEnvironmentVariable("EERIE_LOG_FILTER", "debug")

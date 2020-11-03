@@ -1,5 +1,3 @@
-Importer addSearchPath("io/Eerie/")
-
 SemVerTest := UnitTest clone do(
 
     testIlligible := method(

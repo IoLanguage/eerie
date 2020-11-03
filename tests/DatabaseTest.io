@@ -1,6 +1,3 @@
-Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
-
 DatabaseTest := UnitTest clone do (
 
     Database dir := Directory with("tests/db")

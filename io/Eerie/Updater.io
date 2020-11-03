@@ -47,7 +47,7 @@ Updater := Object clone do (
 
         Logger log(
             "☑  [[magenta bold;#{self newer name}[[reset; is " ..
-            "[[magenta bold;v#{version asSeq}[[reset; now",
+            "[[magenta bold;#{version originalSeq}[[reset; now",
             "output"))
 
     # check whether `package` is installed
@@ -65,22 +65,19 @@ Updater := Object clone do (
 
     # find highest available version
     _highestVersion := method(
+        versions := self newer versions
+
+        if (versions isEmpty,
+            Exception raise(NoVersionsError with(self newer name)))
+
         highest := self _targetVersion
 
-        self _availableVersions foreach(ver, 
+        versions foreach(ver, 
             if (ver <= self _targetVersion and(
                 ver isPre == self _targetVersion isPre), 
                 highest = ver))
 
         highest)
-
-    # collect available versions from git tags as a list
-    _availableVersions := method(
-        cmdOut := Eerie sh("git tag", true, self newer dir path)
-        res := cmdOut stdout splitNoEmpties("\n") map(tag, SemVer fromSeq(tag))
-        if (res isEmpty,
-            Exception raise(NoVersionsError with(newer name)))
-        res)
 
     _logUpdate := method(version,
         if (version > self _targetPackage version) then (

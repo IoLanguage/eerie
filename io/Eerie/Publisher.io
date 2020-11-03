@@ -80,8 +80,7 @@ Publisher := Object clone do (
 
     _checkHasGitChanges := method(
         # TODO
-        Exception raise(HasGitChangesError with(self package name))
-    )
+        Exception raise(HasGitChangesError with(self package name)))
 
     _addGitTag := method(
         self _checkGitTagExists

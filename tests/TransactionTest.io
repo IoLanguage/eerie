@@ -1,6 +1,3 @@
-Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
-
 TransactionTest := UnitTest clone do(
     
     transaction ::= nil

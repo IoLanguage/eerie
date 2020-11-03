@@ -1,5 +1,3 @@
-Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
 Importer addSearchPath("io/Eerie/Builder")
 
 CommandTest := UnitTest clone do (

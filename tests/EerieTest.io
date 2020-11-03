@@ -1,6 +1,3 @@
-Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
-
 EerieTest := UnitTest clone do (
 
     testSetGlobal := method(

@@ -1,4 +1,4 @@
-# This proto manages dependencies
+# The dependency manager for Builder
 
 DependencyManager := Object clone do (
 

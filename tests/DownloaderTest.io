@@ -1,6 +1,3 @@
-Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
-
 DownloaderTest := UnitTest clone do (
 
     doFile("io/Eerie/downloaders/directory.io")

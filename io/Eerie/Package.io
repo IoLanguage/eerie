@@ -232,6 +232,13 @@ Package := Object clone do (
         if (depConfig isNil,
             Exception raise(NoDependencyError with(self name, depName))))
 
+    /*doc Package versions
+    Get `List` of available versions. The versions are collected from git tags.
+    */
+    versions := method(
+        cmdOut := Eerie sh("git tag", true, self dir path)
+        cmdOut stdout splitNoEmpties("\n") map(tag, SemVer fromSeq(tag)))
+
     //doc Package providesProtos Returns list of protos this package provides.
     providesProtos := method(
         p := self config at("protos")

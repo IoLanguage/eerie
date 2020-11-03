@@ -1,6 +1,3 @@
-Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
-
 PackageTest := UnitTest clone do (
 
     testInstalledPackages := method(
@@ -30,6 +27,10 @@ PackageTest := UnitTest clone do (
 
         e := try (package checkHasDep("shouldntexist"))
         assertEquals(e error type, Package NoDependencyError type))
+
+    testVersions := method(
+        package := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
+        assertEquals(23, package versions size))
 
     testDirectoryValidation := method(
         e := try (Package with(Directory with("tests/_faddons/NotAddon")))

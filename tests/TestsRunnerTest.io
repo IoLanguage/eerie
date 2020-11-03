@@ -1,6 +1,3 @@
-Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
-
 TestsRunnerTest := UnitTest clone do (
 
     testCheckDir := method(

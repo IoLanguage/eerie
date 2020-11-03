@@ -1,6 +1,3 @@
-Importer addSearchPath("io")
-Importer addSearchPath("io/Eerie")
-
 UpdaterTest := UnitTest clone do (
 
     package := Package with(Directory with("tests/_addons/AFakeAddon"))
@@ -22,11 +19,12 @@ UpdaterTest := UnitTest clone do (
 
         assertEquals(updater _targetVersion, SemVer fromSeq("0.1")))
 
-    testAvailableVersions := method(
-        update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
+    testNoVersions := method(
+        update := Package with(Directory with("tests/_addons/CFakeAddon"))
         updater := Updater with(self package, update)
 
-        assertEquals(23, updater _availableVersions size))
+        e := try (updater _highestVersion)
+        assertEquals(e error type, Updater NoVersionsError type))
 
     testHighestVersion := method(
         update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
@@ -77,8 +75,6 @@ UpdaterTest := UnitTest clone do (
         dep = package packageNamed("CFakeAddon")
         assertEquals(dep version, SemVer fromSeq("0.1.4"))
 
-        package remove
-
-    )
+        package remove)
 
 )
