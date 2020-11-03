@@ -1,6 +1,9 @@
 SemVerTest := UnitTest clone do(
 
     testIlligible := method(
+        e := try (SemVer fromSeq(nil))
+        assertEquals(e error type, SemVer IsNilError type)
+
         e := try (SemVer fromSeq(""))
         assertEquals(e error type, SemVer ErrorNotRecognised type)
 

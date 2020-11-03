@@ -200,9 +200,10 @@ contains fields and their descriptions.
 |                                    |                 | `D` and `E` are optinal and come after `-` sign.                             |                                      |
 |                                    |                 | `D` - case-insensitive pre-release status (`alpha`, `beta`, `rc`)            |                                      |
 |                                    |                 | `E` - pre-release version number                                             |                                      |
-| `description`                      | `string`        | A short description of the package.                                          | **OPTIONAL**                         |
+| `description`                      | `string`        | A short description of the package.                                          | **REQUIRED** for published packages  |
 | `author`                           | `string`        | The author name.                                                             | **REQUIRED**                         |
 | `readme`                           | `string`        | Path to the README file.                                                     | **REQUIRED** for published packages  |
+| `license`                          | `string`        | Path to the LICENSE file.                                                    | **REQUIRED** for published  packages |
 | `website`                          | `string`        | Package's website address.                                                   | **OPTIONAL**                         |
 | `url`                              | `string`        | From where the package should be installed.                                  | **REQUIRED**                         |
 |                                    |                 | Can be a path to directory or a git URL.                                     |                                      |

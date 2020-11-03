@@ -39,6 +39,7 @@ SemVer := Object clone do(
     /*doc SemVer fromSeq(versionSeq) Init `SemVer` instance from the given
     `Sequence`.*/
     fromSeq := method(verSeq,
+        if (verSeq isNil, Exception raise(IsNilError))
         res := self clone
         res originalSeq = verSeq
         spl := self _stripWord(verSeq) split("-")
@@ -196,6 +197,8 @@ SemVer := Object clone do(
 )
 
 SemVer do (
+
+    IsNilError := Error with("Version can not be initialized from 'nil'.")
 
     ErrorNotRecognised := Error with(
         "The sequence is not recognised as semantic version.")

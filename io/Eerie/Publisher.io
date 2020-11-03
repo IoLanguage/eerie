@@ -68,16 +68,60 @@ Publisher := Object clone do (
     Check whether the `package` satisfies all the requirements for published
     packages.*/
     validate := method(
-        versions := self package versions
-        # TODO check whether the package satisfies all the requirements for
-        # published packages:
-        # - version is newer than the previous one (first check db, 
-        #   then git tags)
-        #   * shouldn't be shortened as well
-        # - has non-empty README.md
-        # - has LICENSE
-        # - ...?
+        self _checkVersion
+        self _checkDescription
+        self _checkReadme
+        self _checkLicense)
+
+    _checkVersion := method(
+        self _checkVersionNewer
+        self _checkVersionShortened
     )
+
+    _checkVersionNewer := method(
+        verSeq := Database valueFor(self package name, "version")
+        previous := if (verSeq isNil,
+            self package highestVersionFor,
+            SemVer fromSeq(verSeq))
+
+        if (previous isNil, return)
+
+        if (previous >= self package version, 
+            Exception raise(
+                VersionIsOlderError with(
+                    self package name, 
+                    self package version originalSeq,
+                    previous originalSeq))))
+
+    _checkVersionShortened := method(
+        if (self package version isShortened,
+            Exception raise(
+                VersionIsShortened with(self package version asSeq))))
+
+    _checkDescription := method(
+        desc := self package config at("description")
+        if (desc isNil or desc isEmpty, 
+            Exception raise(NoDescriptionError with(""))))
+
+    _checkReadme := method(
+        path := self package config at("readme")
+        if (self _hasRequiredFile(path) not, 
+            Exception raise(ReadmeError with(""))))
+
+    _hasRequiredFile := method(path,
+        if (path isNil or path isEmpty, return false)
+
+        file := File with(self package dir path .. "/" .. path)
+        
+        if (file exists not or file ?contents isEmpty, 
+            return false)
+
+        return true)
+
+    _checkLicense := method(
+        path := self package config at("license")
+        if (self _hasRequiredFile(path) not, 
+            Exception raise(LicenseError with(""))))
 
     _checkHasGitChanges := method(
         # TODO
@@ -119,6 +163,26 @@ Publisher := Object clone do (
 Publisher do (
 
     PackageNotSetError := Eerie Error clone setErrorMsg("Package doesn't set.")
+
+    VersionIsOlderError := Eerie Error clone setErrorMsg(
+        "The release version \"#{call evalArgAt(1)}\" " ..
+        "of package \"#{call evalArgAt(0)}\" " ..
+        "should be higher than the previous version (\"#{call evalArgAt(2)}\")")
+
+    VersionIsShortened := Eerie Error clone setErrorMsg(
+        "The release version shouldn't be shortened.")
+
+    NoDescriptionError := Eerie Error clone setErrorMsg(
+        "Published packages should have \"description\" in " ..
+        "#{Package manifestName}.")
+
+    ReadmeError := Eerie Error clone setErrorMsg(
+        "README file is required for published packages and shouldn't be " ..
+        "empty.")
+
+    LicenseError := Eerie Error clone setErrorMsg(
+        "LICENSE file is required for published packages and shouldn't be " ..
+        "empty.")
 
     GitTagExistsError := Eerie Error clone setErrorMsg(
         "Git tag #{call evalArgAt(0)} already exists in package " .. 
