@@ -93,6 +93,13 @@ Package := Object clone do (
     //doc Package version Returns parsed version (`SemVer`) of the package.
     version ::= nil
     
+    /*doc Package versions
+    Get `List` of available versions. The versions are collected from git tags.
+    */
+    versions := method(
+        cmdOut := Eerie sh("git tag", true, self dir path)
+        cmdOut stdout splitNoEmpties("\n") map(tag, SemVer fromSeq(tag)))
+
     //doc Package name
     name := method(self config at("name"))
 
@@ -100,6 +107,14 @@ Package := Object clone do (
     setName := method(v,
         self config atPut("name", v)
         self)
+
+    /*doc Package global 
+    Initializes the global Eerie package (i.e. the Eerie itself).*/
+    global := lazySlot(Package with(Directory with(Eerie root)))
+
+    /*doc Package packages 
+    Get the `List` of installed dependencies for this package.*/
+    packages := lazySlot(self addonsDir directories map(dir, Package with(dir)))
 
     /*doc Package with(dir) 
     Creates new package from provided `Directory`. Raises `NotPackageError` if
@@ -125,62 +140,37 @@ Package := Object clone do (
 
         ManifestValidator with(manifest) validate)
 
-    /*doc Package global 
-    Initializes the global Eerie package (i.e. the Eerie itself).*/
-    global := method(Package with(Directory with(Eerie root)))
+    /*doc Package highestVersionFor(version) 
+    Returns the highest available `SemVer` for `version` (`SemVer`). If
+    `version` is `nil` returns the highest version in the `Package versions`.
 
-    /*doc Package uri 
-    Either local path or git url. Parsed from `path` field of `eerie.json`.*/
-    uri := method(
-        dir := self config at("path") at("dir")
-        if (dir isNil not, 
-            dir,
-            self config at("path") at("git") at("url")))
+    Returns `nil` if `Package versions` is empty.*/
+    highestVersionFor := method(version,
+        versions := self versions
 
-    /*doc Package packages 
-    Get the `List` of installed dependencies for this package.*/
-    packages := lazySlot(self addonsDir directories map(dir, Package with(dir)))
+        if (self versions isEmpty, return nil)
 
-    /*doc Package appendPackage 
-    Add a `Package` to the list of installed packages.*/
-    appendPackage := method(package, self packages appendIfAbsent(package))
+        if (version isNil, return self _highestVersion(versions))
 
-    /*doc Package packageNamed 
-    Get the dependency package with the provided name (`Sequence`) if it's
-    installed. Otherwise it returns `nil`.*/ 
-    packageNamed := method(name, self packages detect(pkg, pkg name == name))
+        result := version
+        versions foreach(ver, 
+            if (ver <= version and ver isPre == version isPre, 
+                result = ver))
 
-    /*doc Eerie updatePackage(Package) 
-    Replaces package with the given name with the given package.
+        result)
 
-    Return `true` if package was found and replaced and `false` otherwise.*/
-    updatePackage := method(package,
-        old := self packageNamed(package name)
-        old isNil ifTrue(
-            msg := "Tried to update package which is not yet installed."
-            msg = msg .. " (#{package name})"
-            Logger log(msg, "debug")
-            return false)
+    _highestVersion := method(versions,
+        result := versions at(0)
 
-        self packages remove(old) append(package)
-        true)
+        versions foreach(ver,
+            if (ver > result, result = ver))
 
-    //doc Package removePackage(`Package`) Removes the given package.
-    removePackage := method(package,
-        package ?remove
-        self packages remove(package))
+        result)
 
-    //doc Package remove Removes self.
-    remove := method(
-        self dir remove
-        self packages := list())
-
-    /*doc Package configForDependencyName
-    Returns config object (`Map`) from `addons` array of `eerie.json` by its
-    name.*/
-    configForDependencyName := method(name,
-        addons := self config at("addons")
-        addons detect(at("name") == name))
+    //doc Package providesProtos Returns list of protos this package provides.
+    providesProtos := method(
+        p := self config at("protos")
+        if(p isNil, list(), p))
 
     /*doc Package hasNativeCode 
     Returns `true` if the package has native code and `false` otherwise.*/
@@ -232,17 +222,46 @@ Package := Object clone do (
         if (depConfig isNil,
             Exception raise(NoDependencyError with(self name, depName))))
 
-    /*doc Package versions
-    Get `List` of available versions. The versions are collected from git tags.
-    */
-    versions := method(
-        cmdOut := Eerie sh("git tag", true, self dir path)
-        cmdOut stdout splitNoEmpties("\n") map(tag, SemVer fromSeq(tag)))
+    /*doc Package configForDependencyName
+    Returns config object (`Map`) from `addons` array of `eerie.json` by its
+    name.*/
+    configForDependencyName := method(name,
+        addons := self config at("addons")
+        addons detect(at("name") == name))
 
-    //doc Package providesProtos Returns list of protos this package provides.
-    providesProtos := method(
-        p := self config at("protos")
-        if(p isNil, list(), p))
+    /*doc Package packageNamed 
+    Get the dependency package with the provided name (`Sequence`) if it's
+    installed. Otherwise it returns `nil`.*/ 
+    packageNamed := method(name, self packages detect(pkg, pkg name == name))
+
+    /*doc Package appendPackage 
+    Add a `Package` to the list of installed packages.*/
+    appendPackage := method(package, self packages appendIfAbsent(package))
+
+    /*doc Eerie updatePackage(Package) 
+    Replaces package with the given name with the given package.
+
+    Return `true` if package was found and replaced and `false` otherwise.*/
+    updatePackage := method(package,
+        old := self packageNamed(package name)
+        old isNil ifTrue(
+            msg := "Tried to update package which is not yet installed."
+            msg = msg .. " (#{package name})"
+            Logger log(msg, "debug")
+            return false)
+
+        self packages remove(old) append(package)
+        true)
+
+    //doc Package removePackage(`Package`) Removes the given package.
+    removePackage := method(package,
+        package ?remove
+        self packages remove(package))
+
+    //doc Package remove Removes self.
+    remove := method(
+        self dir remove
+        self packages := list())
 
     /*doc Package runHook(hookName) 
     Runs Io script with hookName in package's `hooks` directory if it exists.*/

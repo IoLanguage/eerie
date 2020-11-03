@@ -9,51 +9,12 @@ UpdaterTest := UnitTest clone do (
         e := try (updater _checkInstalled)
         assertEquals(e error type, Updater NotInstalledError type))
 
-    testInitTargetVersion := method(
-        update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
-        updater := Updater with(self package, update)
-
-        assertTrue(updater _targetVersion isNil)
-        
-        updater _initTargetVersion
-
-        assertEquals(updater _targetVersion, SemVer fromSeq("0.1")))
-
     testNoVersions := method(
         update := Package with(Directory with("tests/_addons/CFakeAddon"))
         updater := Updater with(self package, update)
 
-        e := try (updater _highestVersion)
+        e := try (updater _checkHasVersions)
         assertEquals(e error type, Updater NoVersionsError type))
-
-    testHighestVersion := method(
-        update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
-        updater := Updater with(self package, update)
-
-        updater _targetVersion = SemVer fromSeq("0")
-
-        assertEquals(updater _highestVersion, SemVer fromSeq("0.2.9"))
-
-        updater _targetVersion = SemVer fromSeq("0.1.0-alpha")
-        assertEquals(updater _highestVersion, SemVer fromSeq("0.1.0-alpha.3"))
-
-        updater _targetVersion = SemVer fromSeq("0.1.0-rc")
-        assertEquals(updater _highestVersion, SemVer fromSeq("0.1.0-rc.2"))
-
-        updater _targetVersion = SemVer fromSeq("0.1")
-        assertEquals(updater _highestVersion, SemVer fromSeq("0.1.4"))
-
-        updater _targetVersion = SemVer fromSeq("0.2")
-        assertEquals(updater _highestVersion, SemVer fromSeq("0.2.9"))
-
-        updater _targetVersion = SemVer fromSeq("0.2.2")
-        assertEquals(updater _highestVersion, SemVer fromSeq("0.2.2"))
-
-        updater _targetVersion = SemVer fromSeq("1")
-        assertEquals(updater _highestVersion, SemVer fromSeq("1.0.1"))
-
-        updater _targetVersion = SemVer fromSeq("2.0.0-rc.1")
-        assertEquals(updater _highestVersion, SemVer fromSeq("2.0.0-rc.1")))
 
     testUpdate := method(
         tmpPkgDir := Directory with("tests/_tmp/Test") create remove

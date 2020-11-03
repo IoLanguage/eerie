@@ -17,9 +17,6 @@ Updater := Object clone do (
     # The `Package`, which the updater should update.
     _targetPackage := lazySlot(self package packageNamed(self newer name))
 
-    # version, to which the dependency will be updated
-    _targetVersion := nil
-
     /*doc Updater with(package, newer)
     Initializer, where:
     - package - the `Package` dependencies of which the updater should update
@@ -35,9 +32,9 @@ Updater := Object clone do (
     update := method(
         self package checkHasDep(self newer name)
         self _checkInstalled
-        self _initTargetVersion
+        self _checkHasVersions
 
-        version := self _highestVersion
+        version := self newer highestVersionFor(self _targetVersion)
 
         self _logUpdate(version)
         self _checkGitBranch(self newer name)
@@ -55,29 +52,15 @@ Updater := Object clone do (
         if (self _targetPackage isNil, 
             Exception raise(NotInstalledError with(self newer name))))
 
-    # set target version
-    _initTargetVersion := method(
-        if (self _targetVersion isNil not, return)
+    _checkHasVersions := method(
+        if (self newer versions isEmpty,
+            Exception raise(NoVersionsError with(self newer name))))
 
+    # the version, to which the dependency will be updated
+    _targetVersion := lazySlot(
         addons := self package config at("addons")
         dep := addons detect(at("name") == self newer name)
-        self _targetVersion = SemVer fromSeq(dep at("version")))
-
-    # find highest available version
-    _highestVersion := method(
-        versions := self newer versions
-
-        if (versions isEmpty,
-            Exception raise(NoVersionsError with(self newer name)))
-
-        highest := self _targetVersion
-
-        versions foreach(ver, 
-            if (ver <= self _targetVersion and(
-                ver isPre == self _targetVersion isPre), 
-                highest = ver))
-
-        highest)
+        SemVer fromSeq(dep at("version")))
 
     _logUpdate := method(version,
         if (version > self _targetPackage version) then (

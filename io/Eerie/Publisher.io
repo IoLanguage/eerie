@@ -68,6 +68,7 @@ Publisher := Object clone do (
     Check whether the `package` satisfies all the requirements for published
     packages.*/
     validate := method(
+        versions := self package versions
         # TODO check whether the package satisfies all the requirements for
         # published packages:
         # - version is newer than the previous one (first check db, 
