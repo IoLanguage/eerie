@@ -122,6 +122,7 @@ PublisherTest := UnitTest clone do (
         publisher _checkGitTagExists)
 
     testPromptPush := method(
+        # TODO
         # don't know how to test it
         # kept it here for manual testing at least
         # package := Package with(Directory with("tests/_addons/AFakeAddon"))

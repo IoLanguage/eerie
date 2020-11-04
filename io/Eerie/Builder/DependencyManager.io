@@ -71,25 +71,29 @@ DependencyManager := Object clone do (
     dependsOnHeader := method(v, self _headers appendIfAbsent(v))
 
     dependsOnLib := method(v,
-        self _libs contains(v) ifFalse(
-            pkgLibs := self _pkgConfigLibs(v)
-            if(pkgLibs isEmpty,
-                self _libs appendIfAbsent(v),
-                pkgLibs map(l, self _libs appendIfAbsent(l)))
-            self _searchPrefixes appendIfAbsent(v)
-            self _pkgConfigCFlags(v) select(containsSeq("/")) foreach(p,
-                self appendHeaderSearchPath(p))))
+        if (self _libs contains(v), return)
+
+        parentDir := File with(v) parentDirectory
+        if (parentDir exists and parentDir path isEmpty not,
+            self _searchPrefixes appendIfAbsent(parentDir path))
+
+        pkgLibs := self _pkgConfigLibs(v)
+        if(pkgLibs isEmpty,
+            self _libs appendIfAbsent(v),
+            pkgLibs map(l, self _libs appendIfAbsent(l)))
+
+        self _pkgConfigCFlags(v) select(containsSeq("/")) foreach(p,
+            self appendHeaderSearchPath(p)))
 
     _pkgConfigLibs := method(pkg,
         self _pkgConfig(pkg, "--libs") \
             splitNoEmpties(Command DynamicLinkerCommand libFlag) \
                 map(strip))
 
-    _pkgConfigCFlags := method(pkg,
-        self _pkgConfig(pkg, "--cflags") splitNoEmpties("-I") map(strip))
-
     _pkgConfig := method(pkg, flags,
-        (Eerie platform == "windows") ifTrue(return "")
+        # this way we'll get empty lists for `_pkgConfigLibs` and
+        # `_pkgConfigCFlags` methods if pkg-config isn't installed
+        if (self _hasPkgConfig not, return "")
 
         date := Date now asNumber asHex
         resFile := self package buildDir path .. "/_pkg_config" .. date
@@ -106,6 +110,12 @@ DependencyManager := Object clone do (
             return flags
         ) else (
             return ""))
+
+    _hasPkgConfig := lazySlot(
+        try (Eerie sh("pkg-config --version", true)) isNil)
+
+    _pkgConfigCFlags := method(pkg,
+        self _pkgConfig(pkg, "--cflags") splitNoEmpties("-I") map(strip))
 
     dependsOnSysLib := method(v, self _syslibs appendIfAbsent(v))
 
