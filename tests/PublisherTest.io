@@ -93,4 +93,42 @@ PublisherTest := UnitTest clone do (
         publisher setPackage(package)
         publisher _checkDescription)
 
+    testHasGitChanges := method(
+        # this test may fail if tests/_tmp/CFakeAddonUpdate have uncommitted 
+        # changes
+        package := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
+        publisher := Publisher with(package)
+
+        change := File with("tests/_tmp/CFakeAddonUpdate/deleteme") 
+        change create remove
+
+        publisher _checkHasGitChanges
+
+        change create
+
+        e := try (publisher _checkHasGitChanges)
+        assertEquals(e error type, Publisher HasGitChangesError type)
+        change remove)
+
+    testGitTagExists := method(
+        package := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
+        publisher := Publisher with(package)
+        package version := SemVer fromSeq("0.1.0")
+
+        e := try (publisher _checkGitTagExists)
+        assertEquals(e error type, Publisher GitTagExistsError type)
+
+        package version := SemVer fromSeq("10.0.0")
+        publisher _checkGitTagExists)
+
+    testPromptPush := method(
+        # don't know how to test it
+        # kept it here for manual testing at least
+        # package := Package with(Directory with("tests/_addons/AFakeAddon"))
+        # publisher := Publisher with(package)
+        # publisher shouldPush println
+        # publisher _promptPush
+        # publisher shouldPush println
+    )
+
 )

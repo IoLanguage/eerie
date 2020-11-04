@@ -75,8 +75,7 @@ Publisher := Object clone do (
 
     _checkVersion := method(
         self _checkVersionNewer
-        self _checkVersionShortened
-    )
+        self _checkVersionShortened)
 
     _checkVersionNewer := method(
         verSeq := Database valueFor(self package name, "version")
@@ -124,8 +123,13 @@ Publisher := Object clone do (
             Exception raise(LicenseError with(""))))
 
     _checkHasGitChanges := method(
-        # TODO
-        Exception raise(HasGitChangesError with(self package name)))
+        cmdOut := Eerie sh(
+            "git status --porcelain", true, self package dir path)
+        # filter out *-stdout and *-stderr files created by System runCommand
+        res := cmdOut stdout split("\n") select(seq,
+            seq endsWithSeq("-stdout") not and seq endsWithSeq("-stderr") not)
+        if (res isEmpty not, 
+            Exception raise(HasGitChangesError with(self package name))))
 
     _addGitTag := method(
         self _checkGitTagExists
@@ -137,8 +141,11 @@ Publisher := Object clone do (
             self package dir path))
 
     _checkGitTagExists := method(
-        # TODO
-        Exception raise(GitTagExistsError with(self gitTag, self package name)))
+        cmdOut := Eerie sh("git tag", true, self package dir path)
+
+        if (cmdOut stdout split("\n") contains(self gitTag),
+            Exception raise(
+                GitTagExistsError with(self gitTag, self package name))))
 
     _promptPush := method(
         if (self shouldPush isNil not, return)

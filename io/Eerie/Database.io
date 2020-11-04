@@ -25,8 +25,11 @@ Database := Object clone do (
         # TODO this is slow because we fetch - this is the same as if we updated
         # without checking
         Eerie sh("git fetch", true, self dir path)
-        cmdOut := Eerie sh("git status", true, self dir path)
-        cmdOut stdout containsSeq("Your branch is up to date with") not)
+        cmdOut := Eerie sh(
+            "git status --porcelain --untracked-files=no",
+            true,
+            self dir path)
+        cmdOut stdout isEmpty not)
 
     //doc Database update Sync database with remote.
     update := method(
