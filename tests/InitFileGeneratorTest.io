@@ -3,7 +3,7 @@ Importer addSearchPath("io/Eerie/Builder/")
 InitFileGeneratorTest := UnitTest clone do (
 
     testGenerate := method(
-        package := Package with(Directory with("tests/_addons/CFakeAddon"))
+        package := Package with("tests/_addons/CFakeAddon")
         generator := InitFileGenerator with(package)
         generator generate
         

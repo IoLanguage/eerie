@@ -4,7 +4,7 @@ CommandTest := UnitTest clone do (
 
     Command
 
-    _package := Package with(Directory with("tests/_addons/AFakeAddon"))
+    _package := Package with("tests/_addons/AFakeAddon")
 
     _depsManager := DependencyManager with(_package)
 

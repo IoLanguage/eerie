@@ -1,7 +1,7 @@
 PackageTest := UnitTest clone do (
 
     testInstalledPackages := method(
-        package := Package with(Directory with("tests/_addons/BFakeAddon"))
+        package := Package with("tests/_addons/BFakeAddon")
         assertEquals(2, package packages size)
 
         expected := list("AFakeAddon", "CFakeAddon")
@@ -9,21 +9,21 @@ PackageTest := UnitTest clone do (
         assertEquals(expected, result))
 
     testHasNativeCode := method(
-        aPackage := Package with(Directory with("tests/_addons/AFakeAddon"))
+        aPackage := Package with("tests/_addons/AFakeAddon")
         assertFalse(aPackage hasNativeCode)
 
-        cPackage := Package with(Directory with("tests/_addons/CFakeAddon"))
+        cPackage := Package with("tests/_addons/CFakeAddon")
         assertTrue(cPackage hasNativeCode))
 
     testHasBinaries := method(
-        aPackage := Package with(Directory with("tests/_addons/AFakeAddon"))
+        aPackage := Package with("tests/_addons/AFakeAddon")
         assertFalse(aPackage hasBinaries)
 
-        bPackage := Package with(Directory with("tests/_addons/BFakeAddon"))
+        bPackage := Package with("tests/_addons/BFakeAddon")
         assertTrue(bPackage hasBinaries))
 
     testDeps := method(
-        package := Package with(Directory with("tests/_addons/AFakeAddon"))
+        package := Package with("tests/_addons/AFakeAddon")
         expected := list()
         
         dep := Package Dependency clone
@@ -45,17 +45,17 @@ PackageTest := UnitTest clone do (
             assertEquals(item url, result at(n) url)))
 
     testHasDep := method(
-        package := Package with(Directory with("tests/_addons/AFakeAddon"))
+        package := Package with("tests/_addons/AFakeAddon")
 
         e := try (package checkHasDep("shouldntexist"))
         assertEquals(e error type, Package NoDependencyError type))
 
     testVersions := method(
-        package := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
+        package := Package with("tests/_tmp/CFakeAddonUpdate")
         assertEquals(23, package versions size))
 
     testHighestVersion := method(
-        package := Package with(Directory with("tests/_addons/AFakeAddon"))
+        package := Package with("tests/_addons/AFakeAddon")
 
         package versions := list()
         assertTrue(package highestVersionFor isNil)
@@ -91,7 +91,7 @@ PackageTest := UnitTest clone do (
             SemVer fromSeq("0.2.1")))
 
     testDirectoryValidation := method(
-        e := try (Package with(Directory with("tests/_faddons/NotAddon")))
+        e := try (Package with("tests/_faddons/NotAddon"))
         assertEquals(e error type, Package NotPackageError type))
 
     testManifestValidator := method(

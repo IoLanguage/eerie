@@ -108,13 +108,24 @@ Package := Object clone do (
         self config atPut("name", v)
         self)
 
+    //doc Package branch Get git branch for this package.
+    //doc Package setBranch(Sequence) Set git branch for this package.
+    branch ::= lazySlot(self config at("branch"))
+
+    /*doc Package addonDirFor 
+    Get a directory for `Package` inside `addonsDir` whether it's installed or
+    not.*/ 
+    addonDirFor := method(package, 
+        self addonsDir directoryNamed(package name))
+
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
-    global := lazySlot(Package with(Directory with(Eerie root)))
+    global := lazySlot(Package with(Eerie root))
 
     /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
-    packages := lazySlot(self addonsDir directories map(dir, Package with(dir)))
+    packages := lazySlot(
+        self addonsDir directories map(dir, Package with(dir path)))
 
     /*doc Package deps
     Get the `List` of `Package Dependency` parsed from `"addons"` field in
@@ -122,15 +133,15 @@ Package := Object clone do (
     deps := lazySlot(
         self config at("addons") map(dep, Dependency fromMap(dep)))
 
-    /*doc Package with(dir) 
-    Creates new package from provided `Directory`. Raises `NotPackageError` if
+    /*doc Package with(path) 
+    Creates new package from provided path (`Sequence`). Raises `NotPackageError` if
     the directory is not an Eerie package. Use this to initialize a `Package`.*/
-    with := method(dir,
-        _checkDirectoryPackage(dir)
+    with := method(path,
+        klone := self clone setDir(Directory with(path))
+        _checkDirectoryPackage(klone dir)
 
-        klone := self clone setDir(dir)
         manifest := File with(
-            dir path .. "/#{Package manifestName}" interpolate) 
+            klone dir path .. "/#{Package manifestName}" interpolate) 
         klone setConfig(manifest contents parseJson)
         klone setVersion(SemVer fromSeq(klone config at("version")))
         # call to init the list

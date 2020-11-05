@@ -7,7 +7,7 @@ Command := Object clone do (
 )
 
 
-CompilerCommandWinExt := Object clone do (
+Command CompilerCommandWinExt := Object clone do (
 
     _cc := method(System getEnvironmentVariable("CC") ifNilEval("cl -nologo"))
 
@@ -15,7 +15,7 @@ CompilerCommandWinExt := Object clone do (
 
 )
 
-CompilerCommandUnixExt := Object clone do (
+Command CompilerCommandUnixExt := Object clone do (
     
     _cc := method(System getEnvironmentVariable("CC") ifNilEval("cc"))
     
@@ -96,7 +96,7 @@ CompilerCommand do (
 
 )
 
-StaticLinkerCommandWinExt := Object clone do (
+Command StaticLinkerCommandWinExt := Object clone do (
 
     _ar := "link -lib -nologo"
 
@@ -106,7 +106,7 @@ StaticLinkerCommandWinExt := Object clone do (
 
 )
 
-StaticLinkerCommandUnixExt := Object clone do (
+Command StaticLinkerCommandUnixExt := Object clone do (
 
     _ar := method(
         System getEnvironmentVariable("AR") ifNilEval("ar"))
@@ -149,7 +149,7 @@ StaticLinkerCommand := Command clone do (
 
 )
 
-DynamicLinkerCommandWinExt := Object clone do (
+Command DynamicLinkerCommandWinExt := Object clone do (
 
     _linkerCmd := "link -link -nologo"
 
@@ -163,7 +163,7 @@ DynamicLinkerCommandWinExt := Object clone do (
 
 )
 
-DynamicLinkerCommandUnixExt := Object clone do (
+Command DynamicLinkerCommandUnixExt := Object clone do (
 
     _linkerCmd := method(
         System getEnvironmentVariable("CC") ifNilEval("cc"))

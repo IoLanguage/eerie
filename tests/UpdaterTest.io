@@ -1,16 +1,16 @@
 UpdaterTest := UnitTest clone do (
 
-    package := Package with(Directory with("tests/_addons/AFakeAddon"))
+    package := Package with("tests/_addons/AFakeAddon")
 
     testCheckInstalled := method(
-        update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
+        update := Package with("tests/_tmp/CFakeAddonUpdate")
         updater := Updater with(self package, update)
 
         e := try (updater _checkInstalled)
         assertEquals(e error type, Updater NotInstalledError type))
 
     testNoVersions := method(
-        update := Package with(Directory with("tests/_addons/CFakeAddon"))
+        update := Package with("tests/_addons/CFakeAddon")
         updater := Updater with(self package, update)
 
         e := try (updater _checkHasVersions)
@@ -18,18 +18,18 @@ UpdaterTest := UnitTest clone do (
 
     testUpdate := method(
         tmpPkgDir := Directory with("tests/_tmp/Test") create remove
-        package := Package with(Directory with("tests/_addons/AFakeAddon"))
+        package := Package with("tests/_addons/AFakeAddon")
         package dir copyTo(tmpPkgDir)
-        package = Package with(tmpPkgDir)
+        package = Package with(tmpPkgDir path)
 
         installer := Installer with(package)
         installer install(
-            Package with(Directory with("tests/_addons/CFakeAddon")))
+            Package with("tests/_addons/CFakeAddon"))
 
         dep := package packageNamed("CFakeAddon")
         assertEquals(dep version, SemVer fromSeq("0.1.0"))
 
-        update := Package with(Directory with("tests/_tmp/CFakeAddonUpdate"))
+        update := Package with("tests/_tmp/CFakeAddonUpdate")
         updater := Updater with(package, update)
 
         updater update
