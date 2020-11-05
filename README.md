@@ -48,7 +48,7 @@ $ io tests/run.io
 To open documentation in your browser:
 
 ```shell
-eerie doc
+$ eerie doc
 ```
 
 Besides of the API, which you can use inside of your scripts, Eerie has a
