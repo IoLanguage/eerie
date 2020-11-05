@@ -130,12 +130,12 @@ Installer := Object clone do (
 
     _checkGitBranch := method(
         if (self package branch isNil, return)
-        Eerie sh("git checkout #{self package branch}",
+        System sh("git checkout #{self package branch}",
             false,
             self package dir path))
 
     _checkGitTag := method(version,
-        Eerie sh("git checkout tags/#{version originalSeq}", 
+        System sh("git checkout tags/#{version originalSeq}", 
             false,
             self package dir path))
 
@@ -176,10 +176,10 @@ Installer := Object clone do (
     # We just create a link for binary on unix-like system
     _createLinkForBin := method(bin,
         # make sure it's executable
-        Eerie sh("chmod u+x #{bin path}")
+        System sh("chmod u+x #{bin path}")
         # create the link
         link := self binDestination fileNamed(bin name)
-        link exists ifFalse(Eerie sh("ln -s #{bin path} #{link path}"))
+        link exists ifFalse(System sh("ln -s #{bin path} #{link path}"))
         link close)
 
 )

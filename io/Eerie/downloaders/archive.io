@@ -44,7 +44,7 @@ ArchiveDownloader := Eerie Downloader clone do (
 
             self url = tmpFile path)
 
-        e := try (Eerie sh(self format cmd interpolate))
+        e := try (System sh(self format cmd interpolate))
 
         e catch (
             Exception raise(

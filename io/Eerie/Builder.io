@@ -125,7 +125,7 @@ Builder := Object clone do (
         if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
             Logger log("📄 [[brightBlue bold;Compiling[[reset; #{src name}" ,
                 "output")
-            Eerie sh(self _compilerCommand setSrc(src) asSeq)))
+            System sh(self _compilerCommand setSrc(src) asSeq)))
 
     _buildStaticLib := method(
         Logger log(
@@ -135,7 +135,7 @@ Builder := Object clone do (
 
         self staticLibBuildStarted
 
-        Eerie sh(self _staticLinkerCommand asSeq))
+        System sh(self _staticLinkerCommand asSeq))
 
     _buildDynLib := method(
         Logger log(
@@ -150,7 +150,7 @@ Builder := Object clone do (
 
         libname := self package dllName
 
-        Eerie sh(self _dynLinkerCommand asSeq)
+        System sh(self _dynLinkerCommand asSeq)
 
         if (Eerie platform != "windows", return)
 

@@ -17,19 +17,19 @@ Database := Object clone do (
     _clone := method(
         Logger log("Database not found")
         Logger log("🔄 [[cyan bold;Cloning [[reset;database" , "output")
-        Eerie sh("git clone #{self url} #{self dir path}", true))
+        System sh("git clone #{self url} #{self dir path}", true))
 
     /*doc Database needsUpdate 
     Returns whether database is outdated (`true`) or not (`false`).*/
     needsUpdate := method(
-        cmdOut := Eerie sh("git fetch --dry-run", true, self dir path)
+        cmdOut := System sh("git fetch --dry-run", true, self dir path)
         cmdOut stdout isEmpty not)
 
     //doc Database update Sync database with remote.
     update := method(
         Logger log("🔄 [[cyan bold;Updating [[reset;database" , "output")
-        Eerie sh("git fetch --prune", true, self dir path)
-        Eerie sh("git merge", true, self dir path)
+        System sh("git fetch --prune", true, self dir path)
+        System sh("git merge", true, self dir path)
         # we don't want for update checker to slow down the builds, so we
         # update only once per session
         self needsUpdate = false)

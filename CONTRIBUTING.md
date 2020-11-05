@@ -108,7 +108,7 @@ We use style when you close a bracket on the last line. For example:
         self staticLibBuildStarted
 
         self package dir directoryNamed("_build/lib") createIfAbsent
-        Eerie sh(self _staticLinkerCommand asSeq))
+        System sh(self _staticLinkerCommand asSeq))
 ```
 
 **WRONG**
@@ -119,7 +119,7 @@ We use style when you close a bracket on the last line. For example:
         self staticLibBuildStarted
 
         self package dir directoryNamed("_build/lib") createIfAbsent
-        Eerie sh(self _staticLinkerCommand asSeq)
+        System sh(self _staticLinkerCommand asSeq)
     )
 ```
 

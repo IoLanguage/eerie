@@ -22,7 +22,7 @@ VcsDownloader := Eerie Downloader clone do (
 
     _vcsCmd := method(args,
         e := try (
-            Eerie sh(
+            System sh(
                 self _chosenVcs cmd .. " " .. args,
                 false, 
                 self destDir path))

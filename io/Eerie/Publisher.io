@@ -123,7 +123,7 @@ Publisher := Object clone do (
             Exception raise(LicenseError with(""))))
 
     _checkHasGitChanges := method(
-        cmdOut := Eerie sh(
+        cmdOut := System sh(
             "git status --porcelain", true, self package dir path)
         # filter out *-stdout and *-stderr files created by System runCommand
         res := cmdOut stdout split("\n") select(seq,
@@ -134,14 +134,14 @@ Publisher := Object clone do (
     _addGitTag := method(
         self _checkGitTagExists
 
-        Eerie sh(
+        System sh(
             "git tag -a #{self gitTag} -m " ..
             "'New release generated automatically by Eerie Publisher'",
             false, 
             self package dir path))
 
     _checkGitTagExists := method(
-        cmdOut := Eerie sh("git tag", true, self package dir path)
+        cmdOut := System sh("git tag", true, self package dir path)
 
         if (cmdOut stdout split("\n") contains(self gitTag),
             Exception raise(
@@ -160,7 +160,7 @@ Publisher := Object clone do (
         self setShouldPush(answer isEmpty or answer == "y"))
 
     _gitPush := method(
-        Eerie sh("git push origin #{self gitTag}", 
+        System sh("git push origin #{self gitTag}", 
             false, 
             self package dir path))
 

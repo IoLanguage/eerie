@@ -97,7 +97,7 @@ DependencyManager := Object clone do (
 
         date := Date now asNumber asHex
         resFile := self package buildDir path .. "/_pkg_config" .. date
-        # System runCommand (Eerie sh) doesn't allow pipes (?), 
+        # System runCommand (System sh) doesn't allow pipes (?), 
         # so here we use System system instead
         statusCode := System system(
             "pkg-config #{pkg} #{flags} --silence-errors > #{resFile}" \
@@ -112,7 +112,7 @@ DependencyManager := Object clone do (
             return ""))
 
     _hasPkgConfig := lazySlot(
-        try (Eerie sh("pkg-config --version", true)) isNil)
+        try (System sh("pkg-config --version", true)) isNil)
 
     _pkgConfigCFlags := method(pkg,
         self _pkgConfig(pkg, "--cflags") splitNoEmpties("-I") map(strip))

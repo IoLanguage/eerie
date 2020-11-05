@@ -9,14 +9,6 @@ Eerie := Object clone do (
     //doc Eerie isGlobal Whether the global environment in use. Default `false`.
     //doc Eerie setIsGlobal
     isGlobal ::= false
-    
-    //doc Eerie database Get instance of `Database` Eerie uses.
-    database := nil
-
-    init := method(
-        # call this to check whether EERIEDIR set
-        self root
-        self database := Database clone)
 
     //doc Eerie root Returns value of EERIEDIR environment variable.
     root := method(
@@ -25,9 +17,12 @@ Eerie := Object clone do (
         if(path isNil or path isEmpty,
             Exception raise(EerieDirNotSetError with("")))
         path)
+    
+    //doc Eerie database Get instance of `Database` Eerie uses.
+    database := nil
 
-    //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
-    platform := System platform split at(0) asLowercase
+    //doc Eerie ioHeadersPath Returns path (`Sequence`) to io headers.
+    ioHeadersPath := method(Path with(Eerie root, "ioheaders"))
 
     //doc Eerie ddlExt Get dynamic library extension for the current platform.
     dllExt := method(
@@ -43,11 +38,46 @@ Eerie := Object clone do (
     isWindows := method(System platform containsAnyCaseSeq("windows") or(
         System platform containsAnyCaseSeq("mingw")))
 
-    //doc Eerie ioHeadersPath Returns path (`Sequence`) to io headers.
-    ioHeadersPath := method(Path with(Eerie root, "ioheaders"))
+    //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
+    platform := System platform split at(0) asLowercase
 
-    /*doc Eerie sh(cmd[, silent=false, path=cwd])
-    Executes system command. Raises exception with `Eerie SystemCommandError` on
+    init := method(
+        # call this to check whether EERIEDIR set
+        self root
+        self database := Database clone)
+
+)
+
+//doc Eerie Error Eerie modules subclass this error for their error types.
+Eerie Error := Error clone do (
+    errorMsg ::= nil
+
+    with := method(msg,
+        super(with(self errorMsg interpolate)))
+)
+
+Eerie do (
+
+    //doc Eerie MissingPackageError
+    MissingPackageError := Error clone setErrorMsg(
+        "Package '#{call evalArgAt(0)}' is missing.")
+
+    //doc Eerie EerieDirNotSetError
+    EerieDirNotSetError := Error clone setErrorMsg(
+        "Environment variable EERIEDIR did not set.")
+
+)
+
+Eerie clone = Eerie do (
+
+    init
+
+)
+
+System do (
+
+    /*doc System sh(cmd[, silent=false, path=cwd])
+    Executes system command. Raises exception with `System SystemCommandError` on
     failure. Will not print any output if `silent` is `true`.
 
     Returns the object returned by `System runCommand`.*/
@@ -64,7 +94,7 @@ Eerie := Object clone do (
         stdOut := cmdOut stdout
         stdErr := cmdOut stderr
 
-        Eerie _cleanRunCommand
+        System _cleanRunCommand
 
         prevDir isNil ifFalse(Directory setCurrentWorkingDirectory(prevDir))
         
@@ -84,32 +114,12 @@ Eerie := Object clone do (
 
 )
 
-//doc Eerie Error Eerie modules subclass this error for their error types.
-Eerie Error := Error clone do (
-    errorMsg ::= nil
+System do (
 
-    with := method(msg,
-        super(with(self errorMsg interpolate)))
-)
-
-Eerie do (
-    //doc Eerie MissingPackageError
-    MissingPackageError := Error clone setErrorMsg(
-        "Package '#{call evalArgAt(0)}' is missing.")
-
-    //doc Eerie SystemCommandError
-    SystemCommandError := Error clone setErrorMsg(
+    //doc System SystemCommandError
+    SystemCommandError := Eerie Error clone setErrorMsg(
         "Command '#{call evalArgAt(0)}' exited with status code " .. 
         "#{call evalArgAt(1)}:\n#{call evalArgAt(2)}")
-
-    //doc Eerie EerieDirNotSetError
-    EerieDirNotSetError := Error clone setErrorMsg(
-        "Environment variable EERIEDIR did not set.")
-)
-
-Eerie clone = Eerie do (
-
-    init
 
 )
 

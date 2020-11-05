@@ -88,8 +88,8 @@ appendEnvVariables := method(
 
     # set envvars permanently on Windows
     if(isWindows and(shrc size == 0),
-        Eerie sh("setx EERIEDIR #{eeriePath}")
-        Eerie sh("setx PATH \"%PATH%;#{eeriePath}\\bin\"")))
+        System sh("setx EERIEDIR #{eeriePath}")
+        System sh("setx PATH \"%PATH%;#{eeriePath}\\bin\"")))
 
 createDirectoryStructure := method(
     if(eerieDir exists,
