@@ -37,10 +37,12 @@ Updater := Object clone do (
         version := self newer highestVersionFor(self _targetVersion)
 
         self _logUpdate(version)
+        self newer runHook("beforeUpdate")
         self _checkGitBranch(self newer name)
         self _checkGitTag(version)
         self _removeOld
         self _installNew
+        self newer runHook("afterUpdate")
 
         Logger log(
             "☑  [[magenta bold;#{self newer name}[[reset; is " ..

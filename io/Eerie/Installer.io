@@ -13,9 +13,7 @@ Installer := Object clone do (
     with := method(pkg, self clone setPackage(pkg))
 
     /*doc Installer install(Package)
-    Installs dependency `Package`. 
-
-    Returns `true` if the package installed successfully.*/
+    Installs dependency `Package`.*/
     install := method(dependency,
         self _checkPackageSet
         self package checkHasDep(dependency name)
@@ -28,9 +26,11 @@ Installer := Object clone do (
         Logger log("📥 [[cyan bold;Installing [[reset;#{dependency name}", 
             "output")
 
+        dependency runHook("beforeInstall")
+
         self _checkGitBranch(dependency)
 
-        self build(dependency)
+        self _build(dependency)
 
         pkgDestination createIfAbsent
 
@@ -40,7 +40,7 @@ Installer := Object clone do (
 
         self package appendPackage(Package with(pkgDestination))
 
-        true)
+        dependency runHook("afterInstall"))
 
     _checkPackageSet := method(
         if (self package isNil, Exception raise(PackageNotSetError clone)))
@@ -57,39 +57,9 @@ Installer := Object clone do (
 
         Eerie sh("git checkout #{branch}", false, dependency dir path))
 
-    /*doc Installer build(Package) Compiles the `Package` if it has
-    native code. Returns `true` if the package was compiled and `false`
-    otherwise. Note, the return value doesn't mean whether the compilation was
-    successful or not, it's just about whether it's went through the compilation
-    process.
-
-    To customize compilation you can modify `build.io` file at the root of your
-    package. This file is evaluated in the context of `Builder` so you can treat
-    it as an ancestor of `Builder`. If you want to link a library `foobar`, for
-    example, your `build.io` file would look like:
-
-    ```Io
-    dependsOnLib("foobar")
-    ```
-
-    Look `Builder`'s documentation for more methods you can use in `build.io`.
-    */
-    build := method(dependency,
-        self _checkPackageSet
-
-        if(dependency hasNativeCode not, return false)
-
-        dependency buildio create
-
-        Logger log(
-            "🔨 [[cyan bold;Building [[reset;#{dependency name}" ,
-            "output")
-
+    _build := method(dependency,
         builder := Builder with(dependency)
-        builder doFile(dependency buildio path)
-        builder build
-
-        true)
+        builder build)
 
     # For global packages, creates symlinks (UNIX-like) or .cmd files (Windows).
     # This method is called only after the dependency is copied to destination

@@ -29,7 +29,10 @@ Database := Object clone do (
     update := method(
         Logger log("🔄 [[cyan bold;Updating [[reset;database" , "output")
         Eerie sh("git fetch --prune", true, self dir path)
-        Eerie sh("git merge", true, self dir path))
+        Eerie sh("git merge", true, self dir path)
+        # we don't want for update checker to slow down the builds, so we
+        # update only once per session
+        self needsUpdate = false)
 
     /*doc Database valueFor(pkgName, key)
     Returns value at `key` (`Sequence`) from package (`pkgName` (`Sequence`))

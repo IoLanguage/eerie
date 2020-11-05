@@ -1,11 +1,7 @@
 //metadoc Builder category API
 /*metadoc Builder description
 Builder for native packages. This proto knows how to build a `Package` with
-native code. 
-
-Normally, you shouldn't use this directly. Use `Installer build` instead. But
-here you'll find API you can use inside your `build.io` script as it's evaluated
-in the context of `Builder` (i.e. it's its ancestor).*/
+native code.*/
 
 Builder := Object clone do (
 
@@ -51,17 +47,34 @@ Builder := Object clone do (
         klone)
 
     /*doc Builder build
-    Build the package. You very rarely need this directly - use 
-    `Installer build` instead.*/
+    Compiles `Builder package` if it has native code.
+
+    To customize compilation you can modify `build.io` file at the root of your
+    package. This file is evaluated in the context of `Builder` so you can treat
+    it as an ancestor of `Builder`. For example, if you wanted to link a library
+    `foobar`, your `build.io` file would look like:
+
+    ```Io
+    dependsOnLib("foobar")
+    ```
+
+    See `Builder`'s documentation for what you can use in `build.io`.*/
     build := method(
-        if (package hasNativeCode not, 
+        if (self package hasNativeCode not, 
             Logger log(
-                "The package #{self package name} has no code to compile")
+                "The package #{self package name} has no code to compile",
+                "debug")
             return)
+
+        Logger log(
+            "🔨 [[cyan bold;Building [[reset;#{self package name}" ,
+            "output")
+
+        self _runBuildio
 
         self _depsManager checkMissing
 
-        self buildStarted
+        self package runHook("beforeBuild")
 
         self _copyHeaders
 
@@ -78,7 +91,11 @@ Builder := Object clone do (
 
         self _buildDynLib
 
-        self buildFinished)
+        self package runHook("afterBuild"))
+
+    _runBuildio := method(
+        self package buildio create
+        self doFile(self package buildio path))
 
     # copy (install) headers into "_build/headers/"
     _copyHeaders := method(
@@ -214,11 +231,6 @@ Builder do (
     dependsOnLinkOption := method(opt, 
         self _depsManager dependsOnLinkOption(opt))
 
-    /*doc Builder buildStarted
-    Callback called when the build process started. Feel free to redefine it
-    inside your `build.io`.*/
-    buildStarted := method()
-
     /*doc Builder staticLibBuildStarted
     Callback called when the linker started to build the static library. Feel
     free to redefine it inside your `build.io`.*/
@@ -228,10 +240,5 @@ Builder do (
     Callback called when linker started to build the dynamic library. Feel
     redefine to rewrite it inside your `build.io`*/
     dynLibBuildStarted := method()
-
-    /*doc Builder buildFinished 
-    Callback called when the build process finished. Feel free to redefine it
-    inside your `build.io`.*/
-    buildFinished := method()
 
 )
