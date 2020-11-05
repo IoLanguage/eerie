@@ -8,16 +8,21 @@ InstallerTest := UnitTest clone do (
         e := try (installer _checkPackageSet)
         assertEquals(e error type, Installer PackageNotSetError type))
 
-    # testCheckSame := method(
-        # updatee := Package with("tests/_tmp/CFakeAddonUpdate")
-        # target := 
-    # )
-
     testDestinationSet := method(
         installer := Installer clone
 
         e := try (installer _checkDestinationSet)
         assertEquals(e error type, Installer DestinationNotSetError type))
+
+    testCheckSame := method(
+        updatee := Package with("tests/_tmp/CFakeAddonUpdate")
+        target := Package with("tests/_addons/AFakeAddon")
+        installer := Installer with(updatee, target dir path)
+        e := try (installer _checkSame(target))
+        assertEquals(e error type, Installer DifferentPackageError type)
+
+        target = Package with("tests/_addons/CFakeAddon")
+        installer _checkSame(target))
 
     testBinSet := method(
         installer := Installer clone
@@ -66,5 +71,27 @@ InstallerTest := UnitTest clone do (
 
         parentPkg addonsDir remove
         parentPkg destBinDir remove)
+
+    testUpdate := method(
+        tmpDest := Directory with("tests/_tmp/Test")
+        tmpDest create remove
+        package := Package with("tests/_addons/CFakeAddon")
+        installer := Installer with(package, tmpDest path)
+        installer install
+
+        installed := Package with(tmpDest path)
+        assertEquals(installed version, SemVer fromSeq("0.1.0"))
+
+        updatee := Package with("tests/_tmp/CFakeAddonUpdate")
+        installer setPackage(updatee)
+        installer setDestination(installed dir)
+
+        newVersion := SemVer fromSeq("0.1.4")
+        installer update(newVersion)
+
+        installed := Package with(tmpDest path)
+        assertEquals(installed version, SemVer fromSeq("0.1.4"))
+
+        installed remove)
 
 )

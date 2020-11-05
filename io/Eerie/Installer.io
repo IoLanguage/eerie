@@ -86,7 +86,7 @@ Installer := Object clone do (
             Logger log("⬆ [[cyan bold;Updating [[reset;" ..
                 "#{destPackage name} " ..
                 "from [[magenta bold;" ..
-                "v#{self destPackage version asSeq}[[reset; " ..
+                "v#{destPackage version asSeq}[[reset; " ..
                 "to [[magenta bold;v#{version asSeq}", "output")
         ) elseif (version < destPackage version) then (
             Logger log(
