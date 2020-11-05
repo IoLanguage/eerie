@@ -22,6 +22,28 @@ PackageTest := UnitTest clone do (
         bPackage := Package with(Directory with("tests/_addons/BFakeAddon"))
         assertTrue(bPackage hasBinaries))
 
+    testDeps := method(
+        package := Package with(Directory with("tests/_addons/AFakeAddon"))
+        expected := list()
+        
+        dep := Package Dependency clone
+        dep name = "CFakeAddon"
+        dep version = SemVer fromSeq("0.1")
+        dep url = "tests/_addons/CFakeAddon"
+        expected append(dep)
+        
+        dep = dep clone
+        dep name = "BFakeAddon"
+        dep url = "tests/_addons/BFakeAddon"
+        expected append(dep)
+
+        result := package deps
+
+        expected foreach(n, item, 
+            assertEquals(item name, result at(n) name)
+            assertEquals(item version, result at(n) version)
+            assertEquals(item url, result at(n) url)))
+
     testHasDep := method(
         package := Package with(Directory with("tests/_addons/AFakeAddon"))
 

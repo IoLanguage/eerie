@@ -1,139 +1,143 @@
 //metadoc Transaction category API
-//metadoc Transaction description
+/*metadoc Transaction description
+This proto is a collection of `Action`'s. You can view it as a receipt for
+something that should be done with a package (i.e. installation, update etc.).
+For example, `Transaction install` will download and install a package and all
+of its dependencies.
+
+Also, `Transaction` saves you from accidentally running many instances of Eerie
+commands for the same package at the same time using `.transaction_lock` file
+for this.
+*/
 
 Transaction := Object clone do(
 
     //doc Transaction package
     package ::= nil
 
-    items := List clone
+    actions := list()
     
-    depsCheckedFor  := List clone
-
-    /*doc Transaction with(`Package`)
-    Initializes `Transaction` with the given `Package`.*/
-    with := method(pkg, Transaction clone setPackage(pkg))
-
-    init := method(
-        self items = List clone
-        self depsCheckedFor = List clone
-        self acquireLock)
-
     /*doc Transaction lockFile
     A file containing current Eerie process ID. Eerie checks for existence of
     this file to make it sure that only one instance of Eerie is running per
     package.*/
     lockFile := method(self package addonsDir fileNamed(".transaction_lock"))
 
-    //doc Transaction acquireLock Creates transaction lock.
+    /*doc Transaction with(`Package`)
+    Initializes `Transaction` with the given `Package`.*/
+    with := method(pkg, Transaction clone setPackage(pkg))
+
+    init := method(self acquireLock)
+
+    /*doc Transaction acquireLock 
+    Creates transaction lock.
+
+    Raises `Transaction AnotherProcessRunningError` if another transaction is
+    running.*/
     acquireLock := method(
-        pid := if(lockFile exists, lockFile openForReading contents, nil)
-        (pid == System thisProcessPid asString) ifTrue(
-            Logger log("Trying to acquire lock but its already present.", "debug")
-            return(true))
+        pid := if (self lockFile exists, 
+            self lockFile contents,
+            nil)
 
-        _checkAbandonedLock
+        if (pid == System thisProcessPid asString,
+            Logger log(
+                "Trying to acquire lock but its already present.", 
+                "debug")
+            return)
 
-        while(self lockFile exists,
-            Logger log("[#{Date now}] Process #{pid} has lock. Waiting for process to finish...", "error")
-            System sleep(5))
+        self _checkAbandonedLock
 
-        self lockFile close \
-            open setContents(System thisProcessPid asString) close
-        true)
+        if (self lockFile exists, 
+            Exception raise(AnotherProcessRunningError with(pid)))
+
+        self lockFile setContents(System thisProcessPid asString))
 
     # remove the lock if it exists, but the process isn't running
     _checkAbandonedLock := method(
-        if(self lockFile exists not, return)
+        if (self lockFile exists not, return)
         pid := self lockFile contents
-        if(_isProcessRunning(pid) not, self lockFile remove))
+        if (self _isProcessRunning(pid) not, self lockFile remove))
 
     _isProcessRunning := method(pid,
-        cmd := if(Eerie isWindows,
+        cmd := if (Eerie isWindows,
             "TASKLIST /FI \"PID eq #{pid}\" 2>NUL | find \"#{pid}\" >NUL" \
             interpolate,
             "ps -p #{pid} > /dev/null" interpolate)
 
         return System system(cmd) == 0)
 
-    //doc Transaction releaseLock
+    /*doc Transaction releaseLock
+    Remove transaction lock if it exists.*/
     releaseLock := method(
-        self lockFile exists ifFalse(return true)
+        if (self lockFile exists not, return)
 
-        if(self lockFile openForReading contents == System thisProcessPid \
-            asString,
-            self lockFile close remove
-            return true))
+        if(self lockFile contents == System thisProcessPid asString,
+            self lockFile remove
+            return))
 
-    //doc Transaction hasLock
+    //doc Transaction hasLock Get boolean whether the transaction has lock.
     hasLock := method(
-        self lockFile exists ifFalse(return(false))
+        if (self lockFile exists not, return false)
         self lockFile contents == System thisProcessPid asString)
 
-    //doc Transaction run
+    /*doc Transaction run
+    Runs all the actions.*/
     run := method(
-        self items isEmpty ifTrue(return(self releaseLock))
+        if (self actions isEmpty, return self releaseLock)
 
-        self items = self items select(action,
-            #Logger log("Preparing #{action name} for #{action pkg uri}...")
-            action prepare ifTrue(self resolveDeps(action pkg)))
-
-        self items reverse foreach(action,
-            Logger log("#{action asVerb} #{action pkg name}...")
+        self actions reverse foreach(action,
+            action prepare
+            self resolveDeps(action package)
             action execute)
 
-        self releaseLock)
+        self releaseLock
+        self actions = list())
 
-    //doc Transaction actsUpon(package)
-    actsUpon := method(package,
-        uri := package uri
-        self items detect(act, act second uri == uri) != nil)
+    /*doc Transaction resolveDeps(Package) 
+    Add actions to download and install dependencies for the package.
 
-    //doc Transaction addAction(action)
-    addAction := method(action,
-        self items contains(action) ifFalse(
-            Logger log("#{action name} #{action pkg name}", "transaction")
-            self items append(action))
-        self)
+    Resolves dependencies for `Transaction package` if the argument is `nil`.*/
+    resolveDeps := method(package,
+        if (package isNil, package = self package)
 
-    install := method(package,
-        self addAction(Eerie Action named("Install") with(package)))
+        Logger log("🗂 [[brightBlue bold;Resolving [[reset;" ..
+            "dependencies for [[bold;#{package name}")
+
+        deps := package config at("addons")
+
+        if (deps isEmpty, return)
+
+        deps = deps select(dep, package packageNamed(dep name) isNil)
+
+        Logger log("Dependencies to install: #{deps}", "transaction")
+
+        deps foreach(dep, Transaction with(package) install(dep) run))
+
+    /*doc Transaction install(dependency)
+    Add `Install` action with `Package Dependency`.*/
+    install := method(dep,
+        self _addAction(Action named("Install") with(dep)))
 
     update := method(package,
-        self addAction(Eerie Action named("Update") with(package)))
+        self _addAction(Action named("Update") with(package)))
 
     remove := method(package,
-        self addAction(Eerie Action named("Remove") with(package)))
+        self _addAction(Action named("Remove") with(package)))
 
-    resolveDeps := method(package,
-        Logger log("Resolving dependencies for #{package name}")
-        deps := package config at("dependencies")
-        if(deps == nil or deps ?keys ?isEmpty,
-            return(true))
-
-        toInstall := list()
-        deps at("packages") ?foreach(uri,
-            self depsCheckedFor contains(uri) ifTrue(continue)
-            if(Eerie installedPackages detect(pkg, pkg uri == uri) isNil,
-                toInstall appendIfAbsent(Eerie Package fromUri(uri))))
-
-        deps at("protos") ?foreach(protoName,
-            AddonLoader hasAddonNamed(protoName) ifFalse(
-                Exception raise(MissingProtoError with(list(
-                    package name, protoName)))))
-
-        self depsCheckedFor append(package uri)
-        Logger log("Missing pkgs: #{toInstall map(name)}", "debug")
-        toInstall foreach(pkg, 
-            Eerie Transaction clone install(pkg) run)
-        true)
+    _addAction := method(action,
+        self actions contains(action) ifFalse(
+            Logger log("#{action name} #{action pkg name}", "transaction")
+            self actions append(action))
+        self)
 
 )
 
 # Error types
 Transaction do (
-    //doc Transaction MissingProtoError
-    MissingProtoError := Eerie Error clone setErrorMsg(
-        "Package '#{call evalArgAt(0)}' required Proto '#{call evalArgAt(1)}" ..
-        " which is missing'.")
+
+    //doc Transaction ProcessLockedError
+    AnotherProcessRunningError := Eerie Error clone setErrorMsg(
+        "Another Eerie transaction with PID #{call evalArgAt(0)} " ..
+        "is running.")
+
 )

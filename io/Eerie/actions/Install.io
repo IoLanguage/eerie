@@ -1,12 +1,10 @@
-Install := Eerie Action clone do(
-   asVerb := "Installing"
+Install := Eerie Action clone do (
 
    prepare := method(
-       if(Eerie installedPackages detect(name asLowercase == self pkg name asLowercase),
-           Logger log("Package with name #{self pkg name} already installed.", "info")
+       if(Eerie installedPackages detect(
+           name asLowercase == self pkg name asLowercase),
+           Logger log("Package with name #{self pkg name} already installed.")
            return false)
-
-       Directory with(self pkg path) create
 
        self pkg do(
            if(downloader isNil, 
@@ -26,9 +24,7 @@ Install := Eerie Action clone do(
 
     execute := method(
         self pkg runHook("beforeInstall")
-        installer := Installer with(self pkg) \
-            setRoot(Eerie addonsDir) \
-                setDestBinName(Eerie globalBinDirName)
+        installer := Installer with(self pkg)
 
         installer install(Eerie isGlobal)
         # self pkg loadInfo
@@ -37,4 +33,5 @@ Install := Eerie Action clone do(
         self pkg runHook("afterInstall")
 
         true)
+
 )

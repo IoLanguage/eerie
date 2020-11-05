@@ -12,8 +12,8 @@ Installer := Object clone do (
     //doc Installer with(package) Initializes installer with the given package.
     with := method(pkg, self clone setPackage(pkg))
 
-    /*doc Installer install(dependency)
-    Installs `dependency` (`Package`). 
+    /*doc Installer install(Package)
+    Installs dependency `Package`. 
 
     Returns `true` if the package installed successfully.*/
     install := method(dependency,

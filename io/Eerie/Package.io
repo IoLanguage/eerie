@@ -116,6 +116,12 @@ Package := Object clone do (
     Get the `List` of installed dependencies for this package.*/
     packages := lazySlot(self addonsDir directories map(dir, Package with(dir)))
 
+    /*doc Package deps
+    Get the `List` of `Package Dependency` parsed from `"addons"` field in
+    `eerie.json`.*/
+    deps := lazySlot(
+        self config at("addons") map(dep, Dependency fromMap(dep)))
+
     /*doc Package with(dir) 
     Creates new package from provided `Directory`. Raises `NotPackageError` if
     the directory is not an Eerie package. Use this to initialize a `Package`.*/
@@ -167,11 +173,6 @@ Package := Object clone do (
 
         result)
 
-    //doc Package providesProtos Returns list of protos this package provides.
-    providesProtos := method(
-        p := self config at("protos")
-        if(p isNil, list(), p))
-
     /*doc Package hasNativeCode 
     Returns `true` if the package has native code and `false` otherwise.*/
     hasNativeCode := method(
@@ -206,10 +207,9 @@ Package := Object clone do (
     branch first and then if it's `nil` we check the developer's one.*/
     gitBranchForDep := method(depName,
         self checkHasDep(depName)
-        depConfig := self configForDependencyName(depName)
-        branch := depConfig at("branch")
+        dep := self depNamed(depName)
         package := self packageNamed(depName)
-        branch ifNilEval(package ?config ?at("branch")))
+        dep branch ifNilEval(package ?config ?at("branch")))
 
     /*doc Package checkHasDep(name)
     Check whether the package has dependency (i.e. in eerie.json) with the
@@ -217,17 +217,12 @@ Package := Object clone do (
 
     Raises `Package NoDependencyError` if it doesn't.*/
     checkHasDep := method(depName,
-        depConfig := self configForDependencyName(depName)
-
-        if (depConfig isNil,
+        if (self depNamed(depName) isNil,
             Exception raise(NoDependencyError with(self name, depName))))
 
-    /*doc Package configForDependencyName
-    Returns config object (`Map`) from `addons` array of `eerie.json` by its
-    name.*/
-    configForDependencyName := method(name,
-        addons := self config at("addons")
-        addons detect(at("name") == name))
+    /*doc Package depNamed 
+    Get `Package Dependency` from `Package deps` with the given name (if any).*/
+    depNamed := method(name, self deps detect(dep, dep name == name))
 
     /*doc Package packageNamed 
     Get the dependency package with the provided name (`Sequence`) if it's
@@ -292,6 +287,28 @@ Package do (
     NoDependencyError := Eerie Error clone setErrorMsg(
         "The package \"#{call evalArgAt(0)}\" has no dependency " .. 
         "\"#{call evalArgAt(1)}\" in #{Package manifestName}.")
+
+)
+
+Package Dependency := Object clone do (
+
+    name := nil
+
+    version := nil
+
+    url := nil
+
+    branch := nil
+
+    # the initializer
+    fromMap := method(dep,
+        klone := self clone
+        klone name = dep at("name")
+        klone version = SemVer fromSeq(dep at("version"))
+        # if url is nil the addon supposed to be in the db, so we use its name
+        klone url = dep at("url") ifNilEval(dep at("name"))
+        klone branch = dep at("branch")
+        klone)
 
 )
 
