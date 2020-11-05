@@ -11,14 +11,17 @@ Action := Object clone do (
     Get a verb version of the action (i.e. "Installing" for "Install" etc.).*/
     asVerb := lazySlot(self name .. "ing")
 
-    //doc Action package Get the `Package` on which this action operates.
-    /*doc Action setPackage(Package) 
-    Set the `Package` on which this action operates.*/
+    /*doc Action package 
+    This supposed to be the `Package`, which you get after preparation
+    (i.e. downloading and instantiation).*/
     package ::= nil
 
     # specific dependency (`Package Dependency`) to which this actions is
     # related
     _dependency := nil
+
+    # parent `Package` for which we doing the action
+    _parent := nil
 
     /*doc Action named(name)
     Get an instance of action for specified `name` (`Sequence`).*/
@@ -28,18 +31,20 @@ Action := Object clone do (
 
         Exception raise(UnknownActionError with(name)))
 
-    /*doc Action with(Package Dependency) 
-    Init action with the given `Package Dependency`.*/
-    with := method(dep, 
+    /*doc Action with(parent, dependency) 
+    Init action with the parent `Package` and its dependency 
+    (`Package Dependency`).*/
+    with := method(parentPkg, dep, 
         klone := self clone
+        klone _parent = parentPkg
         klone _dependency = dep
         klone)
 
     //doc Action prepare Prepare action for execution.
-    prepare := method(false)
+    prepare := method()
 
     //doc Action execute Execute action.
-    execute := method(false)
+    execute := method()
 
 )
 
@@ -48,8 +53,6 @@ Action instances := Object clone do (
     doRelativeFile("actions/Install.io")
     
     doRelativeFile("actions/Update.io")
-
-    doRelativeFile("actions/Remove.io")
 
 )
 

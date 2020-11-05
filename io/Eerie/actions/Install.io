@@ -1,37 +1,56 @@
 Install := Eerie Action clone do (
 
+   # Get git branch (`Sequence` or `nil`) for dependency name (`Sequence`).
+   # 
+   # There are two scenarios for `branch` configuration:
+   # 
+   # 1. The user can specify branch per dependency in `addons`:
+   # ```
+   # ...
+   # "addons": [
+   #   {
+   #      ...
+   #      "branch": "develop"
+   #   }
+   # ]
+   # ...
+   # 
+   # ```
+   # 
+   # 2. The developer can specify main `"branch"` for the package.
+   # 
+   # The first scenario has more priority, so we try to get the user specified
+   # branch first and then if it's `nil` we check the developer's one.
    prepare := method(
-       if(Eerie installedPackages detect(
-           name asLowercase == self pkg name asLowercase),
-           Logger log("Package with name #{self pkg name} already installed.")
-           return false)
+       url := self _dependency url ifNilEval(
+           Eerie database valueFor(self _dependency name, "url"))
 
-       self pkg do(
-           if(downloader isNil, 
-               setDownloader(Eerie Downloader detect(uri, path)))
+       if (url isNil or url isEmpty, 
+           Exception raise(NoUrlError with(self _dependency name)))
 
-           runHook("beforeDownload")
+       downloader := Downloader detect(uri, self _parent tmpDir)
+       downloader download
 
-           Logger log("Fetching #{name}", "info")
+       self package = Package with(downloader destDir)
 
-           if(downloader canDownload(downloader uri) not,
-               Exception raise(
-                   Downloader FailedDownloadError with(downloader uri)))
-
-           downloader download
-
-           runHook("afterDownload")) true)
+       self package branch = self _dependency branch ifNilEval(
+           self package branch))
 
     execute := method(
-        self pkg runHook("beforeInstall")
-        installer := Installer with(self pkg)
+        installer := Installer with(
+            self package, 
+            self _parent addonDirFor(self package),
+            self _parent destBinDir)
 
-        installer install(Eerie isGlobal)
-        # self pkg loadInfo
+        installer install(self _dependency version)
 
-        Eerie appendPackage(self pkg)
-        self pkg runHook("afterInstall")
+        self _parent tmpDir remove)
 
-        true)
+)
+
+Install do (
+
+    NoUrlError := Eerie Error clone setErrorMsg(
+        "URL for #{call evalArgAt(0)} is not found.")
 
 )

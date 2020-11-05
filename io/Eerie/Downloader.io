@@ -15,6 +15,24 @@ Downloader := Object clone do (
     //doc Downloader setDestDir `Downloader destDir` setter. 
     destDir ::= nil
 
+    /*doc Downloader detect(uri, root)
+    - `uri` - URL or path to a local directory
+    - `root` - root `Directory` where the downloader will create a directory to
+    where to download package
+
+    If a suitable downloader is found, returns an instance of it initialized
+    using `Downloader with(url, dir)`, otherwise raises an exception with
+    `Downloader DetectError`.*/
+    detect := method(uri, dir,
+        dir createIfAbsent
+
+        self instances foreachSlot(slotName, downloader,
+            downloader canDownload(uri) ifTrue(
+                Logger log("Using #{slotName} for #{uri}", "debug")
+                return downloader with(uri, dir)))
+
+        Exception raise(DetectError with(uri)))
+
     /*doc Downloader with(url, root) 
     [[Downloader]] initializer, where `url` is a `Sequence` from where the
     downloader should download, and `root` is a `Directory` where the downloader
@@ -23,27 +41,6 @@ Downloader := Object clone do (
     with := method(url, root,
         destName := Random bytes(16) asHex
         self clone setUrl(url) setDestDir(root createSubdirectory(destName)))
-
-    /*doc Downloader detect(query, root)
-    - `query` - package name, URL or path to a local directory
-    - `root` - root `Directory` where the downloader will create a directory to
-    where to download package
-
-    First it tries to find the package in the database and then it looks for an
-    instance of [[Downloader]], which understands provided URL.
-    
-    If a suitable downloader is found, returns an instance of it initialized
-    using `Downloader with(url, dir)`, otherwise raises an exception with
-    `Downloader DetectError`.*/
-    detect := method(query, dir,
-        uri := Eerie database valueFor(query, "url") ifNilEval(query)
-
-        self instances foreachSlot(slotName, downloader,
-            downloader canDownload(uri) ifTrue(
-                Logger log("Using #{slotName} for #{query}", "debug")
-                return downloader with(uri, dir)))
-
-        Exception raise(DetectError with(query)))
 
     /*doc Downloader canDownload(url) 
     Returns `true` if it understands provided URI and `false` otherwise.*/

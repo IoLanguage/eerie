@@ -6,10 +6,6 @@ but it also contains some helpful functions.*/
 
 Eerie := Object clone do (
 
-    //doc Eerie isGlobal Whether the global environment in use. Default `false`.
-    //doc Eerie setIsGlobal
-    isGlobal ::= false
-
     //doc Eerie root Returns value of EERIEDIR environment variable.
     root := method(
         path := System getEnvironmentVariable("EERIEDIR") \
@@ -35,8 +31,9 @@ Eerie := Object clone do (
 
     /*doc Eerie isWindows Returns `true` if the OS on which Eerie is running is
     Windows (including mingw define), `false` otherwise.*/
-    isWindows := method(System platform containsAnyCaseSeq("windows") or(
-        System platform containsAnyCaseSeq("mingw")))
+    isWindows := lazySlot(
+        System platform containsAnyCaseSeq("windows") or(
+            System platform containsAnyCaseSeq("mingw")))
 
     //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
     platform := System platform split at(0) asLowercase

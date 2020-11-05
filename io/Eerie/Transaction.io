@@ -2,13 +2,12 @@
 /*metadoc Transaction description
 This proto is a collection of `Action`'s. You can view it as a receipt for
 something that should be done with a package (i.e. installation, update etc.).
-For example, `Transaction install` will download and install a package and all
-of its dependencies.
+For example, `resolveDeps run` will download and install all dependencies of
+`Transaction package`.
 
 Also, `Transaction` saves you from accidentally running many instances of Eerie
 commands for the same package at the same time using `.transaction_lock` file
-for this.
-*/
+for this.*/
 
 Transaction := Object clone do(
 
@@ -27,14 +26,13 @@ Transaction := Object clone do(
     Initializes `Transaction` with the given `Package`.*/
     with := method(pkg, Transaction clone setPackage(pkg))
 
-    init := method(
-        self acquireLock)
+    init := method(self acquireLock)
 
     /*doc Transaction acquireLock 
     Creates transaction lock.
 
-    Raises `Transaction AnotherProcessRunningError` if another transaction is
-    running.*/
+    Raises `Transaction AnotherProcessRunningError` if a concurrent transaction
+    is running.*/
     acquireLock := method(
         pid := if (self lockFile exists, 
             self lockFile contents,
@@ -82,54 +80,49 @@ Transaction := Object clone do(
         self lockFile contents == System thisProcessPid asString)
 
     /*doc Transaction run
-    Runs all the actions.*/
+    Runs all actions.*/
     run := method(
         if (self actions isEmpty, return self releaseLock)
+
         if (Eerie database needsUpdate, Eerie database update)
 
-        self actions reverse foreach(action,
+        self actions foreach(action,
             action prepare
-            self resolveDeps(action package)
+            Transaction with(action package) resolveDeps ?run
             action execute)
 
         self releaseLock
         self actions = list())
 
-    /*doc Transaction resolveDeps(Package) 
-    Add actions to download and install dependencies for the package.
-
-    Resolves dependencies for `Transaction package` if the argument is `nil`.*/
-    resolveDeps := method(package,
-        if (package isNil, package = self package)
+    /*doc Transaction resolveDeps
+    Add actions to recursively resolve dependencies for `package`.*/
+    resolveDeps := method(
+        if (self package deps isEmpty, return)
 
         Logger log("🗂 [[brightBlue bold;Resolving [[reset;" ..
-            "dependencies for [[bold;#{package name}")
+            "dependencies for [[bold;#{self package name}")
 
-        deps := package config at("addons")
+        self package deps foreach(dep, self install(self package, dep) run)
 
-        if (deps isEmpty, return)
-
-        deps = deps select(dep, package packageNamed(dep name) isNil)
-
-        Logger log("Dependencies to install: #{deps}", "transaction")
-
-        deps foreach(dep, Transaction with(package) install(dep) run))
+        self)
 
     /*doc Transaction install(dependency)
     Add `Install` action with `Package Dependency`.*/
-    install := method(dep,
-        self _addAction(Action named("Install") with(dep)))
+    install := method(parentPkg, dep,
+        self _addAction(Action named("Install") with(parentPkg, dep)))
 
-    update := method(package,
-        self _addAction(Action named("Update") with(package)))
+    updateDeps := method(
+        # TODO
+    )
 
-    remove := method(package,
-        self _addAction(Action named("Remove") with(package)))
+    update := method(parentPkg, dep,
+        self _addAction(Action named("Update") with(parentPkg, dep)))
 
     _addAction := method(action,
         self actions contains(action) ifFalse(
-            Logger log("#{action name} #{action pkg name}", "transaction")
+            Logger log("#{action name} #{action dep name}", "transaction")
             self actions append(action))
+
         self)
 
 )

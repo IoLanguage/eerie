@@ -5,15 +5,6 @@ DownloaderTest := UnitTest clone do (
     doFile("io/Eerie/downloaders/archive.io")
 
     testDetect := method(
-        Database dir := Directory with("tests/db")
-        destRoot := Directory with("tests/rm_me_downloader_dest")
-
-        db := Database clone
-        pkgName := "AFakeAddon"
-        downloader := Downloader detect(pkgName, destRoot)
-        assertEquals(downloader type, DirectoryDownloader type)
-        assertEquals(downloader url, db valueFor(pkgName, "url"))
-
         self _expectDownloaderTypeFor("tests/db", DirectoryDownloader type)
 
         self _expectDownloaderTypeFor(
@@ -37,7 +28,7 @@ DownloaderTest := UnitTest clone do (
             ArchiveDownloader type)
 
         url := "https://google.com"
-        e := try (Downloader detect(url, destRoot))
+        e := try (Downloader detect(url, Directory with("tests/_tmp")))
         assertEquals(e error type, Downloader DetectError type))
 
     _expectDownloaderTypeFor := method(url, expected,
