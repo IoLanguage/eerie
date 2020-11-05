@@ -24,9 +24,6 @@ not be merged until they're satisfied.
 Please **describe what changes your PR has**. If it's related to an issue,
 please **link this issue** in the PR.
 
-All public **API should be documented**. It's good if private functions are
-commented too.
-
 Any fixes and new features **should be covered by tests**. To make it easier for
 maintainers and contributors, stick the rule that you should prove it works
 using tests.
@@ -166,6 +163,9 @@ description.
 
 Use markdown styling inside documentation comments. For code protos and their
 members use inline code style.
+
+All public **API should be documented**. It's good if private functions are
+commented too.
 
 
 ### `if` Statements
