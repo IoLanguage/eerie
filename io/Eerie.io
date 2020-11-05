@@ -16,11 +16,7 @@ Eerie := Object clone do (
     init := method(
         # call this to check whether EERIEDIR set
         self root
-        self database := Database clone
-        if (self database needsUpdate, self _warnDbUpdate))
-
-    _warnDbUpdate := method(
-        Logger log("❕ [[yellow;The database is outdated" , "output"))
+        self database := Database clone)
 
     //doc Eerie root Returns value of EERIEDIR environment variable.
     root := method(
@@ -29,9 +25,6 @@ Eerie := Object clone do (
         if(path isNil or path isEmpty,
             Exception raise(EerieDirNotSetError with("")))
         path)
-
-    //doc Eerie dbDir Get `Directory` of database.
-    dbDir := method(Directory with(self root .. "/db/db"))
 
     //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
     platform := System platform split at(0) asLowercase

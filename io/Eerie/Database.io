@@ -22,8 +22,6 @@ Database := Object clone do (
     /*doc Database needsUpdate 
     Returns whether database is outdated (`true`) or not (`false`).*/
     needsUpdate := method(
-        # TODO this is slow because we fetch - this is the same as if we updated
-        # without checking
         Eerie sh("git fetch", true, self dir path)
         cmdOut := Eerie sh(
             "git status --porcelain --untracked-files=no",

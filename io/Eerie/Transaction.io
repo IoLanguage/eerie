@@ -27,7 +27,8 @@ Transaction := Object clone do(
     Initializes `Transaction` with the given `Package`.*/
     with := method(pkg, Transaction clone setPackage(pkg))
 
-    init := method(self acquireLock)
+    init := method(
+        self acquireLock)
 
     /*doc Transaction acquireLock 
     Creates transaction lock.
@@ -84,6 +85,7 @@ Transaction := Object clone do(
     Runs all the actions.*/
     run := method(
         if (self actions isEmpty, return self releaseLock)
+        if (Eerie database needsUpdate, Eerie database update)
 
         self actions reverse foreach(action,
             action prepare
