@@ -28,6 +28,11 @@ Package := Object clone do (
     //doc Package addonsDir Get the `_addons` `Directory`.
     addonsDir := method(self dir createSubdirectory("_addons"))
 
+    /*doc Package addonDirFor 
+    Get a directory for package name (`Sequence`) inside `addonsDir` whether
+    it's installed or not.*/ 
+    addonDirFor := method(name, self addonsDir directoryNamed(name))
+
     /*doc Package tmpDir 
     Get `_tmp` `Directory`, the temporary directory used by `Downloader` to
     download dependencies into.*/
@@ -111,12 +116,6 @@ Package := Object clone do (
     //doc Package branch Get git branch for this package.
     //doc Package setBranch(Sequence) Set git branch for this package.
     branch ::= lazySlot(self config at("branch"))
-
-    /*doc Package addonDirFor 
-    Get a directory for `Package` inside `addonsDir` whether it's installed or
-    not.*/ 
-    addonDirFor := method(package, 
-        self addonsDir directoryNamed(package name))
 
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/

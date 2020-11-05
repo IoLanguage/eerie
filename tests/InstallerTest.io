@@ -42,17 +42,17 @@ InstallerTest := UnitTest clone do (
         package := Package with("tests/_addons/BFakeAddon")
         installer := Installer with(
             package,
-            parentPkg addonDirFor(package) path,
+            parentPkg addonDirFor(package name) path,
             parentPkg destBinDir path)
 
-        assertFalse(parentPkg addonDirFor(package) exists)
+        assertFalse(parentPkg addonDirFor(package name) exists)
 
         installer install
 
-        assertTrue(parentPkg addonDirFor(package) exists)
+        assertTrue(parentPkg addonDirFor(package name) exists)
 
         # validate package
-        Package with(parentPkg addonDirFor(package) path)
+        Package with(parentPkg addonDirFor(package name) path)
 
         # check binaries installation
         assertTrue(parentPkg destBinDir exists)
