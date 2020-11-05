@@ -22,11 +22,7 @@ Database := Object clone do (
     /*doc Database needsUpdate 
     Returns whether database is outdated (`true`) or not (`false`).*/
     needsUpdate := method(
-        Eerie sh("git fetch", true, self dir path)
-        cmdOut := Eerie sh(
-            "git status --porcelain --untracked-files=no",
-            true,
-            self dir path)
+        cmdOut := Eerie sh("git fetch --dry-run", true, self dir path)
         cmdOut stdout isEmpty not)
 
     //doc Database update Sync database with remote.
