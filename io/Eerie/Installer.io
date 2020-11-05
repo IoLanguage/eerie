@@ -1,15 +1,20 @@
 //metadoc Installer category API
 /*metadoc Installer description 
-This proto is used to install packages.*/
+This proto is used to install packages and their updates.*/
 
 Installer := Object clone do (
 
     /*doc Installer package
-    The `Package` for which the `Installer` will install dependencies.*/
+    The `Package` for which the `Installer` will install dependencies.
+
+    For updates this is a newer version of the package.*/
     package ::= nil
 
     /*doc Installer destination
-    The directory into which the package should be installed.*/
+    The directory into which the package should be installed.
+
+    For updates this is the directory of the `Package` for which the update will
+    be installed.*/
     //doc Installer setDestination(Directory)
     destination ::= nil
 
@@ -21,7 +26,7 @@ Installer := Object clone do (
     Initializes installer with the given package, destination directory path
     (`Sequence`) and binaries destination directory path (`Sequence`).
 
-    If the package doesn't have binaries `binDestination` is optional.*/
+    If the package doesn't have binaries `binDestination` is optional.*/ 
     with := method(pkg, dest, binDest,
         klone := self clone \
             setPackage(pkg) \
@@ -30,12 +35,73 @@ Installer := Object clone do (
         klone setBinDestination(Directory with(binDest))
         klone)
 
-    /*doc Installer install
-    Installs `Installer package`.*/
-    install := method(
+    /*doc Installer update(version) 
+    Install `package` as an update of `destination`.
+
+    If version (`SemVer`) is `nil`, installs the recent version.*/
+    update := method(version,
         self _checkPackageSet
         self _checkDestinationSet
-        # self package checkHasDep(dependency name)
+
+        destPackage := Package with(self destination path)
+        self _checkSame(destPackage)
+
+        ver := self package highestVersionFor(version)
+
+        if (ver == destPackage version,
+            Logger log(
+                "☑  #{destPackage name} " .. 
+                "v#{destPackage version asSeq} " ..
+                "is already updated", 
+                "output")
+            return)
+
+        self _logUpdate(ver, destPackage)
+
+        destPackage runHook("beforeUpdate")
+        destPackage remove
+        self install(ver)
+        destPackage runHook("afterUpdate")
+
+        Logger log(
+            "☑  [[magenta bold;#{destPackage name}[[reset; is " ..
+            "[[magenta bold;#{ver originalSeq}[[reset; now",
+            "output"))
+
+    _checkPackageSet := method(
+        if (self package isNil, Exception raise(PackageNotSetError with(""))))
+
+    _checkDestinationSet := method(
+        if (self destination isNil,
+            Exception raise(DestinationNotSetError with(""))))
+
+    _checkSame := method(destPackage,
+        if (self package name != destPackage name, 
+            Exception raise(
+                DifferentPackageError with(
+                    destPackage name, self package name))))
+
+    _logUpdate := method(version, destPackage,
+        if (version > destPackage version) then (
+            Logger log("⬆ [[cyan bold;Updating [[reset;" ..
+                "#{destPackage name} " ..
+                "from [[magenta bold;" ..
+                "v#{self destPackage version asSeq}[[reset; " ..
+                "to [[magenta bold;v#{version asSeq}", "output")
+        ) elseif (version < destPackage version) then (
+            Logger log(
+                "⬇ [[cyan bold;Downgrading [[reset;" .. 
+                "#{destPackage name} " ..
+                "from v#{destPackage version asSeq} " ..
+                "to v#{version asSeq}", "output")))
+
+    /*doc Installer install(version)
+    Installs `Installer package`.
+
+    If version (`SemVer`) is `nil`, installs the recent version.*/
+    install := method(version,
+        self _checkPackageSet
+        self _checkDestinationSet
 
         pkgDestination := self destination
         if (pkgDestination exists, 
@@ -49,6 +115,9 @@ Installer := Object clone do (
 
         self _checkGitBranch
 
+        ver := self package highestVersionFor(version)
+        if (ver isNil not, self _checkGitTag(ver))
+
         self _build
 
         pkgDestination createIfAbsent
@@ -57,20 +126,16 @@ Installer := Object clone do (
 
         self _installBinaries
 
-        # self package appendPackage(Package with(pkgDestination path))
-
         self package runHook("afterInstall"))
-
-    _checkPackageSet := method(
-        if (self package isNil, Exception raise(PackageNotSetError with(""))))
-
-    _checkDestinationSet := method(
-        if (self destination isNil,
-            Exception raise(DestinationNotSetError with(""))))
 
     _checkGitBranch := method(
         if (self package branch isNil, return)
         Eerie sh("git checkout #{self package branch}",
+            false,
+            self package dir path))
+
+    _checkGitTag := method(version,
+        Eerie sh("git checkout tags/#{version originalSeq}", 
             false,
             self package dir path))
 
@@ -137,5 +202,10 @@ Installer do (
     //doc Installer BinDestNotSetError
     BinDestNotSetError := Eerie Error clone setErrorMsg(
         "Binary destination isn't set")
+
+    //doc Installer DifferentPackageError
+    DifferentPackageError := Eerie Error clone setErrorMsg(
+        "Can't update package '#{call evalArgAt(0)}' " .. 
+        "with package '#{call evalArgAt(1)}'")
 
 )

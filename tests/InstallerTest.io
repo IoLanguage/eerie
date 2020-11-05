@@ -8,6 +8,11 @@ InstallerTest := UnitTest clone do (
         e := try (installer _checkPackageSet)
         assertEquals(e error type, Installer PackageNotSetError type))
 
+    # testCheckSame := method(
+        # updatee := Package with("tests/_tmp/CFakeAddonUpdate")
+        # target := 
+    # )
+
     testDestinationSet := method(
         installer := Installer clone
 

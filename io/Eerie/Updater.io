@@ -14,64 +14,64 @@ Updater := Object clone do (
     An update (`Package`) for some dependency of `Updater package`.*/
     newer := nil
 
-    # The `Package`, which the updater should update.
-    _targetPackage := lazySlot(self package packageNamed(self newer name))
+    //doc Updater version `SemVer` to which `package` should be updated.
+    version := nil
 
-    /*doc Updater with(package, newer)
+    # The `Package`, which the updater should update.
+    # _targetPackage := lazySlot(self package packageNamed(self newer name))
+
+    /*doc Updater with(target, newer, version)
     Initializer, where:
-    - package - the `Package` dependencies of which the updater should update
-    - newer - a new version of a `package` dependency*/
-    with := method(package, newer,
+    - `target` - the `Package`, which updater should update
+    - `newer` - an updated version of the `target`
+    - `version` - `SemVer` to which `target` should be updated*/
+    with := method(package, newer, version,
         klone := self clone
         klone package = package
         klone newer = newer
+        klone version = version
         klone)
 
     /*doc Updater update 
     Install update.*/
     update := method(
-        self package checkHasDep(self newer name)
-        self _checkInstalled
+        # self package checkHasDep(self newer name)
+        self _checkSame
         self _checkHasVersions
 
-        version := self newer highestVersionFor(self _targetVersion)
+        ver := self newer highestVersionFor(self version)
 
-        self _logUpdate(version)
-        self newer runHook("beforeUpdate")
-        self _checkGitBranch(self newer name)
-        self _checkGitTag(version)
-        self _removeOld
+        self _logUpdate(ver)
+        self package runHook("beforeUpdate")
+        self _checkGitBranch
+        self _checkGitTag(ver)
+        self package remove
         self _installNew
-        self newer runHook("afterUpdate")
+        self package runHook("afterUpdate")
 
         Logger log(
             "☑  [[magenta bold;#{self newer name}[[reset; is " ..
             "[[magenta bold;#{version originalSeq}[[reset; now",
             "output"))
 
-    # check whether `package` is installed
-    _checkInstalled := method(
-        if (self _targetPackage isNil, 
-            Exception raise(NotInstalledError with(self newer name))))
+    _checkSame := method(
+        if (self package name != self newer name, 
+            Exception raise(
+                DifferentPackageError with(
+                    self package name, self newer name))))
 
     _checkHasVersions := method(
         if (self newer versions isEmpty,
             Exception raise(NoVersionsError with(self newer name))))
 
-    # the version, to which the dependency will be updated
-    _targetVersion := lazySlot(
-        addons := self package config at("addons")
-        dep := addons detect(at("name") == self newer name)
-        SemVer fromSeq(dep at("version")))
-
     _logUpdate := method(version,
-        if (version > self _targetPackage version) then (
+        if (version > self package version) then (
             Logger log("⬆ [[cyan bold;Updating [[reset;" ..
                 "#{self _targetPackage name} " ..
                 "from [[magenta bold;" ..
                 "v#{self _targetPackage version asSeq}[[reset; " ..
                 "to [[magenta bold;v#{version asSeq}", "output")
-        ) elseif (version < self _targetPackage version) then (
+        ) elseif (version < self package version) then (
             Logger log(
                 "⬇ [[cyan bold;Downgrading [[reset;" .. 
                 "#{self _targetPackage name} " ..
@@ -83,32 +83,33 @@ Updater := Object clone do (
                 "v#{self _targetPackage version asSeq} " ..
                 "is already updated", "output")))
 
-    _checkGitBranch := method(name,
-        branch := self package gitBranchForDep(name)
-
-        if (branch isNil, return)
-
-        Eerie sh("git checkout #{branch}", false, self newer dir path))
+    _checkGitBranch := method(
+        if (self newer branch isNil, return)
+        Eerie sh("git checkout #{self newer branch}", 
+            false, 
+            self newer dir path))
 
     _checkGitTag := method(version,
         Eerie sh("git checkout tags/#{version originalSeq}", 
             false,
             self newer dir path))
 
-    # removes the old version of the dependency
-    _removeOld := method(
-        old := self package packageNamed(self newer name)
-        self package removePackage(old))
-
     # installs the `newer` package
     _installNew := method(
-        installer := Installer with(self package)
-        installer install(self newer))
+        installer := Installer with(
+            self newer,
+            self package dir path)
+        installer install)
 
 )
 
 # Updater error types
 Updater do (
+
+    //doc Updater DifferentPackageError
+    DifferentPackageError := Eerie Error clone setErrorMsg(
+        "Can't update package '#{call evalArgAt(0)}' " .. 
+        "with package '#{call evalArgAt(1)}'")
 
     //doc Updater NoVersionsError
     NoVersionsError := Eerie Error clone setErrorMsg(
