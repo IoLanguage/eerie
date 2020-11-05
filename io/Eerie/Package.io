@@ -194,34 +194,6 @@ Package := Object clone do (
     Returns `true` if the `Package binDir` has files and `false` otherwise.*/
     hasBinaries := method(self binDir exists and self binDir files isEmpty not)
 
-    /*doc Package gitBranchForDep(name) 
-    Get git branch (`Sequence` or `nil`) for dependency name (`Sequence`).
-    
-    There are two scenarios for `branch` configuration:
-
-    1. The user can specify branch per dependency in `addons`:
-    ```
-    ...
-    "addons": [
-        {
-           ...
-           "branch": "develop"
-        }
-    ]
-    ...
-
-    ```
-    
-    2. The developer can specify main `"branch"` for the package.
-    
-    The first scenario has more priority, so we try to get the user specified
-    branch first and then if it's `nil` we check the developer's one.*/
-    gitBranchForDep := method(depName,
-        self checkHasDep(depName)
-        dep := self depNamed(depName)
-        package := self packageNamed(depName)
-        dep branch ifNilEval(package ?config ?at("branch")))
-
     /*doc Package checkHasDep(name)
     Check whether the package has dependency (i.e. in eerie.json) with the
     specified name (`Sequence`).
@@ -235,35 +207,6 @@ Package := Object clone do (
     Get `Package Dependency` from `Package deps` with the given name (if any).*/
     depNamed := method(name, self deps detect(dep, dep name == name))
 
-    /*doc Package packageNamed 
-    Get the dependency package with the provided name (`Sequence`) if it's
-    installed. Otherwise it returns `nil`.*/ 
-    packageNamed := method(name, self packages detect(pkg, pkg name == name))
-
-    /*doc Package appendPackage 
-    Add a `Package` to the list of installed packages.*/
-    appendPackage := method(package, self packages appendIfAbsent(package))
-
-    /*doc Eerie updatePackage(Package) 
-    Replaces package with the given name with the given package.
-
-    Return `true` if package was found and replaced and `false` otherwise.*/
-    updatePackage := method(package,
-        old := self packageNamed(package name)
-        old isNil ifTrue(
-            msg := "Tried to update package which is not yet installed."
-            msg = msg .. " (#{package name})"
-            Logger log(msg, "debug")
-            return false)
-
-        self packages remove(old) append(package)
-        true)
-
-    //doc Package removePackage(`Package`) Removes the given package.
-    removePackage := method(package,
-        package ?remove
-        self packages remove(package))
-
     //doc Package remove Removes self.
     remove := method(
         self dir remove
@@ -274,7 +217,9 @@ Package := Object clone do (
     runHook := method(hook,
         f := File with("#{self dir}/hooks/#{hook}.io" interpolate)
         f exists ifTrue(
-            Logger log("Launching #{hook} hook for #{self name}", "debug")
+            Logger log(
+                "[[birghtBlue bold;Launching[[reset; #{hook} " ..
+                "hook for #{self name}")
             ctx := Object clone
             e := try(ctx doFile(f path))
             f close
