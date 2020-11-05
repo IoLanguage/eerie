@@ -1,7 +1,6 @@
 Install := Eerie Action clone do (
 
-    _alreadyInstalled := method(
-        self _parent addonDirFor(self _dependency) exists)
+    _destDir := method(self _parent addonDirFor(self _dependency name))
 
     # Get git branch (`Sequence` or `nil`) for dependency name (`Sequence`).
     # 
@@ -25,7 +24,12 @@ Install := Eerie Action clone do (
     # The first scenario has more priority, so we try to get the user specified
     # branch first and then if it's `nil` we check the developer's one.
     prepare := method(
-        if (self _alreadyInstalled, return)
+        if (self _destDir exists, 
+
+            if (self package isNil,
+                self package = Package with(self _destDir path))
+
+            return)
 
         url := self _dependency url ifNilEval(
             Eerie database valueFor(self _dependency name, "url"))
@@ -42,11 +46,11 @@ Install := Eerie Action clone do (
             self package branch))
 
     execute := method(
-        if (self _alreadyInstalled, return)
+        if (self _destDir exists, return)
 
         installer := Installer with(
             self package, 
-            self _parent addonDirFor(self package name),
+            self _destDir,
             self _parent destBinDir)
 
         installer install(self _dependency version)
