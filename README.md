@@ -210,12 +210,12 @@ contains fields and their descriptions.
 | `branch`                           | `string`        | Git branch.                                                                  | **OPTIONAL**                         |
 | `categories`                       | `array<string>` | Categories to which the package applies.                                     | **OPTIONAL**                         |
 | `protos`                           | `array<string>` | Protos which the package exposes.                                            | **REQUIRED**                         |
-| `addons`                           | `array`         | Dependencies of the package.                                                 | **OPTIONAL**                         |
-| `addons[n].name`                   | `string`        | Name of the package.                                                         | **REQUIRED**                         |
-| `addons[n].version`                | `string`        | The version of the package. Can be shortened.                                | **REQUIRED**                         |
+| `packs`                           | `array`         | Dependencies of the package.                                                 | **OPTIONAL**                         |
+| `packs[n].name`                   | `string`        | Name of the package.                                                         | **REQUIRED**                         |
+| `packs[n].version`                | `string`        | The version of the package. Can be shortened.                                | **REQUIRED**                         |
 |                                    |                 | The value `"0.1"`, for example, includes all `"0.1"` patches until `"0.2.0"` |                                      |
-| `addons[n].url`                    | `string`        | See `url`.                                                                   | **OPTIONAL** for published           |
-| `addons[n].branch`                 | `string`        | See `branch`.                                                                | **OPTIONAL**                         |
+| `packs[n].url`                    | `string`        | See `url`.                                                                   | **OPTIONAL** for published           |
+| `packs[n].branch`                 | `string`        | See `branch`.                                                                | **OPTIONAL**                         |
 
 
 

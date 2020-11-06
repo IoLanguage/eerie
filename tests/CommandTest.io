@@ -4,7 +4,7 @@ CommandTest := UnitTest clone do (
 
     Command
 
-    _package := Package with("tests/_addons/AFakeAddon")
+    _package := Package with("tests/_packs/AFakePack")
 
     _depsManager := DependencyManager with(_package)
 
@@ -26,8 +26,8 @@ CommandTest := UnitTest clone do (
 
         assertEquals(expected, command _definesFlags) 
 
-        expected = "tests/_addons/AFakeAddon/_build/objs/test.o " .. \
-            "tests/_addons/AFakeAddon/source/test.c"
+        expected = "tests/_packs/AFakePack/_build/objs/test.o " .. \
+            "tests/_packs/AFakePack/source/test.c"
 
         assertTrue(command asSeq endsWithSeq(expected)))
 

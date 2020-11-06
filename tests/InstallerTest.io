@@ -15,18 +15,18 @@ InstallerTest := UnitTest clone do (
         assertEquals(e error type, Installer DestinationNotSetError type))
 
     testCheckSame := method(
-        updatee := Package with("tests/_tmp/CFakeAddonUpdate")
-        target := Package with("tests/_addons/AFakeAddon")
+        updatee := Package with("tests/_tmp/CFakePackUpdate")
+        target := Package with("tests/_packs/AFakePack")
         installer := Installer with(updatee, target dir path)
         e := try (installer _checkSame(target))
         assertEquals(e error type, Installer DifferentPackageError type)
 
-        target = Package with("tests/_addons/CFakeAddon")
+        target = Package with("tests/_packs/CFakePack")
         installer _checkSame(target))
 
     testBinSet := method(
         installer := Installer clone
-        installer package = Package with("tests/_addons/BFakeAddon")
+        installer package = Package with("tests/_packs/BFakePack")
 
         assertTrue(installer package hasBinaries)
 
@@ -34,25 +34,25 @@ InstallerTest := UnitTest clone do (
         assertEquals(e error type, Installer BinDestNotSetError type))
 
     testInstall := method(
-        parentPkg := Package with("tests/_addons/AFakeAddon")
-        parentPkg addonsDir remove
+        parentPkg := Package with("tests/_packs/AFakePack")
+        parentPkg packsDir remove
         parentPkg destBinDir remove
 
         # this package has binaries, so we check binaries installation too
-        package := Package with("tests/_addons/BFakeAddon")
+        package := Package with("tests/_packs/BFakePack")
         installer := Installer with(
             package,
-            parentPkg addonDirFor(package name) path,
+            parentPkg packDirFor(package name) path,
             parentPkg destBinDir path)
 
-        assertFalse(parentPkg addonDirFor(package name) exists)
+        assertFalse(parentPkg packDirFor(package name) exists)
 
         installer install
 
-        assertTrue(parentPkg addonDirFor(package name) exists)
+        assertTrue(parentPkg packDirFor(package name) exists)
 
         # validate package
-        Package with(parentPkg addonDirFor(package name) path)
+        Package with(parentPkg packDirFor(package name) path)
 
         # check binaries installation
         assertTrue(parentPkg destBinDir exists)
@@ -69,20 +69,20 @@ InstallerTest := UnitTest clone do (
         e := try (installer install)
         assertEquals(e error type, Installer DirectoryExistsError type)
 
-        parentPkg addonsDir remove
+        parentPkg packsDir remove
         parentPkg destBinDir remove)
 
     testUpdate := method(
         tmpDest := Directory with("tests/_tmp/Test")
         tmpDest create remove
-        package := Package with("tests/_addons/CFakeAddon")
+        package := Package with("tests/_packs/CFakePack")
         installer := Installer with(package, tmpDest path)
         installer install
 
         installed := Package with(tmpDest path)
         assertEquals(installed version, SemVer fromSeq("0.1.0"))
 
-        updatee := Package with("tests/_tmp/CFakeAddonUpdate")
+        updatee := Package with("tests/_tmp/CFakePackUpdate")
         installer setPackage(updatee)
         installer setDestination(installed dir)
 

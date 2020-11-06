@@ -1,15 +1,15 @@
-Install := Eerie Action clone do (
+Install := Action clone do (
 
-    _destDir := method(self _parent addonDirFor(self _dependency name))
+    _destDir := method(self _parent packDirFor(self _dependency name))
 
     # Get git branch (`Sequence` or `nil`) for dependency name (`Sequence`).
     # 
     # There are two scenarios for `branch` configuration:
     # 
-    # 1. The user can specify branch per dependency in `addons`:
+    # 1. The user can specify branch per dependency in `packs`:
     # ```
     # ...
-    # "addons": [
+    # "packs": [
     #   {
     #      ...
     #      "branch": "develop"
@@ -37,7 +37,7 @@ Install := Eerie Action clone do (
         if (url isNil or url isEmpty, 
             Exception raise(NoUrlError with(self _dependency name)))
 
-        downloader := Downloader detect(uri, self _parent tmpDir)
+        downloader := Downloader detect(url, self _parent tmpDir)
         downloader download
 
         self package = Package with(downloader destDir)

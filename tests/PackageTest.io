@@ -1,40 +1,40 @@
 PackageTest := UnitTest clone do (
 
     testInstalledPackages := method(
-        package := Package with("tests/_addons/BFakeAddon")
+        package := Package with("tests/_packs/BFakePack")
         assertEquals(2, package packages size)
 
-        expected := list("AFakeAddon", "CFakeAddon")
+        expected := list("AFakePack", "CFakePack")
         result := package packages map(name) sort
         assertEquals(expected, result))
 
     testHasNativeCode := method(
-        aPackage := Package with("tests/_addons/AFakeAddon")
+        aPackage := Package with("tests/_packs/AFakePack")
         assertFalse(aPackage hasNativeCode)
 
-        cPackage := Package with("tests/_addons/CFakeAddon")
+        cPackage := Package with("tests/_packs/CFakePack")
         assertTrue(cPackage hasNativeCode))
 
     testHasBinaries := method(
-        aPackage := Package with("tests/_addons/AFakeAddon")
+        aPackage := Package with("tests/_packs/AFakePack")
         assertFalse(aPackage hasBinaries)
 
-        bPackage := Package with("tests/_addons/BFakeAddon")
+        bPackage := Package with("tests/_packs/BFakePack")
         assertTrue(bPackage hasBinaries))
 
     testDeps := method(
-        package := Package with("tests/_addons/AFakeAddon")
+        package := Package with("tests/_packs/AFakePack")
         expected := list()
         
         dep := Package Dependency clone
-        dep name = "CFakeAddon"
+        dep name = "CFakePack"
         dep version = SemVer fromSeq("0.1")
-        dep url = "tests/_addons/CFakeAddon"
+        dep url = "tests/_packs/CFakePack"
         expected append(dep)
         
         dep = dep clone
-        dep name = "BFakeAddon"
-        dep url = "tests/_addons/BFakeAddon"
+        dep name = "BFakePack"
+        dep url = "tests/_packs/BFakePack"
         expected append(dep)
 
         result := package deps
@@ -45,17 +45,17 @@ PackageTest := UnitTest clone do (
             assertEquals(item url, result at(n) url)))
 
     testHasDep := method(
-        package := Package with("tests/_addons/AFakeAddon")
+        package := Package with("tests/_packs/AFakePack")
 
         e := try (package checkHasDep("shouldntexist"))
         assertEquals(e error type, Package NoDependencyError type))
 
     testVersions := method(
-        package := Package with("tests/_tmp/CFakeAddonUpdate")
+        package := Package with("tests/_tmp/CFakePackUpdate")
         assertEquals(23, package versions size))
 
     testHighestVersion := method(
-        package := Package with("tests/_addons/AFakeAddon")
+        package := Package with("tests/_packs/AFakePack")
 
         package versions := list()
         assertTrue(package highestVersionFor isNil)
@@ -91,7 +91,7 @@ PackageTest := UnitTest clone do (
             SemVer fromSeq("0.2.1")))
 
     testDirectoryValidation := method(
-        e := try (Package with("tests/_faddons/NotAddon"))
+        e := try (Package with("tests/_fpacks/NotPack"))
         assertEquals(e error type, Package NotPackageError type))
 
     testManifestValidator := method(
@@ -138,7 +138,7 @@ PackageTest := UnitTest clone do (
             "author": "Test",
             "url": "path/to/package",
             "protos": [],
-            "addons": [ { } ] 
+            "packs": [ { } ] 
             }""")
 
         self _assertManifestError("""{
@@ -147,7 +147,7 @@ PackageTest := UnitTest clone do (
             "author": "Test",
             "url": "path/to/package",
             "protos": [],
-            "addons": [
+            "packs": [
                     { 
                         "name": "Test"
                     }
@@ -171,7 +171,7 @@ PackageTest := UnitTest clone do (
             "author": "Test",
             "url": "path/to/package",
             "protos": [],
-            "addons": []
+            "packs": []
             }""")
 
         # this shouldn't raise an exception, the dependency supposed to be
@@ -182,7 +182,7 @@ PackageTest := UnitTest clone do (
             "author": "Test",
             "url": "path/to/package",
             "protos": [],
-            "addons": [
+            "packs": [
                     { 
                         "name": "Test",
                         "version": "0.1"

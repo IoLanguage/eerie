@@ -33,8 +33,10 @@ DownloaderTest := UnitTest clone do (
 
     _expectDownloaderTypeFor := method(url, expected,
         destRoot := Directory with("tests/rm_me_downloader_dest")
+        destRoot create remove
         downloader := Downloader detect(url, destRoot)
         assertEquals(downloader type, expected)
-        assertEquals(downloader url, url))
+        assertEquals(downloader url, url)
+        destRoot remove)
 
 )

@@ -2,10 +2,10 @@ DatabaseTest := UnitTest clone do (
 
     testValueFor := method(
         db := Database clone
-        pkgName := "AFakeAddon"
-        assertEquals(pkgName, db valueFor("AFakeAddon", "name"))
+        pkgName := "AFakePack"
+        assertEquals(pkgName, db valueFor("AFakePack", "name"))
         assertEquals(
-            "tests/_addons/AFakeAddon", 
-            db valueFor("AFakeAddon", "url")))
+            "tests/_packs/AFakePack", 
+            db valueFor("AFakePack", "url")))
 
 )

@@ -13,7 +13,7 @@ Update := Eerie Action clone do(
 
         self pkg downloader update
         installer := Installer with(self pkg) \
-            setRoot(Eerie addonsDir) \
+            setRoot(Eerie packsDir) \
                 setDestBinName(Eerie globalBinDirName)
 
         installer install(Eerie isGlobal)

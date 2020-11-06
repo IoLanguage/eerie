@@ -1,0 +1,3 @@
+[submodule "tests/_tmp/CFakePackUpdate"]
+	path = tests/_tmp/CFakePackUpdate
+	url = https://github.com/IoLanguage/CFakePackUpdate.git

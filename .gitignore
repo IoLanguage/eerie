@@ -1,10 +1,10 @@
-_addons/
+_packs/
 _bin/
 _build/
-_tmp/
+./_tmp/
 db/
 iolang/
-./tests/_addons/CFakeAddon/_build
+./tests/_packs/CFakePack/_build
 ./tests/deleteme
 ./tests/installer
 .transaction_lock

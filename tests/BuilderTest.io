@@ -1,8 +1,8 @@
 BuilderTest := UnitTest clone do (
 
     testBuild := method(
-        package := Package with("tests/_addons/CFakeAddon")
-        initf := package sourceDir fileNamed("IoCFakeAddonInit.c")
+        package := Package with("tests/_packs/CFakePack")
+        initf := package sourceDir fileNamed("IoCFakePackInit.c")
         buildDir := package buildDir
 
         if (initf exists, initf remove)

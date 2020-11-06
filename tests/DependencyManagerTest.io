@@ -3,7 +3,7 @@ Importer addSearchPath("io/Eerie/Builder")
 DependencyManagerTest := UnitTest clone do (
 
     testCheckMissing := method(
-        package := Package with("tests/_addons/AFakeAddon")
+        package := Package with("tests/_packs/AFakePack")
         deps := DependencyManager with(package)
 
         # shouldn't raise exceptions by default

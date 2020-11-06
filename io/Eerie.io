@@ -21,7 +21,7 @@ Eerie := Object clone do (
     ioHeadersPath := method(Path with(Eerie root, "ioheaders"))
 
     //doc Eerie ddlExt Get dynamic library extension for the current platform.
-    dllExt := method(
+    dllExt := lazySlot(
         if (Eerie isWindows) then (
             return "dll"
         ) elseif (Eerie platform == "darwin") then (
@@ -66,6 +66,8 @@ Eerie do (
 )
 
 Eerie clone = Eerie do (
+
+    doRelativeFile("Eerie/Database.io")
 
     init
 

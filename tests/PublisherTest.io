@@ -6,7 +6,7 @@ PublisherTest := UnitTest clone do (
         assertEquals(e error type, Publisher PackageNotSetError type))
 
     testCheckVersion := method(
-        package := Package with("tests/_addons/BFakeAddon")
+        package := Package with("tests/_packs/BFakePack")
         publisher := Publisher with(package)
 
         # should pass validation as the previous version is nil
@@ -16,8 +16,8 @@ PublisherTest := UnitTest clone do (
         e := try (publisher _checkVersion)
         assertEquals(e error type, Publisher VersionIsOlderError type)
 
-        # we have AFakeAddon with the same version in our test database
-        package = Package with("tests/_addons/AFakeAddon")
+        # we have AFakePack with the same version in our test database
+        package = Package with("tests/_packs/AFakePack")
         publisher setPackage(package)
         e := try (publisher _checkVersion)
         assertEquals(e error type, Publisher VersionIsOlderError type)
@@ -32,14 +32,14 @@ PublisherTest := UnitTest clone do (
         assertEquals(e error type, Publisher VersionIsShortened type))
 
     testCheckReadme := method(
-        package := Package with("tests/_addons/AFakeAddon")
+        package := Package with("tests/_packs/AFakePack")
         publisher := Publisher with(package)
         
         e := try (publisher _checkReadme)
         assertEquals(e error type, Publisher ReadmeError type)
 
         # package with readme field
-        package = Package with("tests/_addons/DFakeAddon")
+        package = Package with("tests/_packs/DFakePack")
         readme := package dir fileNamed("README.md") create remove
         publisher setPackage(package)
 
@@ -57,14 +57,14 @@ PublisherTest := UnitTest clone do (
         readme remove)
 
     testCheckLicense := method(
-        package := Package with("tests/_addons/AFakeAddon")
+        package := Package with("tests/_packs/AFakePack")
         publisher := Publisher with(package)
         
         e := try (publisher _checkLicense)
         assertEquals(e error type, Publisher LicenseError type)
 
         # package with readme field
-        package = Package with("tests/_addons/DFakeAddon")
+        package = Package with("tests/_packs/DFakePack")
         license := package dir fileNamed("LICENSE") create remove
         publisher setPackage(package)
 
@@ -83,23 +83,23 @@ PublisherTest := UnitTest clone do (
 
     testDescriptionCheck := method(
         # package with empty description
-        package := Package with("tests/_addons/BFakeAddon")
+        package := Package with("tests/_packs/BFakePack")
         publisher := Publisher with(package)
 
         e := try (publisher _checkDescription)
         assertEquals(e error type, Publisher NoDescriptionError type)
 
-        package = Package with("tests/_addons/AFakeAddon")
+        package = Package with("tests/_packs/AFakePack")
         publisher setPackage(package)
         publisher _checkDescription)
 
     testHasGitChanges := method(
-        # this test may fail if tests/_tmp/CFakeAddonUpdate have uncommitted 
+        # this test may fail if tests/_tmp/CFakePackUpdate have uncommitted 
         # changes
-        package := Package with("tests/_tmp/CFakeAddonUpdate")
+        package := Package with("tests/_tmp/CFakePackUpdate")
         publisher := Publisher with(package)
 
-        change := File with("tests/_tmp/CFakeAddonUpdate/deleteme") 
+        change := File with("tests/_tmp/CFakePackUpdate/deleteme") 
         change create remove
 
         publisher _checkHasGitChanges
@@ -111,7 +111,7 @@ PublisherTest := UnitTest clone do (
         change remove)
 
     testGitTagExists := method(
-        package := Package with("tests/_tmp/CFakeAddonUpdate")
+        package := Package with("tests/_tmp/CFakePackUpdate")
         publisher := Publisher with(package)
         package version := SemVer fromSeq("0.1.0")
 
@@ -125,7 +125,7 @@ PublisherTest := UnitTest clone do (
         # TODO
         # don't know how to test it
         # kept it here for manual testing at least
-        # package := Package with("tests/_addons/AFakeAddon")
+        # package := Package with("tests/_packs/AFakePack")
         # publisher := Publisher with(package)
         # publisher shouldPush println
         # publisher _promptPush

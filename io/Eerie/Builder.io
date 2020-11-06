@@ -10,7 +10,7 @@ Builder := Object clone do (
     doRelativeFile("Builder/InitFileGenerator.io")
     
     /*doc Builder shouldGenerateInit 
-    Whether `Builder` should generate IoAddonNameInit.c file for your package.
+    Whether `Builder` should generate IoPackNameInit.c file for your package.
 
     Default to `true`.*/
     //doc Builder setShouldGenerateInit `shouldGenerateInit` setter.

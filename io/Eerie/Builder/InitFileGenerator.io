@@ -1,4 +1,4 @@
-# Generates IoAddonNameInit.c file which contains code for initialization of the
+# Generates IoPackNameInit.c file which contains code for initialization of the
 # protos defined by the sources
 InitFileGenerator := Object clone do (
     package := nil

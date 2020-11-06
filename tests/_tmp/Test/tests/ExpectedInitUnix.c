@@ -15,7 +15,7 @@
 IoObject *IoTest_proto(void *state);
 IoObject *IoDep_proto(void *state);
 
-void IoCFakeAddonInit(IoObject *context) {
+void IoCFakePackInit(IoObject *context) {
 	IoState *self = IoObject_state((IoObject *)context);
 
 	IoObject_setSlot_to_(context, SIOSYMBOL("Test"), IoTest_proto(self));

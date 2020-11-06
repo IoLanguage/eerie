@@ -20,7 +20,7 @@ Transaction := Object clone do(
     A file containing current Eerie process ID. Eerie checks for existence of
     this file to make it sure that only one instance of Eerie is running per
     package.*/
-    lockFile := method(self package addonsDir fileNamed(".transaction_lock"))
+    lockFile := method(self package packsDir fileNamed(".transaction_lock"))
 
     /*doc Transaction with(`Package`)
     Initializes `Transaction` with the given `Package`.*/

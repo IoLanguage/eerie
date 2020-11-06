@@ -25,13 +25,13 @@ Package := Object clone do (
     Get the `_bin` directory, where binaries of dependencies are installed.*/
     destBinDir := method(self dir createSubdirectory("_bin"))
 
-    //doc Package addonsDir Get the `_addons` `Directory`.
-    addonsDir := method(self dir createSubdirectory("_addons"))
+    //doc Package packsDir Get the `_packs` `Directory`.
+    packsDir := method(self dir createSubdirectory("_packs"))
 
-    /*doc Package addonDirFor 
-    Get a directory for package name (`Sequence`) inside `addonsDir` whether
+    /*doc Package packDirFor 
+    Get a directory for package name (`Sequence`) inside `packsDir` whether
     it's installed or not.*/ 
-    addonDirFor := method(name, self addonsDir directoryNamed(name))
+    packDirFor := method(name, self packsDir directoryNamed(name))
 
     /*doc Package tmpDir 
     Get `_tmp` `Directory`, the temporary directory used by `Downloader` to
@@ -124,13 +124,13 @@ Package := Object clone do (
     /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
     packages := lazySlot(
-        self addonsDir directories map(dir, Package with(dir path)))
+        self packsDir directories map(dir, Package with(dir path)))
 
     /*doc Package deps
-    Get the `List` of `Package Dependency` parsed from `"addons"` field in
+    Get the `List` of `Package Dependency` parsed from `"packs"` field in
     `eerie.json`.*/
     deps := lazySlot(
-        self config at("addons") map(dep, Dependency fromMap(dep)))
+        self config at("packs") map(dep, Dependency fromMap(dep)))
 
     /*doc Package with(path) 
     Creates new package from provided path (`Sequence`). Raises `NotPackageError` if
@@ -260,7 +260,7 @@ Package Dependency := Object clone do (
         klone := self clone
         klone name = dep at("name")
         klone version = SemVer fromSeq(dep at("version"))
-        # if url is nil the addon supposed to be in the db, so we use its name
+        # if url is nil the pack supposed to be in the db, so we use its name
         klone url = dep at("url") ifNilEval(dep at("name"))
         klone branch = dep at("branch")
         klone)
@@ -291,20 +291,20 @@ Package ManifestValidator := Object clone do (
 
         self _checkType("protos", List)
 
-        # `addons` is optional
-        if (self _config at("addons") isNil or \
-            self _config at("addons") isEmpty, return)
+        # `packs` is optional
+        if (self _config at("packs") isNil or \
+            self _config at("packs") isEmpty, return)
 
-        self _checkType("addons", List)
+        self _checkType("packs", List)
 
-        self _config at("addons") foreach(dep,
+        self _config at("packs") foreach(dep,
             self _checkField(
                 dep at("name") isNil or dep at("name") isEmpty,
-                "The \"addons[n].name\" is required.")
+                "The \"packs[n].name\" is required.")
 
             self _checkField(
                 dep at("version") isNil,
-                "The \"addons[n].version\" is required.")))
+                "The \"packs[n].version\" is required.")))
 
         # check's whether a field is not nil and not empty
         # the `field` argument is key with subfields separated by dot:
