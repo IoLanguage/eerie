@@ -16,7 +16,7 @@ Action := Object clone do (
     (i.e. downloading and instantiation).*/
     package ::= nil
 
-    # specific dependency (`Package Dependency`) to which this actions is
+    # specific dependency (`Package DepDesc`) to which this actions is
     # related
     _dependency := nil
 
@@ -33,7 +33,7 @@ Action := Object clone do (
 
     /*doc Action with(parent, dependency) 
     Init action with the parent `Package` and its dependency 
-    (`Package Dependency`).*/
+    (`Package DepDesc`).*/
     with := method(parentPkg, dep, 
         klone := self clone
         klone _parent = parentPkg

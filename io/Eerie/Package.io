@@ -1,6 +1,5 @@
 //metadoc Package category API
 //metadoc Package description Represents an Eerie package.
-doRelativeFile("SemVer.io")
 
 Package := Object clone do (
 
@@ -103,7 +102,7 @@ Package := Object clone do (
     */
     versions := method(
         cmdOut := System sh("git tag", true, self dir path)
-        cmdOut stdout splitNoEmpties("\n") map(tag, SemVer fromSeq(tag)))
+        cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
 
     //doc Package name
     name := method(self config at("name"))
@@ -127,14 +126,15 @@ Package := Object clone do (
         self packsDir directories map(dir, Package with(dir path)))
 
     /*doc Package deps
-    Get the `List` of `Package Dependency` parsed from `"packs"` field in
+    Get the `List` of `Package DepDesc` parsed from `"packs"` field in
     `eerie.json`.*/
     deps := lazySlot(
-        self config at("packs") map(dep, Dependency fromMap(dep)))
+        self config at("packs") map(dep, DepDesc fromMap(dep)))
 
     /*doc Package with(path) 
-    Creates new package from provided path (`Sequence`). Raises `NotPackageError` if
-    the directory is not an Eerie package. Use this to initialize a `Package`.*/
+    Creates new package from provided path (`Sequence`). Raises
+    `NotPackageError` if the directory is not an Eerie package. Use this to
+    initialize a `Package`.*/
     with := method(path,
         klone := self clone setDir(Directory with(path))
         _checkDirectoryPackage(klone dir)
@@ -142,7 +142,7 @@ Package := Object clone do (
         manifest := File with(
             klone dir path .. "/#{Package manifestName}" interpolate) 
         klone setConfig(manifest contents parseJson)
-        klone setVersion(SemVer fromSeq(klone config at("version")))
+        klone setVersion(Eerie SemVer fromSeq(klone config at("version")))
         # call to init the list
         klone packages
         klone)
@@ -203,7 +203,7 @@ Package := Object clone do (
             Exception raise(NoDependencyError with(self name, depName))))
 
     /*doc Package depNamed 
-    Get `Package Dependency` from `Package deps` with the given name (if any).*/
+    Get `Package DepDesc` from `Package deps` with the given name (if any).*/
     depNamed := method(name, self deps detect(dep, dep name == name))
 
     //doc Package remove Removes self.
@@ -245,7 +245,7 @@ Package do (
 
 )
 
-Package Dependency := Object clone do (
+Package DepDesc := Object clone do (
 
     name := nil
 
@@ -259,7 +259,7 @@ Package Dependency := Object clone do (
     fromMap := method(dep,
         klone := self clone
         klone name = dep at("name")
-        klone version = SemVer fromSeq(dep at("version"))
+        klone version = Eerie SemVer fromSeq(dep at("version"))
         # if url is nil the pack supposed to be in the db, so we use its name
         klone url = dep at("url") ifNilEval(dep at("name"))
         klone branch = dep at("branch")

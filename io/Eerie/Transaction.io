@@ -107,7 +107,7 @@ Transaction := Object clone do(
         self)
 
     /*doc Transaction install(dependency)
-    Add `Install` action with `Package Dependency`.*/
+    Add `Install` action with `Package DepDesc`.*/
     install := method(parentPkg, dep,
         self _addAction(Action named("Install") with(parentPkg, dep)))
 

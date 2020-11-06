@@ -1,8 +1,7 @@
 //metadoc Eerie category API
 //metadoc Eerie author Josip Lisec, Ales Tsurko
 /*metadoc Eerie description 
-This proto is a singleton. It's mainly for keeping `isGlobal` state and logging,
-but it also contains some helpful functions.*/
+This proto is a singleton.*/
 
 Eerie := Object clone do (
 
@@ -36,7 +35,7 @@ Eerie := Object clone do (
             System platform containsAnyCaseSeq("mingw")))
 
     //doc Eerie platform Get the platform name (`Sequence`) as lowercase.
-    platform := System platform split at(0) asLowercase
+    platform := System platform asLowercase
 
     init := method(
         # call this to check whether EERIEDIR set
@@ -47,10 +46,12 @@ Eerie := Object clone do (
 
 //doc Eerie Error Eerie modules subclass this error for their error types.
 Eerie Error := Error clone do (
+
     errorMsg ::= nil
 
     with := method(msg,
         super(with(self errorMsg interpolate)))
+
 )
 
 Eerie do (
@@ -68,6 +69,7 @@ Eerie do (
 Eerie clone = Eerie do (
 
     doRelativeFile("Eerie/Database.io")
+    doRelativeFile("Eerie/SemVer.io")
 
     init
 
