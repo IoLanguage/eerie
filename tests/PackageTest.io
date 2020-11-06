@@ -37,7 +37,7 @@ PackageTest := UnitTest clone do (
         dep url = "tests/_packs/BFakePack"
         expected append(dep)
 
-        result := package deps
+        result := package depDescs
 
         expected foreach(n, item, 
             assertEquals(item name, result at(n) name)

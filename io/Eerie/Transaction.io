@@ -97,12 +97,12 @@ Transaction := Object clone do(
     /*doc Transaction resolveDeps
     Add actions to recursively resolve dependencies for `package`.*/
     resolveDeps := method(
-        if (self package deps isEmpty, return)
+        if (self package depDescs isEmpty, return)
 
         Logger log("🗂 [[brightBlue bold;Resolving [[reset;" ..
             "dependencies for [[bold;#{self package name}")
 
-        self package deps foreach(dep, self install(self package, dep) run)
+        self package depDescs foreach(dep, self install(self package, dep) run)
 
         self)
 

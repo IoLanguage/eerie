@@ -125,10 +125,10 @@ Package := Object clone do (
     packages := lazySlot(
         self packsDir directories map(dir, Package with(dir path)))
 
-    /*doc Package deps
+    /*doc Package depDescs
     Get the `List` of `Package DepDesc` parsed from `"packs"` field in
     `eerie.json`.*/
-    deps := lazySlot(
+    depDescs := lazySlot(
         self config at("packs") map(dep, DepDesc fromMap(dep)))
 
     /*doc Package with(path) 
@@ -203,8 +203,8 @@ Package := Object clone do (
             Exception raise(NoDependencyError with(self name, depName))))
 
     /*doc Package depNamed 
-    Get `Package DepDesc` from `Package deps` with the given name (if any).*/
-    depNamed := method(name, self deps detect(dep, dep name == name))
+    Get `Package DepDesc` from `Package depDescs` with the given name (if any).*/
+    depNamed := method(name, self depDescs detect(dep, dep name == name))
 
     //doc Package remove Removes self.
     remove := method(
