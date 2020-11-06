@@ -116,10 +116,6 @@ Package := Object clone do (
     //doc Package setBranch(Sequence) Set git branch for this package.
     branch ::= lazySlot(self config at("branch"))
 
-    /*doc Package global 
-    Initializes the global Eerie package (i.e. the Eerie itself).*/
-    global := lazySlot(Package with(Eerie root))
-
     /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
     packages := lazySlot(
@@ -130,6 +126,14 @@ Package := Object clone do (
     `eerie.json`.*/
     depDescs := lazySlot(
         self config at("packs") map(dep, DepDesc fromMap(dep)))
+
+    /*doc Package depDescNamed 
+    Get `Package DepDesc` from `Package depDescs` with the given name (if any).*/
+    depDescNamed := method(name, self depDescs detect(dep, dep name == name))
+
+    /*doc Package global 
+    Initializes the global Eerie package (i.e. the Eerie itself).*/
+    global := lazySlot(Package with(Eerie root))
 
     /*doc Package with(path) 
     Creates new package from provided path (`Sequence`). Raises
@@ -199,12 +203,8 @@ Package := Object clone do (
 
     Raises `Package NoDependencyError` if it doesn't.*/
     checkHasDep := method(depName,
-        if (self depNamed(depName) isNil,
+        if (self depDescNamed(depName) isNil,
             Exception raise(NoDependencyError with(self name, depName))))
-
-    /*doc Package depNamed 
-    Get `Package DepDesc` from `Package depDescs` with the given name (if any).*/
-    depNamed := method(name, self depDescs detect(dep, dep name == name))
 
     //doc Package remove Removes self.
     remove := method(
