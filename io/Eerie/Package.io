@@ -9,11 +9,38 @@ Package := Object clone do (
     //doc Package config Package's config file (the manifest) as a `Map`.
     config ::= nil
 
+    //doc Package name
+    name := method(self config at("name"))
+
+    //doc Package version Returns parsed version (`SemVer`) of the package.
+    version ::= nil
+
+    /*doc Package versions
+    Get `List` of available versions. The versions are collected from git tags.
+    */
+    versions := method(
+        cmdOut := System sh("git tag", true, self dir path)
+        cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
+
+    //doc Package branch Get git branch for this package.
+    //doc Package setBranch(Sequence) Set git branch for this package.
+    branch ::= lazySlot(self config at("branch"))
+
+    /*doc Package depDescs
+    Get the `List` of `Package DepDesc` parsed from `"packs"` field in
+    `eerie.json`.*/
+    depDescs := lazySlot(
+        self config at("packs") map(dep, DepDesc fromMap(dep)))
+
+    /*doc Package depDescNamed 
+    Get `Package DepDesc` from `Package depDescs` with the given name (if any).*/
+    depDescNamed := method(name, self depDescs detect(dep, dep name == name))
+
     //doc Package dir Directory of this package.
     dir ::= nil
 
-    /*doc Package sourceDir The `source` directory. `Directory` with native
-    code.*/
+    /*doc Package sourceDir 
+    The `source` directory. The `Directory` with native (C) code.*/
     sourceDir := method(self dir createSubdirectory("source"))
 
     /*doc Package binDir 
@@ -94,42 +121,10 @@ Package := Object clone do (
     //doc Package buildio The `build.io` file.
     buildio := lazySlot(self dir fileNamed("build.io"))
 
-    //doc Package version Returns parsed version (`SemVer`) of the package.
-    version ::= nil
-    
-    /*doc Package versions
-    Get `List` of available versions. The versions are collected from git tags.
-    */
-    versions := method(
-        cmdOut := System sh("git tag", true, self dir path)
-        cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
-
-    //doc Package name
-    name := method(self config at("name"))
-
-    //doc Package setName(name)
-    setName := method(v,
-        self config atPut("name", v)
-        self)
-
-    //doc Package branch Get git branch for this package.
-    //doc Package setBranch(Sequence) Set git branch for this package.
-    branch ::= lazySlot(self config at("branch"))
-
     /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
     packages := lazySlot(
         self packsDir directories map(dir, Package with(dir path)))
-
-    /*doc Package depDescs
-    Get the `List` of `Package DepDesc` parsed from `"packs"` field in
-    `eerie.json`.*/
-    depDescs := lazySlot(
-        self config at("packs") map(dep, DepDesc fromMap(dep)))
-
-    /*doc Package depDescNamed 
-    Get `Package DepDesc` from `Package depDescs` with the given name (if any).*/
-    depDescNamed := method(name, self depDescs detect(dep, dep name == name))
 
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
