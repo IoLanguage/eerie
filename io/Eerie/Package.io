@@ -208,7 +208,10 @@ Package := Object clone do (
     If the `destination` is `nil`, `self packsDir` is used.*/
     install := method(destDir,
         if (destDir isNil, destDir = self packsDir)
-        self deps foreach(dep, dep install(destDir))) 
+        lock := Eerie TransactionLock clone
+        lock lock
+        self deps foreach(dep, dep install(destDir))
+        lock unlock) 
 
     //doc Package remove Removes self.
     remove := method(

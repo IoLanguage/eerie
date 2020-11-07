@@ -70,6 +70,7 @@ Eerie clone = Eerie do (
 
     doRelativeFile("Eerie/Database.io")
     doRelativeFile("Eerie/SemVer.io")
+    doRelativeFile("Eerie/TransactionLock.io")
 
     init
 
