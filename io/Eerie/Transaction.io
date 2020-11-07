@@ -100,17 +100,17 @@ Transaction := Object clone do(
     resolveDeps := method(package,
         if (package isNil, package = self package)
 
-        if (package depDescs isEmpty, return)
+        if (package deps isEmpty, return)
 
         Logger log("🗂 [[brightBlue bold;Resolving [[reset;" ..
             "dependencies for [[bold;#{package name}")
 
-        package depDescs foreach(dep, self installDep(dep) run)
+        package deps foreach(dep, self installDep(dep) run)
 
         self)
 
     /*doc Transaction installDep(dependency)
-    Add `Install` action with `Package DepDesc`.*/
+    Add `Install` action with `Package Dependency`.*/
     installDep := method(dep,
         self _addAction(Action named("Install") with(self package, dep)))
 

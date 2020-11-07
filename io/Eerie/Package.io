@@ -26,15 +26,16 @@ Package := Object clone do (
     //doc Package setBranch(Sequence) Set git branch for this package.
     branch ::= lazySlot(self config at("branch"))
 
-    /*doc Package depDescs
-    Get the `List` of `Package DepDesc` parsed from `"packs"` field in
+    /*doc Package deps
+    Get the `List` of `Package Dependency` parsed from `"packs"` field in
     `eerie.json`.*/
-    depDescs := lazySlot(
-        self config at("packs") map(dep, DepDesc fromMap(dep, self)))
+    deps := lazySlot(
+        self config at("packs") map(dep, Dependency fromMap(dep, self)))
 
-    /*doc Package depDescNamed 
-    Get `Package DepDesc` from `Package depDescs` with the given name (if any).*/
-    depDescNamed := method(name, self depDescs detect(dep, dep name == name))
+    /*doc Package depNamed 
+    Get `Package Dependency` from `Package deps` with the given name (if
+    any).*/
+    depNamed := method(name, self deps detect(dep, dep name == name))
 
     //doc Package dir Directory of this package.
     dir ::= nil
@@ -198,7 +199,7 @@ Package := Object clone do (
 
     Raises `Package NoDependencyError` if it doesn't.*/
     checkHasDep := method(depName,
-        if (self depDescNamed(depName) isNil,
+        if (self depNamed(depName) isNil,
             Exception raise(NoDependencyError with(self name, depName))))
 
     /*doc Package install(destination)
@@ -207,7 +208,7 @@ Package := Object clone do (
     If the `destination` is `nil`, `self packsDir` is used.*/
     install := method(destDir,
         if (destDir isNil, destDir = self packsDir)
-        self depDescs foreach(dep, dep install(destDir))) 
+        self deps foreach(dep, dep install(destDir))) 
 
     //doc Package remove Removes self.
     remove := method(
@@ -249,19 +250,28 @@ Package do (
 
 )
 
-Package DepDesc := Object clone do (
+//metadoc Dependency category Package
+/*metadoc Dependency description 
+Package dependency parsed from `"packs"` in `eerie.json`.*/
+Package Dependency := Object clone do (
 
+    //doc Dependency name Get name.
     name := nil
 
+    //doc Dependency version Get version. Can be shortened.
     version := nil
 
+    //doc Dependency parentPkg The parent `Package` of this dependency.
     parentPkg := nil
 
+    //doc Dependency url Get URL.
     url := nil
 
+    //doc Dependency branch Get git branch.
     branch := nil
 
-    # the initializer
+    /*doc Dependency fromMap(map, parentPkg)
+    Initialize dependency from `Map` parsed from `"packs"` array items.*/
     fromMap := method(dep, parentPkg,
         klone := self clone
         klone parentPkg = parentPkg
@@ -274,8 +284,8 @@ Package DepDesc := Object clone do (
         klone branch = dep at("branch")
         klone)
 
-    /*doc DepDesc install(Directory)
-    Download and install the dependency this `DepDesc` describes to the
+    /*doc Dependency install(Directory)
+    Download and install the dependency this `Dependency` describes to the
     destination root `Directory`. 
 
     The destination `Directory` is the root for the depdency. That means, for
@@ -350,25 +360,29 @@ Package DepDesc := Object clone do (
 
 )
 
-Package DepDesc do (
+Package Dependency do (
 
     NoUrlError := Eerie Error clone setErrorMsg(
         "URL for #{call evalArgAt(0)} is not found.")
 
 )
 
+//metadoc ManifestValidator category Package
+//metadoc ManifestValidator description Validates `eerie.json`.
 Package ManifestValidator := Object clone do (
 
     _manifest := nil
 
     _config := nil
     
+    //doc ManifestValidator with(File) Init validator with given manifest.
     with := method(manifest,
         klone := self clone
         klone _manifest := manifest
         klone _config := manifest contents parseJson
         klone)
 
+    //doc ManifestValidator validate Validates the manifest.
     validate := method(
         self _checkRequired("name")
         self _checkRequired("version")

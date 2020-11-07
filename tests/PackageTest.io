@@ -26,7 +26,7 @@ PackageTest := UnitTest clone do (
         package := Package with("tests/_packs/AFakePack")
         expected := list()
         
-        dep := Package DepDesc clone
+        dep := Package Dependency clone
         dep name = "CFakePack"
         dep version = SemVer fromSeq("0.1")
         dep url = "tests/_packs/CFakePack"
@@ -37,7 +37,7 @@ PackageTest := UnitTest clone do (
         dep url = "tests/_packs/BFakePack"
         expected append(dep)
 
-        result := package depDescs
+        result := package deps
 
         expected foreach(n, item, 
             assertEquals(item name, result at(n) name)
