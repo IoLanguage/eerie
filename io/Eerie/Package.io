@@ -306,21 +306,15 @@ Package DepDesc := Object clone do (
 
         package := self _download
 
+        installDir := self _installDir(destDir, package version)
+
+        if (installDir exists, return)
+
+        # install dependencies of dependency
         package install(destDir)
 
-        package branch = self branch ifNilEval(package branch)
-
-        # init _installDir
-        self _installDir(destDir, package version)
-
-        if (self _installDir exists, return)
-
-        installer := Installer with(
-            package, 
-            self _installDir,
-            self parentPkg destBinDir)
-
-        installer install(self version)
+        # install the dependency
+        self _installPackage(package, installDir)
 
         self parentPkg tmpDir remove)
 
@@ -341,8 +335,18 @@ Package DepDesc := Object clone do (
             directoryNamed(self name) \
                 directoryNamed(self version))
 
-    _installDir := lazySlot(destDir, version,
+    _installDir := method(destDir, version,
         destDir directoryNamed(self name) directoryNamed(version))
+
+    _installPackage := method(package, installDir,
+        package branch = self branch ifNilEval(package branch)
+
+        installer := Installer with(
+            package, 
+            installDir,
+            self parentPkg destBinDir)
+
+        installer install(self version))
 
 )
 
