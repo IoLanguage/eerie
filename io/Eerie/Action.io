@@ -32,7 +32,7 @@ Action := Object clone do (
         Exception raise(UnknownActionError with(name)))
 
     /*doc Action with(parent, dependency) 
-    Init action with the parent `Package` and its dependency 
+    Init action with the parent `Package` and a dependency description
     (`Package DepDesc`).*/
     with := method(parentPkg, dep, 
         klone := self clone
@@ -50,9 +50,9 @@ Action := Object clone do (
 
 Action instances := Object clone do (
 
-    doRelativeFile("actions/Install.io")
+    doRelativeFile("actions/InstallDep.io")
     
-    doRelativeFile("actions/Update.io")
+    doRelativeFile("actions/UpdateDep.io")
 
 )
 

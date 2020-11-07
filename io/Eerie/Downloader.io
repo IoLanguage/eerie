@@ -15,11 +15,9 @@ Downloader := Object clone do (
     //doc Downloader setDestDir `Downloader destDir` setter. 
     destDir ::= nil
 
-    /*doc Downloader detect(uri, root)
+    /*doc Downloader detect(uri, destDir)
     - `uri` - URL or path to a local directory
-    - `root` - root `Directory` where the downloader will create a directory to
-    where to download package
-
+    - `destDir` - the `Directory` to where to download
     If a suitable downloader is found, returns an instance of it initialized
     using `Downloader with(url, dir)`, otherwise raises an exception with
     `Downloader DetectError`.*/
@@ -33,14 +31,12 @@ Downloader := Object clone do (
 
         Exception raise(DetectError with(uri)))
 
-    /*doc Downloader with(url, root) 
+    /*doc Downloader with(url, dir) 
     [[Downloader]] initializer, where `url` is a `Sequence` from where the
-    downloader should download, and `root` is a `Directory` where the downloader
-    will create a directory (`Downloader destDir`) with random name to download
-    package into it.*/
-    with := method(url, root,
-        destName := Random bytes(16) asHex
-        self clone setUrl(url) setDestDir(root createSubdirectory(destName)))
+    downloader should download, and `dir` is a `Directory` to where to
+    download.*/
+    with := method(url, dir,
+        self clone setUrl(url) setDestDir(dir))
 
     /*doc Downloader canDownload(url) 
     Returns `true` if it understands provided URI and `false` otherwise.*/

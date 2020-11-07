@@ -103,10 +103,9 @@ Installer := Object clone do (
         self _checkPackageSet
         self _checkDestinationSet
 
-        pkgDestination := self destination
-        if (pkgDestination exists, 
+        if (self destination exists, 
             Exception raise(DirectoryExistsError with(
-                self package name, pkgDestination path)))
+                self package name, self destination path)))
 
         Logger log("📥 [[cyan bold;Installing [[reset;#{self package name}", 
             "output")
@@ -120,9 +119,9 @@ Installer := Object clone do (
 
         self _build
 
-        pkgDestination createIfAbsent
+        self destination createIfAbsent
 
-        self package dir copyTo(pkgDestination)
+        self package dir copyTo(self destination)
 
         self _installBinaries
 

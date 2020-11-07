@@ -87,36 +87,39 @@ Transaction := Object clone do(
         if (Eerie database needsUpdate, Eerie database update)
 
         self actions foreach(action,
-            action prepare
-            Transaction with(action package) resolveDeps ?run
+            self resolveDeps(action prepare) ?run
             action execute)
 
         self releaseLock
         self actions = list())
 
-    /*doc Transaction resolveDeps
-    Add actions to recursively resolve dependencies for `package`.*/
-    resolveDeps := method(
-        if (self package depDescs isEmpty, return)
+    /*doc Transaction resolveDeps(package)
+    Add actions to resolve dependencies for the passed `package`.
+
+    If the `package` argument is `nil`, `self package` is used.*/
+    resolveDeps := method(package,
+        if (package isNil, package = self package)
+
+        if (package depDescs isEmpty, return)
 
         Logger log("🗂 [[brightBlue bold;Resolving [[reset;" ..
-            "dependencies for [[bold;#{self package name}")
+            "dependencies for [[bold;#{package name}")
 
-        self package depDescs foreach(dep, self install(self package, dep) run)
+        package depDescs foreach(dep, self installDep(dep) run)
 
         self)
 
-    /*doc Transaction install(dependency)
+    /*doc Transaction installDep(dependency)
     Add `Install` action with `Package DepDesc`.*/
-    install := method(parentPkg, dep,
-        self _addAction(Action named("Install") with(parentPkg, dep)))
+    installDep := method(dep,
+        self _addAction(Action named("Install") with(self package, dep)))
 
     updateDeps := method(
         # TODO
     )
 
-    update := method(parentPkg, dep,
-        self _addAction(Action named("Update") with(parentPkg, dep)))
+    updateDep := method(dep,
+        self _addAction(Action named("Update") with(self package, dep)))
 
     _addAction := method(action,
         self actions contains(action) ifFalse(

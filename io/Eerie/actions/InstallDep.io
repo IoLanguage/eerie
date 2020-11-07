@@ -1,4 +1,4 @@
-Install := Action clone do (
+InstallDep := Action clone do (
 
     _destDir := method(self _parent packDirFor(self _dependency name))
 

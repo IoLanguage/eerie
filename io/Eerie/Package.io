@@ -30,7 +30,7 @@ Package := Object clone do (
     Get the `List` of `Package DepDesc` parsed from `"packs"` field in
     `eerie.json`.*/
     depDescs := lazySlot(
-        self config at("packs") map(dep, DepDesc fromMap(dep)))
+        self config at("packs") map(dep, DepDesc fromMap(dep, self)))
 
     /*doc Package depDescNamed 
     Get `Package DepDesc` from `Package depDescs` with the given name (if any).*/
@@ -201,6 +201,14 @@ Package := Object clone do (
         if (self depDescNamed(depName) isNil,
             Exception raise(NoDependencyError with(self name, depName))))
 
+    /*doc Package install(destination)
+    Install the package and its dependencies into the `destination` `Directory`.
+
+    If the `destination` is `nil`, `self packsDir` is used.*/
+    install := method(destDir,
+        if (destDir isNil, destDir = self packsDir)
+        self depDescs foreach(dep, dep install(destDir))) 
+
     //doc Package remove Removes self.
     remove := method(
         self dir remove
@@ -218,6 +226,7 @@ Package := Object clone do (
             e := try(ctx doFile(f path))
             f close
             e catch(Exception raise(FailedRunHookError with(hook, e message)))))
+
 
 )
 
@@ -246,19 +255,101 @@ Package DepDesc := Object clone do (
 
     version := nil
 
+    parentPkg := nil
+
     url := nil
 
     branch := nil
 
     # the initializer
-    fromMap := method(dep,
+    fromMap := method(dep, parentPkg,
         klone := self clone
+        klone parentPkg = parentPkg
         klone name = dep at("name")
         klone version = Eerie SemVer fromSeq(dep at("version"))
-        # if url is nil the pack supposed to be in the db, so we use its name
-        klone url = dep at("url") ifNilEval(dep at("name"))
+        # if url is nil the pack supposed to be in the db, so we try to get it
+        # from there
+        klone url = dep at("url") ifNilEval(
+            Eerie database valueFor(klone name, "url"))
         klone branch = dep at("branch")
         klone)
+
+    /*doc DepDesc install(Directory)
+    Download and install the dependency this `DepDesc` describes to the
+    destination root `Directory`. 
+
+    The destination `Directory` is the root for the depdency. That means, for
+    dependency **A** with version **1.0.0** and destination `foo/bar`, the
+    package will be installed in: `foo/bar/A/1.0.0`.*/
+
+    # There are two scenarios for `branch` configuration:
+    # 
+    # 1. The user can specify branch per dependency in `packs`:
+    # ```
+    # ...
+    # "packs": [
+    #   {
+    #      ...
+    #      "branch": "develop"
+    #   }
+    # ]
+    # ...
+    # 
+    # ```
+    # 
+    # 2. The developer can specify main `"branch"` for the package.
+    # 
+    # The first scenario has more priority, so we try to get the user specified
+    # branch first and then if it's `nil` we check the developer's one.
+    install := method(destDir,
+        destDir createIfAbsent
+
+        package := self _download
+
+        package install(destDir)
+
+        package branch = self branch ifNilEval(package branch)
+
+        # init _installDir
+        self _installDir(destDir, package version)
+
+        if (self _installDir exists, return)
+
+        installer := Installer with(
+            package, 
+            self _installDir,
+            self parentPkg destBinDir)
+
+        installer install(self version)
+
+        self parentPkg tmpDir remove)
+
+    # download the package and instantiate it
+    _download := method(
+        if (self url isNil or self url isEmpty, 
+            Exception raise(NoUrlError with(self name)))
+
+        if (self _downloadDir exists, return Package with(self _downloadDir))
+
+        downloader := Downloader detect(self url, self _downloadDir)
+        downloader download
+
+        Package with(download destDir))
+
+    _downloadDir := lazySlot(
+        self parentPkg tmpDir \
+            directoryNamed(self name) \
+                directoryNamed(self version))
+
+    _installDir := lazySlot(destDir, version,
+        destDir directoryNamed(self name) directoryNamed(version))
+
+)
+
+Package DepDesc do (
+
+    NoUrlError := Eerie Error clone setErrorMsg(
+        "URL for #{call evalArgAt(0)} is not found.")
 
 )
 
