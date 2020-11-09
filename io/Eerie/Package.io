@@ -3,8 +3,8 @@
 
 Package := Object clone do (
 
-    //doc Package manifestName The name of the manifest file.
-    manifestName := "eerie.json"
+    //doc Package manifest Get the `Package Manifest`.
+    manifest := nil
     
     //doc Package config Package's config file (the manifest) as a `Map`.
     config ::= nil
@@ -40,8 +40,8 @@ Package := Object clone do (
     //doc Package struct Get `Package Structure` for this package.
     struct := nil
 
-    //doc Package packsIo Get `Package PacksIo`.
-    packsIo := method(PacksIo with(self))
+    //doc Package packsio Get `Package PacksIo`.
+    packsio := method(PacksIo with(self))
 
     /*doc Package packRootFor 
     Get a directory for package name (`Sequence`) inside `struct packs` whether
@@ -81,9 +81,6 @@ Package := Object clone do (
     staticLibPath := method(
         self struct build lib path .. "/" .. self staticLibFileName)
 
-    //doc Package buildio The `build.io` file.
-    buildio := lazySlot(self struct root fileNamed("build.io"))
-
     /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
     packages := lazySlot(
@@ -103,11 +100,12 @@ Package := Object clone do (
         klone struct := Structure with(path)
         klone _checksIsPackage
 
-        manifest := File with(
-            klone struct root path .. "/#{Package manifestName}" interpolate) 
-        Package ManifestValidator with(manifest) validate
+        manifestFile := File with(
+            klone struct root path .. "/#{Package Manifest name}" interpolate) 
+        klone manifest := Manifest with(manifestFile)
+        klone manifest validate
 
-        klone setConfig(manifest contents parseJson)
+        klone setConfig(manifestFile contents parseJson)
         klone setVersion(Eerie SemVer fromSeq(klone config at("version")))
         # call to init the list
         klone packages
@@ -199,7 +197,7 @@ Package do (
     //doc Package NoDependencyError
     NoDependencyError := Eerie Error clone setErrorMsg(
         "The package \"#{call evalArgAt(0)}\" has no dependency " .. 
-        "\"#{call evalArgAt(1)}\" in #{Package manifestName}.")
+        "\"#{call evalArgAt(1)}\" in #{Package Manifest name}.")
 
 )
 
@@ -231,16 +229,19 @@ Package Structure := Object clone do (
     - `build objs` - the output `Directory for the compiled objects*/
     build := nil
 
-    //doc Package packs Get the `_packs` `Directory`.
+    //doc Structure packs Get the `_packs` `Directory`.
     packs := method(self root createSubdirectory("_packs"))
 
     /*doc Structure source
     The `source` directory. The `Directory` with native (C) code.*/
     source := method(self root createSubdirectory("source"))
 
-    /*doc Package tmp
+    /*doc Structure tmp
     Get `_tmp` `Directory`.*/
     tmp := method(self root createSubdirectory("_tmp"))
+
+    //doc Structure buildio The `build.io` file.
+    buildio := lazySlot(self root fileNamed("build.io"))
 
     /*doc Structure with(rootPath) 
     Init `Structure` with the path to the root directory (`Sequence`).*/
@@ -255,7 +256,7 @@ Package Structure := Object clone do (
     isPackage := method(
         ioDir := self root directoryNamed("io")
         manifest := File with(
-            self root path .. "/#{Package manifestName}" interpolate)
+            self root path .. "/#{Package Manifest name}" interpolate)
 
         self root exists and manifest exists and ioDir exists)
 
@@ -291,6 +292,156 @@ Package Structure := Object clone do (
 
 )
 
+//metadoc Manifest category Package
+//metadoc Manifest description Represents parsed manifest file.
+Package Manifest := Object clone do (
+
+    //doc Manifest name Get name of the manifest file.
+    name := "eerie.json"
+
+    //doc Manifest file Get `File` for this manifest.
+    file := nil
+
+    _map := nil
+
+    //doc Manifest with(File) Init `Manifest` from file.
+    with := method(file,
+        klone := self clone
+        klone file = file
+        klone)
+
+    validate := method(
+        # TODO move ManifestValidator into this proto
+        Package ManifestValidator with(self file) validate)
+
+)
+
+//metadoc ManifestValidator category Package
+//metadoc ManifestValidator description Validates `eerie.json`.
+Package ManifestValidator := Object clone do (
+
+    _manifest := nil
+
+    _config := nil
+    
+    //doc ManifestValidator with(File) Init validator with given manifest.
+    with := method(manifest,
+        klone := self clone
+        klone _manifest := manifest
+        klone _config := manifest contents parseJson
+        klone)
+
+    //doc ManifestValidator validate Validates the manifest.
+    validate := method(
+        self _checkRequired("name")
+        self _checkRequired("version")
+        self _checkRequired("author")
+        self _checkRequired("url")
+
+        # it's allowed to be empty for `protos`
+        self _checkField(self _config at("protos") isNil,
+            "The \"protos\" field is required.")
+
+        self _checkType("protos", List)
+
+        # `packs` is optional
+        if (self _config at("packs") isNil or \
+            self _config at("packs") isEmpty, return)
+
+        self _checkType("packs", List)
+
+        self _config at("packs") foreach(dep,
+            self _checkField(
+                dep at("name") isNil or dep at("name") isEmpty,
+                "The \"packs[n].name\" is required.")
+
+            self _checkField(
+                dep at("version") isNil,
+                "The \"packs[n].version\" is required.")))
+
+        # check's whether a field is not nil and not empty
+        # the `field` argument is key with subfields separated by dot:
+        # `foo.bar.baz`
+        # the optional `msg` argument is the message, which will be shown on
+        # invalid test
+        _checkRequired := method(field, msg,
+            value := self _valueForKey(field)
+            msg := msg ifNilEval(
+                "The \"#{field}\" field is required and can't be empty." \
+                    interpolate)
+
+            if (value isNil or value isEmpty,
+                Exception raise(
+                    InsufficientManifestError with(self _manifest path, msg))))
+
+        # get config value for key of type `foo.bar.baz`
+        _valueForKey := method(key,
+            split := key split(".")
+            value := self _config
+            split foreach(key, value = value at(key))
+            value)
+
+        _checkEither := method(first, second,
+            valueA := self _valueForKey(first)
+            valueB := self _valueForKey(second)
+            msg := ("Either \"#{first}\" or \"#{second}\" field is required " .. 
+                "and can't be empty.") interpolate
+
+            if ((valueA isNil or valueA isEmpty) and \
+                (valueB isNil or valueB isEmpty),
+                Exception raise(
+                    InsufficientManifestError with(self _manifest path, msg))))
+
+        # check whether value specified by `key` is of type `input`
+        _checkType := method(key, input,
+            value := self _valueForKey(key)
+            msg := (
+                "The field \"#{key}\" should be #{self _jsonTypeFor(input)}." \
+                    interpolate)
+
+            if (value type != input type,
+                Exception raise(
+                    InsufficientManifestError with(self _manifest path, msg))))
+
+        # get json type name for argument type
+        _jsonTypeFor := method(input,
+            if (input type == Map type) then (
+                return "an object"
+            ) elseif (input type == List type) then (
+                return "an array"
+            ) elseif (input type == Number type) then (
+                return "a number"
+            ) elseif (input type == Sequence type) then (
+                return "a string"
+            ) elseif (input type == true type or input type == false type) \
+                then (
+                    return "a boolean"
+            ) elseif (input type == nil type) then (
+                return "null"
+            ) else (
+                return "undefined"))
+
+        # the first argument is a boolean. If it's `true`,
+        # `InsufficientManifestError` will raise with the message at the second
+        # argument.
+        _checkField := method(test, msg,
+            test ifTrue(
+                Exception raise(
+                    InsufficientManifestError with(self _manifest path, msg))))
+
+)
+
+# ManifestValidator error types
+Package ManifestValidator do (
+
+    //doc ManifestValidator InsufficientManifestError
+    InsufficientManifestError := Eerie Error clone setErrorMsg(
+        "The manifest at #{call evalArgAt(0)} doesn't satisfy " ..
+        "all requirements." .. 
+        "#{if(call evalArgAt(1) isNil, " ..
+            "\"\", \"\\n\" .. call evalArgAt(1))}")
+
+)
 //metadoc Dependency category Package
 /*metadoc Dependency description 
 Package dependency parsed from `"packs"` in `eerie.json`.*/
@@ -486,132 +637,5 @@ Package PacksIo do (
     DependencyNotInstalledError := Eerie Error clone setErrorMsg(
         "Dependency \"#{call evalArgAt(0)}\" of package " ..
         "\"#{call evalArgAt(1)}\" is not installed.")
-
-)
-
-//metadoc ManifestValidator category Package
-//metadoc ManifestValidator description Validates `eerie.json`.
-Package ManifestValidator := Object clone do (
-
-    _manifest := nil
-
-    _config := nil
-    
-    //doc ManifestValidator with(File) Init validator with given manifest.
-    with := method(manifest,
-        klone := self clone
-        klone _manifest := manifest
-        klone _config := manifest contents parseJson
-        klone)
-
-    //doc ManifestValidator validate Validates the manifest.
-    validate := method(
-        self _checkRequired("name")
-        self _checkRequired("version")
-        self _checkRequired("author")
-        self _checkRequired("url")
-
-        # it's allowed to be empty for `protos`
-        self _checkField(self _config at("protos") isNil,
-            "The \"protos\" field is required.")
-
-        self _checkType("protos", List)
-
-        # `packs` is optional
-        if (self _config at("packs") isNil or \
-            self _config at("packs") isEmpty, return)
-
-        self _checkType("packs", List)
-
-        self _config at("packs") foreach(dep,
-            self _checkField(
-                dep at("name") isNil or dep at("name") isEmpty,
-                "The \"packs[n].name\" is required.")
-
-            self _checkField(
-                dep at("version") isNil,
-                "The \"packs[n].version\" is required.")))
-
-        # check's whether a field is not nil and not empty
-        # the `field` argument is key with subfields separated by dot:
-        # `foo.bar.baz`
-        # the optional `msg` argument is the message, which will be shown on
-        # invalid test
-        _checkRequired := method(field, msg,
-            value := self _valueForKey(field)
-            msg := msg ifNilEval(
-                "The \"#{field}\" field is required and can't be empty." \
-                    interpolate)
-
-            if (value isNil or value isEmpty,
-                Exception raise(
-                    InsufficientManifestError with(self _manifest path, msg))))
-
-        # get config value for key of type `foo.bar.baz`
-        _valueForKey := method(key,
-            split := key split(".")
-            value := self _config
-            split foreach(key, value = value at(key))
-            value)
-
-        _checkEither := method(first, second,
-            valueA := self _valueForKey(first)
-            valueB := self _valueForKey(second)
-            msg := ("Either \"#{first}\" or \"#{second}\" field is required " .. 
-                "and can't be empty.") interpolate
-
-            if ((valueA isNil or valueA isEmpty) and \
-                (valueB isNil or valueB isEmpty),
-                Exception raise(
-                    InsufficientManifestError with(self _manifest path, msg))))
-
-        # check whether value specified by `key` is of type `input`
-        _checkType := method(key, input,
-            value := self _valueForKey(key)
-            msg := (
-                "The field \"#{key}\" should be #{self _jsonTypeFor(input)}." \
-                    interpolate)
-
-            if (value type != input type,
-                Exception raise(
-                    InsufficientManifestError with(self _manifest path, msg))))
-
-        # get json type name for argument type
-        _jsonTypeFor := method(input,
-            if (input type == Map type) then (
-                return "an object"
-            ) elseif (input type == List type) then (
-                return "an array"
-            ) elseif (input type == Number type) then (
-                return "a number"
-            ) elseif (input type == Sequence type) then (
-                return "a string"
-            ) elseif (input type == true type or input type == false type) \
-                then (
-                    return "a boolean"
-            ) elseif (input type == nil type) then (
-                return "null"
-            ) else (
-                return "undefined"))
-
-        # the first argument is a boolean. If it's `true`,
-        # `InsufficientManifestError` will raise with the message at the second
-        # argument.
-        _checkField := method(test, msg,
-            test ifTrue(
-                Exception raise(
-                    InsufficientManifestError with(self _manifest path, msg))))
-
-)
-
-# ManifestValidator error types
-Package ManifestValidator do (
-
-    //doc ManifestValidator InsufficientManifestError
-    InsufficientManifestError := Eerie Error clone setErrorMsg(
-        "The manifest at #{call evalArgAt(0)} doesn't satisfy " ..
-        "all requirements." .. 
-        "#{if(call evalArgAt(1) isNil, " ..
-            "\"\", \"\\n\" .. call evalArgAt(1))}")
 
 )

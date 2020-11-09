@@ -181,7 +181,7 @@ Publisher do (
 
     NoDescriptionError := Eerie Error clone setErrorMsg(
         "Published packages should have \"description\" in " ..
-        "#{Package manifestName}.")
+        "#{Package Manifest name}.")
 
     ReadmeError := Eerie Error clone setErrorMsg(
         "README file is required for published packages and shouldn't be " ..

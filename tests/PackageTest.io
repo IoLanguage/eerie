@@ -80,7 +80,34 @@ PackageTest := UnitTest clone do (
             package highestVersionFor(SemVer fromSeq("0.2")),
             SemVer fromSeq("0.2.1")))
 
-    testManifestValidator := method(
+)
+
+StructureTest := UnitTest clone do (
+
+    testIsPackage := method(
+        struct := Package Structure with("tests/_fpacks/NotPack")
+        assertFalse(struct isPackage))
+
+    testHasNativeCode := method(
+        aStruct := Package Structure with("tests/_packs/AFakePack")
+        assertFalse(aStruct hasNativeCode)
+
+        cStruct := Package Structure with("tests/_packs/CFakePack")
+        assertTrue(cStruct hasNativeCode))
+
+    testHasBinaries := method(
+        aStruct := Package Structure with("tests/_packs/AFakePack")
+        assertFalse(aStruct hasBinaries)
+
+        bStruct := Package Structure with("tests/_packs/BFakePack")
+        assertTrue(bStruct hasBinaries))
+
+
+)
+
+ManifestTest := UnitTest clone do (
+
+    testValidation := method(
         self _assertManifestError("{}")
 
         self _assertManifestError("""{"name": "Test"}""")
@@ -188,28 +215,6 @@ PackageTest := UnitTest clone do (
         manifest := File with("tests/deleteme") setContents(contents)
         Package ManifestValidator with(manifest) validate
         manifest remove)
-
-)
-
-StructureTest := UnitTest clone do (
-
-    testIsPackage := method(
-        struct := Package Structure with("tests/_fpacks/NotPack")
-        assertFalse(struct isPackage))
-
-    testHasNativeCode := method(
-        aStruct := Package Structure with("tests/_packs/AFakePack")
-        assertFalse(aStruct hasNativeCode)
-
-        cStruct := Package Structure with("tests/_packs/CFakePack")
-        assertTrue(cStruct hasNativeCode))
-
-    testHasBinaries := method(
-        aStruct := Package Structure with("tests/_packs/AFakePack")
-        assertFalse(aStruct hasBinaries)
-
-        bStruct := Package Structure with("tests/_packs/BFakePack")
-        assertTrue(bStruct hasBinaries))
 
 
 )

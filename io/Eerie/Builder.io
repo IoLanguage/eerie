@@ -94,8 +94,8 @@ Builder := Object clone do (
         self package runHook("afterBuild"))
 
     _runBuildio := method(
-        self package buildio create
-        self doFile(self package buildio path))
+        self package struct buildio create
+        self doFile(self package struct buildio path))
 
     # copy (install) headers into "_build/headers/"
     _copyHeaders := method(
