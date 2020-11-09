@@ -8,19 +8,9 @@ PackageTest := UnitTest clone do (
         result := package packages map(name) sort
         assertEquals(expected, result))
 
-    testHasNativeCode := method(
-        aPackage := Package with("tests/_packs/AFakePack")
-        assertFalse(aPackage hasNativeCode)
-
-        cPackage := Package with("tests/_packs/CFakePack")
-        assertTrue(cPackage hasNativeCode))
-
-    testHasBinaries := method(
-        aPackage := Package with("tests/_packs/AFakePack")
-        assertFalse(aPackage hasBinaries)
-
-        bPackage := Package with("tests/_packs/BFakePack")
-        assertTrue(bPackage hasBinaries))
+    testDirectoryValidation := method(
+        e := try (Package with("tests/_fpacks/NotPack"))
+        assertEquals(e error type, Package NotPackageError type))
 
     testDeps := method(
         package := Package with("tests/_packs/AFakePack")
@@ -89,10 +79,6 @@ PackageTest := UnitTest clone do (
         assertEquals(
             package highestVersionFor(SemVer fromSeq("0.2")),
             SemVer fromSeq("0.2.1")))
-
-    testDirectoryValidation := method(
-        e := try (Package with("tests/_fpacks/NotPack"))
-        assertEquals(e error type, Package NotPackageError type))
 
     testManifestValidator := method(
         self _assertManifestError("{}")
@@ -202,5 +188,28 @@ PackageTest := UnitTest clone do (
         manifest := File with("tests/deleteme") setContents(contents)
         Package ManifestValidator with(manifest) validate
         manifest remove)
+
+)
+
+StructureTest := UnitTest clone do (
+
+    testIsPackage := method(
+        struct := Package Structure with("tests/_fpacks/NotPack")
+        assertFalse(struct isPackage))
+
+    testHasNativeCode := method(
+        aStruct := Package Structure with("tests/_packs/AFakePack")
+        assertFalse(aStruct hasNativeCode)
+
+        cStruct := Package Structure with("tests/_packs/CFakePack")
+        assertTrue(cStruct hasNativeCode))
+
+    testHasBinaries := method(
+        aStruct := Package Structure with("tests/_packs/AFakePack")
+        assertFalse(aStruct hasBinaries)
+
+        bStruct := Package Structure with("tests/_packs/BFakePack")
+        assertTrue(bStruct hasBinaries))
+
 
 )

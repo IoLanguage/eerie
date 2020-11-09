@@ -7,7 +7,7 @@ TransactionLock := Object clone do(
 
     /*doc TransactionLock file
     A file containing current Eerie process ID.*/
-    file := method(self package packsDir fileNamed(".transaction_lock"))
+    file := method(self package struct packs fileNamed(".transaction_lock"))
 
     //doc TransactionLock lock Lock the transaction.
     lock := method(

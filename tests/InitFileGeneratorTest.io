@@ -7,11 +7,11 @@ InitFileGeneratorTest := UnitTest clone do (
         generator := InitFileGenerator with(package)
         generator generate
         
-        result := package sourceDir fileNamed("IoCFakePackInit.c") 
+        result := package struct source fileNamed("IoCFakePackInit.c") 
         expected := if (Eerie isWindows, 
             knownBug("expected file on windows doesn't exist")
-            package dir directoryNamed("tests") fileNamed("ExpectedInitWin.c"),
-            package dir directoryNamed("tests") fileNamed("ExpectedInitUnix.c"))
+            package struct root directoryNamed("tests") fileNamed("ExpectedInitWin.c"),
+            package struct root directoryNamed("tests") fileNamed("ExpectedInitUnix.c"))
 
         assertEquals(result contents, expected contents)
 

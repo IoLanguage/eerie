@@ -19,7 +19,7 @@ Package := Object clone do (
     Get `List` of available versions. The versions are collected from git tags.
     */
     versions := method(
-        cmdOut := System sh("git tag", true, self dir path)
+        cmdOut := System sh("git tag", true, self struct root path)
         cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
 
     //doc Package branch Get git branch for this package.
@@ -37,57 +37,16 @@ Package := Object clone do (
     any).*/
     depNamed := method(name, self deps detect(dep, dep name == name))
 
-    //doc Package dir Directory of this package.
-    dir ::= nil
-
-    /*doc Package sourceDir 
-    The `source` directory. The `Directory` with native (C) code.*/
-    sourceDir := method(self dir createSubdirectory("source"))
-
-    /*doc Package binDir 
-    The `bin` directory. `Directory` with binaries of the package.*/
-    binDir := lazySlot(self dir directoryNamed("bin"))
-
-    /*doc Package destBinDir
-    Get the `_bin` directory, where binaries of dependencies are installed.*/
-    destBinDir := method(self dir createSubdirectory("_bin"))
-
-    //doc Package packsDir Get the `_packs` `Directory`.
-    packsDir := method(self dir createSubdirectory("_packs"))
+    //doc Package struct Get `Package Structure` for this package.
+    struct := nil
 
     //doc Package packsIo Get `Package PacksIo`.
     packsIo := method(PacksIo with(self))
 
     /*doc Package packRootFor 
-    Get a directory for package name (`Sequence`) inside `packsDir` whether
+    Get a directory for package name (`Sequence`) inside `struct packs` whether
     it's installed or not.*/ 
-    packRootFor := method(name, self packsDir directoryNamed(name))
-
-    /*doc Package tmpDir 
-    Get `_tmp` `Directory`, the temporary directory used by `Downloader` to
-    download dependencies into.*/
-    tmpDir := method(self dir createSubdirectory("_tmp"))
-
-    /*doc Package buildDir 
-    Get `_build` `Directory`, the directory where build artifacts are stored.*/
-    buildDir := method(self dir createSubdirectory("_build"))
-
-    /*doc Package headersBuildDir
-    Get the output `Directory` where all the headers of this package will be
-    installed.*/
-    headersBuildDir := method(self buildDir createSubdirectory("headers"))
-
-    /*doc Package objsBuildDir
-    Get the output objects (`.o`) `Directory`.*/
-    objsBuildDir := method(self buildDir createSubdirectory("objs"))
-
-    /*doc Package dllBuildDir
-    Get the output `Directory` for dynamic library this package represents.*/
-    dllBuildDir := method(self buildDir createSubdirectory("dll"))
-
-    /*doc Package staticLibBuildDir
-    Get the output `Directory` for static library this package represents.*/
-    staticLibBuildDir := method(self buildDir createSubdirectory("lib"))
+    packRootFor := method(name, self struct packs directoryNamed(name))
 
     /*doc Package dllFileName 
     Get the file name of the dynamic library provided by this package in the
@@ -115,49 +74,48 @@ Package := Object clone do (
 
     /*doc Package dllPath
     Get the path to the dynamic library this package represents.*/
-    dllPath := method(self dllBuildDir path .. "/" .. self dllFileName)
+    dllPath := method(self struct build dll path .. "/" .. self dllFileName)
 
     /*doc Package staticLibPath
     Get the path to the static library this package represents.*/
     staticLibPath := method(
-        self staticLibBuildDir path .. "/" .. self staticLibFileName)
+        self struct build lib path .. "/" .. self staticLibFileName)
 
     //doc Package buildio The `build.io` file.
-    buildio := lazySlot(self dir fileNamed("build.io"))
+    buildio := lazySlot(self struct root fileNamed("build.io"))
 
     /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
     packages := lazySlot(
-        self packsDir directories map(dir, Package with(dir path)))
+        self struct packs directories map(dir, Package with(dir path)))
 
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
     global := lazySlot(Package with(Eerie root))
 
     /*doc Package with(path) 
-    Creates new package from provided path (`Sequence`). Raises
-    `NotPackageError` if the directory is not an Eerie package. Use this to
-    initialize a `Package`.*/
+    Creates new package from provided path (`Sequence`). 
+
+    Raises `Package NotPackageError` if the directory is not an Eerie package.
+    Use this to initialize a `Package`.*/
     with := method(path,
-        klone := self clone setDir(Directory with(path))
-        _checkDirectoryPackage(klone dir)
+        klone := self clone
+        klone struct := Structure with(path)
+        klone _checksIsPackage
 
         manifest := File with(
-            klone dir path .. "/#{Package manifestName}" interpolate) 
+            klone struct root path .. "/#{Package manifestName}" interpolate) 
+        Package ManifestValidator with(manifest) validate
+
         klone setConfig(manifest contents parseJson)
         klone setVersion(Eerie SemVer fromSeq(klone config at("version")))
         # call to init the list
         klone packages
         klone)
 
-    _checkDirectoryPackage := method(dir,
-        ioDir := dir directoryNamed("io")
-        manifest := File with(
-            dir path .. "/#{Package manifestName}" interpolate)
-        if ((dir exists and manifest exists and ioDir exists) not,
-            Exception raise(NotPackageError with(dir path)))
-
-        ManifestValidator with(manifest) validate)
+    _checksIsPackage := method(
+        if (self struct isPackage not, 
+            Exception raise(NotPackageError with(self struct root path))))
 
     /*doc Package highestVersionFor(version) 
     Returns the highest available `SemVer` for `version` (`SemVer`). If
@@ -186,16 +144,6 @@ Package := Object clone do (
 
         result)
 
-    /*doc Package hasNativeCode 
-    Returns `true` if the package has native code and `false` otherwise.*/
-    hasNativeCode := method(
-        self sourceDir files isEmpty not or(
-            self sourceDir directories isEmpty not))
-
-    /*doc Package hasBinaries
-    Returns `true` if the `Package binDir` has files and `false` otherwise.*/
-    hasBinaries := method(self binDir exists and self binDir files isEmpty not)
-
     /*doc Package checkHasDep(name)
     Check whether the package has dependency (i.e. in eerie.json) with the
     specified name (`Sequence`).
@@ -208,9 +156,9 @@ Package := Object clone do (
     /*doc Package install(destination)
     Install the package and its dependencies into the `destination` `Directory`.
 
-    If the `destination` is `nil`, `self packsDir` is used.*/
+    If the `destination` is `nil`, `self struct packs` is used.*/
     install := method(destDir,
-        if (destDir isNil, destDir = self packsDir)
+        if (destDir isNil, destDir = self struct packs)
         lock := Eerie TransactionLock clone
         lock lock
         self deps foreach(dep, dep install(destDir))
@@ -218,13 +166,13 @@ Package := Object clone do (
 
     //doc Package remove Removes self.
     remove := method(
-        self dir remove
+        self struct root remove
         self packages := list())
 
     /*doc Package runHook(hookName) 
     Runs Io script with hookName in package's `hooks` directory if it exists.*/
     runHook := method(hook,
-        f := File with("#{self dir}/hooks/#{hook}.io" interpolate)
+        f := File with("#{self struct root}/hooks/#{hook}.io" interpolate)
         f exists ifTrue(
             Logger log(
                 "[[birghtBlue bold;Launching[[reset; #{hook} " ..
@@ -233,7 +181,6 @@ Package := Object clone do (
             e := try(ctx doFile(f path))
             f close
             e catch(Exception raise(FailedRunHookError with(hook, e message)))))
-
 
 )
 
@@ -253,6 +200,94 @@ Package do (
     NoDependencyError := Eerie Error clone setErrorMsg(
         "The package \"#{call evalArgAt(0)}\" has no dependency " .. 
         "\"#{call evalArgAt(1)}\" in #{Package manifestName}.")
+
+)
+
+//metadoc Structure category Package
+//metadoc Structure description Directory structure of `Package`.
+Package Structure := Object clone do (
+
+    //doc Structure root The root `Directory`.
+    root := nil
+
+    /*doc Structure bin
+    The `bin` directory. `Directory` with binaries of the package.*/
+    bin := method(self root directoryNamed("bin"))
+
+    /*doc Structure binDest
+    Get the `_bin` directory, where binaries of dependencies are installed.*/
+    binDest := method(self root createSubdirectory("_bin"))
+
+    /*doc Structure build
+    Get object with `_build` directory structure.
+
+    - `build root` - the `_build` root `Directory`
+    - `build dll` - the output `Directory` for dynamic library the package
+    represents
+    - `build headers` - the `Directory` where all the headers of the package is
+    installed
+    - `build lib` - the output `Directory` for static library the package
+    represents
+    - `build objs` - the output `Directory for the compiled objects*/
+    build := nil
+
+    //doc Package packs Get the `_packs` `Directory`.
+    packs := method(self root createSubdirectory("_packs"))
+
+    /*doc Structure source
+    The `source` directory. The `Directory` with native (C) code.*/
+    source := method(self root createSubdirectory("source"))
+
+    /*doc Package tmp
+    Get `_tmp` `Directory`.*/
+    tmp := method(self root createSubdirectory("_tmp"))
+
+    /*doc Structure with(rootPath) 
+    Init `Structure` with the path to the root directory (`Sequence`).*/
+    with := method(rootPath,
+        klone := self clone
+        klone root = Directory with(rootPath)
+        klone build := BuildDir with(klone root)
+        klone)
+
+    /*doc Structure isPackage
+    Returns boolean whether the structure is a `Package`.*/
+    isPackage := method(
+        ioDir := self root directoryNamed("io")
+        manifest := File with(
+            self root path .. "/#{Package manifestName}" interpolate)
+
+        self root exists and manifest exists and ioDir exists)
+
+    /*doc Structure hasNativeCode 
+    Returns `true` if the structure has native code and `false` otherwise.*/
+    hasNativeCode := method(
+        self source files isEmpty not or self source directories isEmpty not)
+
+    /*doc Structure hasBinaries
+    Returns `true` if `self bin` has files and `false` otherwise.*/
+    hasBinaries := method(self bin exists and self bin files isEmpty not)
+
+    BuildDir := Object clone do (
+        
+        parent := nil
+
+        with := method(parent,
+            klone := self clone
+            klone parent = parent
+            klone)
+
+        root := method(self parent createSubdirectory("_build"))
+
+        dll := method(self root createSubdirectory("dll"))
+
+        headers := method(self root createSubdirectory("headers"))
+
+        lib := method(self root createSubdirectory("lib"))
+
+        objs := method(self root createSubdirectory("objs"))
+
+    )
 
 )
 
@@ -332,7 +367,7 @@ Package Dependency := Object clone do (
         # install the dependency
         self _installPackage(package, installDir)
 
-        self parentPkg tmpDir remove)
+        self parentPkg struct tmp remove)
 
     # download the package and instantiate it
     _download := method(
@@ -347,7 +382,7 @@ Package Dependency := Object clone do (
         Package with(download destDir))
 
     _downloadDir := lazySlot(
-        self parentPkg tmpDir \
+        self parentPkg struct tmp \
             directoryNamed(self name) \
                 directoryNamed(self version))
 
@@ -360,7 +395,7 @@ Package Dependency := Object clone do (
         installer := Installer with(
             package, 
             installDir,
-            self parentPkg destBinDir)
+            self parentPkg struct binDest)
 
         installer install(self version))
 
@@ -381,7 +416,7 @@ Package PacksIo := Object clone do (
     package := nil
 
     //doc PacksIo file Get `packs.io` `File`.
-    file := method(self package dir fileNamed("packs.io"))
+    file := method(self package struct root fileNamed("packs.io"))
 
     _descs := Map clone
 

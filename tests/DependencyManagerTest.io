@@ -46,6 +46,6 @@ DependencyManagerTest := UnitTest clone do (
 
         deps _frameworks = reset
 
-        package buildDir remove)
+        package struct build root remove)
 
 )

@@ -71,8 +71,8 @@ CompilerCommand := Command clone do (
         ("#{self _cc} #{self _options} #{self _cFlags} " ..
             "#{self _definesFlags} #{self _includesFlags} " ..
             "-c #{self _ccOutFlag}" ..
-            "#{self package objsBuildDir path}/#{objName} " ..
-            "#{self package sourceDir path}/#{self src name}") interpolate)
+            "#{self package struct build objs path}/#{objName} " ..
+            "#{self package struct source path}/#{self src name}") interpolate)
 
     _options := lazySlot(
        if(Eerie platform == "windows",
@@ -132,10 +132,10 @@ StaticLinkerCommand := Command clone do (
         klone)
 
     asSeq := method(
-        path := self package dir path
+        path := self package struct root path
         result := ("#{self _ar} #{self _arFlags}" ..
             "#{self package staticLibPath} " ..
-            "#{self package objsBuildDir path}/*.o") interpolate
+            "#{self package struct build objs path}/*.o") interpolate
 
         if (self _ranlibSeq isEmpty, return result)
         
@@ -144,7 +144,7 @@ StaticLinkerCommand := Command clone do (
     _ranlibSeq := method(
         if (self _ranlib isNil, return "") 
 
-        path := self package dir path
+        path := self package struct root path
         "#{self _ranlib} #{self package staticLibPath}" interpolate)
 
 )
@@ -211,16 +211,16 @@ DynamicLinkerCommand := Command clone do (
             "#{self _dllCommand} #{installNameFlag} " ..
             "#{self _outFlag}" ..
             "#{self package dllPath} " .. 
-            "#{self package objsBuildDir path}/*.o #{links}") interpolate
+            "#{self package struct build objs path}/*.o #{links}") interpolate
 
         result .. " && " .. self _embedManifestCmd)
 
     # generates a `Sequence` with all needed -L and -l flags
     _linksSeq := method(
         links := self package packages \
-            select(hasNativeCode) \
+            select(struct hasNativeCode) \
                 map(pkg, 
-                    "#{self _dirPathFlag}#{pkg _dllBuildDir path}" interpolate)
+                    "#{self _dirPathFlag}#{pkg struct build dll path}" interpolate)
 
         links appendSeq(self package packages map(pkg,
             ("#{self libFlag}" ..

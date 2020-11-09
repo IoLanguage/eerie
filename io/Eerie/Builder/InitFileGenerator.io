@@ -6,10 +6,10 @@ InitFileGenerator := Object clone do (
     # the output file
     output := lazySlot(
         path := "source/Io#{self package name}Init.c" interpolate
-        self package dir fileNamed(path))
+        self package struct root fileNamed(path))
 
     # directory with Io code
-    ioCodeDir := method(self package dir directoryNamed("io"))
+    ioCodeDir := method(self package struct root directoryNamed("io"))
 
     # io files inside `io` directory
     # FIXME this should be `recursiveFileOfTypes(list("io"))`, but the generated
@@ -62,7 +62,7 @@ InitFileGenerator := Object clone do (
 
     # Get files like IoName.c
     _ioCFiles := method(
-        sources := self package sourceDir files
+        sources := self package struct source files
 
         files := sources select(name beginsWithSeq("Io")) \
             select(f, f name endsWithSeq(".c") or f name endsWithSeq(".cpp")) \
@@ -88,7 +88,7 @@ InitFileGenerator := Object clone do (
 
     # Get files like IoName_doing.c
     _extraFiles := method(
-        package sourceDir files \
+        package struct source files \
             select(name beginsWithSeq("Io")) \
                 select(name endsWithSeq(".c")) \
                     select(name containsSeq("Init") not) \

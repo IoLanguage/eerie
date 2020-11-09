@@ -121,7 +121,7 @@ Installer := Object clone do (
 
         self destination createIfAbsent
 
-        self package dir copyTo(self destination)
+        self package struct root copyTo(self destination)
 
         self _installBinaries
 
@@ -131,12 +131,12 @@ Installer := Object clone do (
         if (self package branch isNil, return)
         System sh("git checkout #{self package branch}",
             false,
-            self package dir path))
+            self package struct root path))
 
     _checkGitTag := method(version,
         System sh("git checkout tags/#{version originalSeq}", 
             false,
-            self package dir path))
+            self package struct root path))
 
     _build := method(
         builder := Builder with(self package)
@@ -146,16 +146,16 @@ Installer := Object clone do (
     # This method is called only after the dependency is copied to the
     # destination folder. It works in the dependency's destination folder.
     _installBinaries := method(
-        if (self package hasBinaries not, return)
+        if (self package struct hasBinaries not, return)
 
         self _checkBinDestSet
 
         # this is the binaries directory (from where the binaries will be
         # installed), but at the destination
         # Note, here we consider that the dependency is already installed to
-        # it's destination, so we can't use `dependency binDir` as the path has
+        # it's destination, so we can't use `dependency struct bin` as the path has
         # changed
-        binDir := self destination directoryNamed(self package binDir name)
+        binDir := self destination directoryNamed(self package struct bin name)
         binDir files foreach(f, 
             if (Eerie isWindows, 
                 self _createCmdForBin(f),

@@ -60,7 +60,7 @@ Builder := Object clone do (
 
     See `Builder`'s documentation for what you can use in `build.io`.*/
     build := method(
-        if (self package hasNativeCode not, 
+        if (self package struct hasNativeCode not, 
             Logger log(
                 "The package #{self package name} has no code to compile",
                 "debug")
@@ -99,16 +99,16 @@ Builder := Object clone do (
 
     # copy (install) headers into "_build/headers/"
     _copyHeaders := method(
-        headers := Directory with(self package sourceDir path) \
+        headers := Directory with(self package struct source path) \
         filesWithExtension(".h")
 
         if(headers size > 0,
             headers foreach(file,
                 file copyToPath(
-                    self package headersBuildDir path .. "/" .. file name))))
+                    self package struct build headers path .. "/" .. file name))))
 
     _cFiles := method(
-        sourceFolder := self package sourceDir
+        sourceFolder := self package struct source
         files := sourceFolder filesWithExtension("cpp") appendSeq(
             sourceFolder filesWithExtension("c"))
         if(Eerie platform != "windows", 
@@ -120,7 +120,7 @@ Builder := Object clone do (
             replaceSeq(".c", ".o") \
                 replaceSeq(".m", ".o")
 
-        obj := self package objsBuildDir fileNamed(objName)
+        obj := self package struct build objs fileNamed(objName)
 
         if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
             Logger log("📄 [[brightBlue bold;Compiling[[reset; #{src name}" ,
@@ -146,7 +146,7 @@ Builder := Object clone do (
         self dynLibBuildStarted
 
         # create DLL output dir if it doesn't exist
-        self package dllBuildDir 
+        self package struct build dll 
 
         libname := self package dllName
 

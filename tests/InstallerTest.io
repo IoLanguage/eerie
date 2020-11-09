@@ -17,7 +17,7 @@ InstallerTest := UnitTest clone do (
     testCheckSame := method(
         updatee := Package with("tests/_tmp/CFakePackUpdate")
         target := Package with("tests/_packs/AFakePack")
-        installer := Installer with(updatee, target dir path)
+        installer := Installer with(updatee, target struct root path)
         e := try (installer _checkSame(target))
         assertEquals(e error type, Installer DifferentPackageError type)
 
@@ -28,22 +28,22 @@ InstallerTest := UnitTest clone do (
         installer := Installer clone
         installer package = Package with("tests/_packs/BFakePack")
 
-        assertTrue(installer package hasBinaries)
+        assertTrue(installer package struct hasBinaries)
 
         e := try (installer _installBinaries)
         assertEquals(e error type, Installer BinDestNotSetError type))
 
     testInstall := method(
         parentPkg := Package with("tests/_packs/AFakePack")
-        parentPkg packsDir remove
-        parentPkg destBinDir remove
+        parentPkg struct packs remove
+        parentPkg struct binDest remove
 
         # this package has binaries, so we check binaries installation too
         package := Package with("tests/_packs/BFakePack")
         installer := Installer with(
             package,
             parentPkg packRootFor(package name) path,
-            parentPkg destBinDir path)
+            parentPkg struct binDest path)
 
         assertFalse(parentPkg packRootFor(package name) exists)
 
@@ -55,22 +55,22 @@ InstallerTest := UnitTest clone do (
         Package with(parentPkg packRootFor(package name) path)
 
         # check binaries installation
-        assertTrue(parentPkg destBinDir exists)
-        assertTrue(parentPkg destBinDir files size > 0)
+        assertTrue(parentPkg struct binDest exists)
+        assertTrue(parentPkg struct binDest files size > 0)
 
         if (Eerie isWindows not,
-            parentPkg destBinDir files foreach(file,
+            parentPkg struct binDest files foreach(file,
                 # it looks like links don't exist as a file in Io: neither
                 # `File exists` nor `File isLink` don't work, so:
                 assertTrue(
-                    parentPkg destBinDir files map(name) contains(file name))))
+                    parentPkg struct binDest files map(name) contains(file name))))
 
         # installing it again should raise an exception
         e := try (installer install)
         assertEquals(e error type, Installer DirectoryExistsError type)
 
-        parentPkg packsDir remove
-        parentPkg destBinDir remove)
+        parentPkg struct packs remove
+        parentPkg struct binDest remove)
 
     testUpdate := method(
         tmpDest := Directory with("tests/_tmp/Test")
@@ -84,7 +84,7 @@ InstallerTest := UnitTest clone do (
 
         updatee := Package with("tests/_tmp/CFakePackUpdate")
         installer setPackage(updatee)
-        installer setDestination(installed dir)
+        installer setDestination(installed struct root)
 
         newVersion := SemVer fromSeq("0.1.4")
         installer update(newVersion)

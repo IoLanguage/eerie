@@ -60,7 +60,7 @@ DependencyManager := Object clone do (
     _dirForPath := method(path,
         if (self _isPathAbsolute(path),
             Directory with(path),
-            self package dir directoryNamed(path)))
+            self package struct root directoryNamed(path)))
 
     # whether the path is absolute
     _isPathAbsolute := method(path,
@@ -96,7 +96,7 @@ DependencyManager := Object clone do (
         if (self _hasPkgConfig not, return "")
 
         date := Date now asNumber asHex
-        resFile := self package buildDir path .. "/_pkg_config" .. date
+        resFile := self package struct build root path .. "/_pkg_config" .. date
         # System runCommand (System sh) doesn't allow pipes (?), 
         # so here we use System system instead
         statusCode := System system(

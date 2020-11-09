@@ -110,7 +110,7 @@ Publisher := Object clone do (
     _hasRequiredFile := method(path,
         if (path isNil or path isEmpty, return false)
 
-        file := File with(self package dir path .. "/" .. path)
+        file := File with(self package struct root path .. "/" .. path)
         
         if (file exists not or file ?contents isEmpty, 
             return false)
@@ -124,7 +124,7 @@ Publisher := Object clone do (
 
     _checkHasGitChanges := method(
         cmdOut := System sh(
-            "git status --porcelain", true, self package dir path)
+            "git status --porcelain", true, self package struct root path)
         # filter out *-stdout and *-stderr files created by System runCommand
         res := cmdOut stdout split("\n") select(seq,
             seq endsWithSeq("-stdout") not and seq endsWithSeq("-stderr") not)
@@ -138,10 +138,10 @@ Publisher := Object clone do (
             "git tag -a #{self gitTag} -m " ..
             "'New release generated automatically by Eerie Publisher'",
             false, 
-            self package dir path))
+            self package struct root path))
 
     _checkGitTagExists := method(
-        cmdOut := System sh("git tag", true, self package dir path)
+        cmdOut := System sh("git tag", true, self package struct root path)
 
         if (cmdOut stdout split("\n") contains(self gitTag),
             Exception raise(
@@ -162,7 +162,7 @@ Publisher := Object clone do (
     _gitPush := method(
         System sh("git push origin #{self gitTag}", 
             false, 
-            self package dir path))
+            self package struct root path))
 
 )
 

@@ -33,7 +33,7 @@ ArchiveDownloader := Eerie Downloader clone do (
             # TODO we should create a Url downloader, for which we download
             # first and then we locally determine what kind of downloader we
             # should use next
-            tmpFile = Package global tmpDir fileNamed(self url split("/") last)
+            tmpFile = Package global struct tmp fileNamed(self url split("/") last)
             URL with(self url) fetchToFile(tmpFile)
 
             if (tmpFile exists not,

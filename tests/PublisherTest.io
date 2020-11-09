@@ -40,7 +40,7 @@ PublisherTest := UnitTest clone do (
 
         # package with readme field
         package = Package with("tests/_packs/DFakePack")
-        readme := package dir fileNamed("README.md") create remove
+        readme := package struct root fileNamed("README.md") create remove
         publisher setPackage(package)
 
         # it doesn't exist
@@ -65,7 +65,7 @@ PublisherTest := UnitTest clone do (
 
         # package with readme field
         package = Package with("tests/_packs/DFakePack")
-        license := package dir fileNamed("LICENSE") create remove
+        license := package struct root fileNamed("LICENSE") create remove
         publisher setPackage(package)
 
         # it doesn't exist
