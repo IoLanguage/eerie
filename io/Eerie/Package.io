@@ -55,10 +55,13 @@ Package := Object clone do (
     //doc Package packsDir Get the `_packs` `Directory`.
     packsDir := method(self dir createSubdirectory("_packs"))
 
-    /*doc Package packDirFor 
+    //doc Package packsIo Get `Package PacksIo`.
+    packsIo := method(PacksIo with(self))
+
+    /*doc Package packRootFor 
     Get a directory for package name (`Sequence`) inside `packsDir` whether
     it's installed or not.*/ 
-    packDirFor := method(name, self packsDir directoryNamed(name))
+    packRootFor := method(name, self packsDir directoryNamed(name))
 
     /*doc Package tmpDir 
     Get `_tmp` `Directory`, the temporary directory used by `Downloader` to
@@ -211,7 +214,7 @@ Package := Object clone do (
         lock := Eerie TransactionLock clone
         lock lock
         self deps foreach(dep, dep install(destDir))
-        lock unlock) 
+        lock unlock)
 
     //doc Package remove Removes self.
     remove := method(
@@ -367,6 +370,87 @@ Package Dependency do (
 
     NoUrlError := Eerie Error clone setErrorMsg(
         "URL for #{call evalArgAt(0)} is not found.")
+
+)
+
+//metadoc PacksIo category Package
+//metadoc PacksIo description Represents `packs.io` file.
+Package PacksIo := Object clone do (
+
+    //doc PacksIo package Get the `Package`.
+    package := nil
+
+    //doc PacksIo file Get `packs.io` `File`.
+    file := method(self package dir fileNamed("packs.io"))
+
+    _descs := Map clone
+
+    /*doc PacksIo with(package) 
+    Init `PacksIo` with `Package`.*/
+    with := method(package,
+        klone := self clone
+        klone package = package
+        klone)
+
+    //doc PacksIo missing Get list of missing dependencies.
+    missing := method(
+        # TODO
+    )
+
+    /*doc PacksIo generate
+    Generate the file.*/
+    generate := method(
+        self package deps foreach(dep,
+            # TODO we should generate subdependencies as well
+            depRoot := self package packRootFor(dep name)
+            if (depRoot exists not,
+                Exception raise(
+                    DependencyNotInstalledError with(dep name, self package)))
+
+            version := self _highestVersionFor(dep)
+
+            self addDesc(
+                DepDesc clone setName(dep name) setVersion(dep version asSeq))))
+
+    _highestVersionFor := method(dep,
+        dep
+        # TODO
+    )
+
+    /*doc PacksIo replaceDesc(desc) 
+    Replace the same named dependency description with the passed one.*/
+    replaceDesc := method(desc,
+        self removeDesc(desc name)
+        self addDesc(desc))
+
+    //doc PacksIo addDesc(desc) Add dependency description to the file.
+    addDesc := method(desc,
+        desc
+        # TODO
+        # if desc is already in file don't do anything, otherwise add
+    )
+
+    removeDesc := method(name,
+        name
+        # TODO
+    )
+
+    DepDesc := Object clone do (
+        
+        name ::= nil
+
+        version ::= nil
+
+    )
+
+)
+
+# PacksIo error types
+Package PacksIo do (
+
+    DependencyNotInstalledError := Eerie Error clone setErrorMsg(
+        "Dependency \"#{call evalArgAt(0)}\" of package " ..
+        "\"#{call evalArgAt(1)}\" is not installed.")
 
 )
 

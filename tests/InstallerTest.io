@@ -42,17 +42,17 @@ InstallerTest := UnitTest clone do (
         package := Package with("tests/_packs/BFakePack")
         installer := Installer with(
             package,
-            parentPkg packDirFor(package name) path,
+            parentPkg packRootFor(package name) path,
             parentPkg destBinDir path)
 
-        assertFalse(parentPkg packDirFor(package name) exists)
+        assertFalse(parentPkg packRootFor(package name) exists)
 
         installer install
 
-        assertTrue(parentPkg packDirFor(package name) exists)
+        assertTrue(parentPkg packRootFor(package name) exists)
 
         # validate package
-        Package with(parentPkg packDirFor(package name) path)
+        Package with(parentPkg packRootFor(package name) path)
 
         # check binaries installation
         assertTrue(parentPkg destBinDir exists)
