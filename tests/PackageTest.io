@@ -204,17 +204,25 @@ ManifestTest := UnitTest clone do (
             }"""))
 
     _assertManifestError := method(contents,
-        manifest := File with("tests/deleteme") setContents(contents)
-        e := try (Package ManifestValidator with(manifest) validate)
+        file := File with("tests/deleteme") setContents(contents)
+        e := try (Package Manifest with(file) validate)
         assertEquals(
             e error type,
-            Package ManifestValidator InsufficientManifestError type)
-        manifest remove)
+            Package Manifest InsufficientManifestError type)
+        file remove)
 
     _assertManifestLegal := method(contents,
-        manifest := File with("tests/deleteme") setContents(contents)
-        Package ManifestValidator with(manifest) validate
-        manifest remove)
+        file := File with("tests/deleteme") setContents(contents)
+        Package Manifest with(file) validate
+        file remove)
 
+    testValueForKey := method(
+        manifest := Package Manifest clone
+        expected := 42
+        manifest _map := Map clone atPut(
+            "foo", Map clone atPut(
+                "bar", Map clone atPut(
+                    "baz", expected)))
+        assertEquals(expected, manifest valueForKey("foo.bar.baz")))
 
 )

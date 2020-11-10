@@ -302,36 +302,17 @@ Package Manifest := Object clone do (
     //doc Manifest file Get `File` for this manifest.
     file := nil
 
+    # manifest contet parsed as `Map`
     _map := nil
 
     //doc Manifest with(File) Init `Manifest` from file.
     with := method(file,
         klone := self clone
         klone file = file
+        klone _map = file contents parseJson
         klone)
 
-    validate := method(
-        # TODO move ManifestValidator into this proto
-        Package ManifestValidator with(self file) validate)
-
-)
-
-//metadoc ManifestValidator category Package
-//metadoc ManifestValidator description Validates `eerie.json`.
-Package ManifestValidator := Object clone do (
-
-    _manifest := nil
-
-    _config := nil
-    
-    //doc ManifestValidator with(File) Init validator with given manifest.
-    with := method(manifest,
-        klone := self clone
-        klone _manifest := manifest
-        klone _config := manifest contents parseJson
-        klone)
-
-    //doc ManifestValidator validate Validates the manifest.
+    //doc Manifest validate Validates the manifest.
     validate := method(
         self _checkRequired("name")
         self _checkRequired("version")
@@ -339,18 +320,18 @@ Package ManifestValidator := Object clone do (
         self _checkRequired("url")
 
         # it's allowed to be empty for `protos`
-        self _checkField(self _config at("protos") isNil,
+        self _checkField(self _map at("protos") isNil,
             "The \"protos\" field is required.")
 
         self _checkType("protos", List)
 
         # `packs` is optional
-        if (self _config at("packs") isNil or \
-            self _config at("packs") isEmpty, return)
+        if (self _map at("packs") isNil or \
+            self _map at("packs") isEmpty, return)
 
         self _checkType("packs", List)
 
-        self _config at("packs") foreach(dep,
+        self _map at("packs") foreach(dep,
             self _checkField(
                 dep at("name") isNil or dep at("name") isEmpty,
                 "The \"packs[n].name\" is required.")
@@ -365,43 +346,45 @@ Package ManifestValidator := Object clone do (
         # the optional `msg` argument is the message, which will be shown on
         # invalid test
         _checkRequired := method(field, msg,
-            value := self _valueForKey(field)
+            value := self valueForKey(field)
             msg := msg ifNilEval(
                 "The \"#{field}\" field is required and can't be empty." \
                     interpolate)
 
             if (value isNil or value isEmpty,
                 Exception raise(
-                    InsufficientManifestError with(self _manifest path, msg))))
+                    InsufficientManifestError with(self file path, msg))))
 
-        # get config value for key of type `foo.bar.baz`
-        _valueForKey := method(key,
+        /*doc Manifest valueForKey(key) 
+        Get value for key (`Sequence`) in format where each field separated by
+        dot: `foo.bar.baz`.*/
+        valueForKey := method(key,
             split := key split(".")
-            value := self _config
+            value := self _map
             split foreach(key, value = value at(key))
             value)
 
         _checkEither := method(first, second,
-            valueA := self _valueForKey(first)
-            valueB := self _valueForKey(second)
+            valueA := self valueForKey(first)
+            valueB := self valueForKey(second)
             msg := ("Either \"#{first}\" or \"#{second}\" field is required " .. 
                 "and can't be empty.") interpolate
 
             if ((valueA isNil or valueA isEmpty) and \
                 (valueB isNil or valueB isEmpty),
                 Exception raise(
-                    InsufficientManifestError with(self _manifest path, msg))))
+                    InsufficientManifestError with(self file path, msg))))
 
         # check whether value specified by `key` is of type `input`
         _checkType := method(key, input,
-            value := self _valueForKey(key)
+            value := self valueForKey(key)
             msg := (
                 "The field \"#{key}\" should be #{self _jsonTypeFor(input)}." \
                     interpolate)
 
             if (value type != input type,
                 Exception raise(
-                    InsufficientManifestError with(self _manifest path, msg))))
+                    InsufficientManifestError with(self file path, msg))))
 
         # get json type name for argument type
         _jsonTypeFor := method(input,
@@ -427,14 +410,14 @@ Package ManifestValidator := Object clone do (
         _checkField := method(test, msg,
             test ifTrue(
                 Exception raise(
-                    InsufficientManifestError with(self _manifest path, msg))))
+                    InsufficientManifestError with(self file path, msg))))
 
 )
 
-# ManifestValidator error types
-Package ManifestValidator do (
+# Manifest error types
+Package Manifest do (
 
-    //doc ManifestValidator InsufficientManifestError
+    //doc Manifest InsufficientManifestError
     InsufficientManifestError := Eerie Error clone setErrorMsg(
         "The manifest at #{call evalArgAt(0)} doesn't satisfy " ..
         "all requirements." .. 
@@ -442,6 +425,7 @@ Package ManifestValidator do (
             "\"\", \"\\n\" .. call evalArgAt(1))}")
 
 )
+
 //metadoc Dependency category Package
 /*metadoc Dependency description 
 Package dependency parsed from `"packs"` in `eerie.json`.*/
