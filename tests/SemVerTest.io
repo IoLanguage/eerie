@@ -5,28 +5,28 @@ SemVerTest := UnitTest clone do(
         assertEquals(e error type, SemVer IsNilError type)
 
         e := try (SemVer fromSeq(""))
-        assertEquals(e error type, SemVer ErrorNotRecognised type)
+        assertEquals(e error type, SemVer NotRecognisedError type)
 
         e = try (SemVer fromSeq("-"))
-        assertEquals(e error type, SemVer ErrorNotRecognised type)
+        assertEquals(e error type, SemVer NotRecognisedError type)
 
         e = try (SemVer fromSeq("-beta"))
-        assertEquals(e error type, SemVer ErrorNotRecognised type)
+        assertEquals(e error type, SemVer NotRecognisedError type)
 
         e = try (SemVer fromSeq("-beta.1"))
-        assertEquals(e error type, SemVer ErrorNotRecognised type)
+        assertEquals(e error type, SemVer NotRecognisedError type)
 
         e = try (SemVer fromSeq("beta.1"))
-        assertEquals(e error type, SemVer ErrorNotRecognised type)
+        assertEquals(e error type, SemVer NotRecognisedError type)
 
         e = try (SemVer fromSeq("1-beta"))
-        assertEquals(e error type, SemVer ErrorIlligibleVersioning type)
+        assertEquals(e error type, SemVer IlligibleVersioningError type)
 
         e = try (SemVer fromSeq("1.0-beta.1"))
-        assertEquals(e error type, SemVer ErrorIlligibleVersioning type)
+        assertEquals(e error type, SemVer IlligibleVersioningError type)
 
         e = try (SemVer fromSeq("1.0.0-gamma.1"))
-        assertEquals(e error type, SemVer ErrorParsePre type))
+        assertEquals(e error type, SemVer ParsePreError type))
 
     testParse := method(
         ver := SemVer fromSeq("1")
@@ -81,7 +81,7 @@ SemVerTest := UnitTest clone do(
 
     testComparisons := method(
         e := try (SemVer fromSeq("1") == 1)
-        assertEquals(e error type, SemVer ErrorWrongType type)
+        assertEquals(e error type, SemVer WrongTypeError type)
 
         assertTrue(SemVer fromSeq("1") == SemVer fromSeq("1"))
         assertTrue(SemVer fromSeq("1") > SemVer fromSeq("1.1"))
@@ -161,5 +161,39 @@ SemVerTest := UnitTest clone do(
         assertFalse(SemVer fromSeq("1.0.0") isShortened)
         assertTrue(SemVer fromSeq("1.0.0-beta") isShortened)
         assertFalse(SemVer fromSeq("1.0.0-beta.1") isShortened))
+
+    testHighestVersion := method(
+        assertTrue(SemVer highestIn(list()) isNil)
+        assertTrue(SemVer fromSeq("0.1.0") highestIn(list()) isNil)
+
+        versions := list(
+            SemVer fromSeq("0.1.0"),
+            SemVer fromSeq("0.1.1"),
+            SemVer fromSeq("0.1.2"),
+            SemVer fromSeq("0.1.3-alpha.1"),
+            SemVer fromSeq("0.1.3-beta.1"),
+            SemVer fromSeq("0.1.3-rc.1"),
+            SemVer fromSeq("0.1.3-rc.2"),
+            SemVer fromSeq("0.2.0"),
+            SemVer fromSeq("0.2.1"),
+            SemVer fromSeq("1.0.0-rc.1"))
+
+        assertEquals(SemVer highestIn(versions), SemVer fromSeq("1.0.0-rc.1"))
+
+        assertEquals(
+            SemVer fromSeq("0") highestIn(versions),
+            SemVer fromSeq("0.2.1"))
+        assertEquals(
+            SemVer fromSeq("0.1") highestIn(versions),
+            SemVer fromSeq("0.1.2"))
+        assertEquals(
+            SemVer fromSeq("0.1.3-rc") highestIn(versions),
+            SemVer fromSeq("0.1.3-rc.2"))
+        assertEquals(
+            SemVer fromSeq("0.2.0") highestIn(versions),
+            SemVer fromSeq("0.2.0"))
+        assertEquals(
+            SemVer fromSeq("0.2") highestIn(versions),
+            SemVer fromSeq("0.2.1")))
 
 )

@@ -74,7 +74,7 @@ Publisher := Object clone do (
     _checkVersionNewer := method(
         verSeq := Database valueFor(self package manifest name, "version")
         previous := if (verSeq isNil,
-            self package highestVersionFor,
+            SemVer highestIn(self package versions),
             SemVer fromSeq(verSeq))
 
         if (previous isNil, return)

@@ -46,7 +46,9 @@ Installer := Object clone do (
         destPackage := Package with(self destination path)
         self _checkSame(destPackage)
 
-        ver := self package highestVersionFor(version)
+        ver := if (version isNil,
+            SemVer highestIn(self package versions),
+            version highestIn(self package versions))
 
         if (ver == destPackage manifest version,
             Logger log(
@@ -114,7 +116,10 @@ Installer := Object clone do (
 
         self _checkGitBranch
 
-        ver := self package highestVersionFor(version)
+        ver := if (version isNil,
+            SemVer highestIn(self package versions),
+            version highestIn(self package versions))
+
         if (ver isNil not, self _checkGitTag(ver))
 
         self _build

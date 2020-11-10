@@ -87,33 +87,6 @@ Package := Object clone do (
         if (self struct isPackage not, 
             Exception raise(NotPackageError with(self struct root path))))
 
-    /*doc Package highestVersionFor(version) 
-    Returns the highest available `SemVer` for `version` (`SemVer`). If
-    `version` is `nil` returns the highest version in the `Package versions`.
-
-    Returns `nil` if `Package versions` is empty.*/
-    highestVersionFor := method(version,
-        versions := self versions
-
-        if (self versions isEmpty, return nil)
-
-        if (version isNil, return self _highestVersion(versions))
-
-        result := version
-        versions foreach(ver, 
-            if (ver <= version and ver isPre == version isPre, 
-                result = ver))
-
-        result)
-
-    _highestVersion := method(versions,
-        result := versions at(0)
-
-        versions foreach(ver,
-            if (ver > result, result = ver))
-
-        result)
-
     create := method(name, path,
         name
         # TODO inializes a new package
@@ -601,13 +574,14 @@ Package PacksIo := Object clone do (
     //doc PacksIo file Get `packs.io` `File`.
     file := method(self package struct root fileNamed("packs.io"))
 
-    _descs := Map clone
+    _descs := nil
 
     /*doc PacksIo with(package) 
     Init `PacksIo` with `Package`.*/
     with := method(package,
         klone := self clone
         klone package = package
+        klone _descs := doFile(klone file path) ifNilEval(Map clone)
         klone)
 
     //doc PacksIo missing Get list of missing dependencies.
@@ -619,55 +593,87 @@ Package PacksIo := Object clone do (
     Generate the file.*/
     generate := method(
         self package manifest packs foreach(dep,
-            # TODO we should generate subdependencies as well
             depRoot := self package struct packRootFor(dep name)
-            if (depRoot exists not,
-                Exception raise(
-                    DependencyNotInstalledError with(dep name, self package)))
+            self addDesc(Package DepDesc fromDep(dep, depRoot)))
 
-            version := self _highestVersionFor(dep)
+        self store)
 
-            self addDesc(
-                DepDesc clone setName(dep name) setVersion(dep version asSeq))))
+    //doc PacksIo store Write the file.
+    store := method(self file setContents(self _descs serialized))
 
-    _highestVersionFor := method(dep,
-        dep
-        # TODO
-    )
+    /*doc PacksIo addDesc(desc) 
+    Add dependency description. If it's already in the map, replaces it with the
+    passed one.*/
+    addDesc := method(desc, self _descs atPut(desc name, desc))
 
-    /*doc PacksIo replaceDesc(desc) 
-    Replace the same named dependency description with the passed one.*/
-    replaceDesc := method(desc,
-        self removeDesc(desc name)
-        self addDesc(desc))
+    /*doc PacksIo removeDesc(name) 
+    Remove dependency description by name (`Sequence`).*/
+    removeDesc := method(name, self _descs removeAt(name))
 
-    //doc PacksIo addDesc(desc) Add dependency description to the file.
-    addDesc := method(desc,
-        desc
-        # TODO
-        # if desc is already in file don't do anything, otherwise add
-    )
+)
 
-    removeDesc := method(name,
-        name
-        # TODO
-    )
+//metadoc DepDesc category Package
+/*metadoc DepDesc description
+Dependency description. Serialization of this type is stored in `packs.io`.*/
+Package DepDesc := Object clone do (
 
-    DepDesc := Object clone do (
-        
-        name ::= nil
+    //doc DepDesc name Get name.
+    //doc DepDesc setName(Sequence) Set name.
+    name ::= nil
 
-        version ::= nil
+    //doc DepDesc version Get version (`Sequence`).
+    //doc DepDesc setVersion Set version (`Sequence`).
+    version ::= nil
 
-    )
+    //doc DepDesc children Get children of this `DepDesc` (`Map`).
+    //doc DepDesc setChildren(Map) Set children.
+    children ::= Map clone
+
+    /*doc DepDesc fromDep(dep, package) 
+    Recursively initializes `DepDesc` from `Package Dependency` and dependency
+    root `Directory`.*/
+    fromDep := method(dep, depRoot,
+        if (depRoot exists not,
+            Exception raise(DependencyNotInstalledError with(dep name)))
+
+        version := self _installedVersionFor(dep, depRoot)
+
+        result := DepDesc clone setName(dep name) setVersion(version asSeq)
+
+        deps := Package with(self dir(depRoot) path) manifest packs
+
+        # FIXME possbile recursive dependencies
+        # for ex., Eerie <-> Docio
+        deps foreach(dep, result addChild(DepDesc fromDep(dep, depRoot)))
+
+        result)
+
+    _installedVersionFor := method(dep, depRoot,
+        versions := self _versionsInDir(depRoot)
+        if (dep version isNil,
+            return SemVer highestIn(versions),
+            return dep version highestIn(versions)))
+
+    # get list of `SemVer` in a package dir
+    _versionsInDir := method(dir,
+        dir directories map(subdir, SemVer fromSeq(subdir name)))
+
+    //doc DepDesc dir(root) Get the destination `Directory` relative to `root`.
+    dir := method(root,
+        root directoryNamed(self name) directoryNamed(self version))
+
+    //doc DepDesc addChild(DepDesc) Adds a child.
+    addChild := method(desc, self children atPut(desc name, desc))
+
+    //doc DepDesc removeChild(Sequence) Removes a child by its name.
+    removeChild := method(name, self children removeAt(name))
 
 )
 
 # PacksIo error types
-Package PacksIo do (
+Package DepDesc do (
 
     DependencyNotInstalledError := Eerie Error clone setErrorMsg(
-        "Dependency \"#{call evalArgAt(0)}\" of package " ..
-        "\"#{call evalArgAt(1)}\" is not installed.")
+        "Dependency \"#{call evalArgAt(0)}\" is not installed.")
 
 )

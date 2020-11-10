@@ -43,7 +43,7 @@ SemVer := Object clone do(
         res := self clone
         res originalSeq = verSeq
         spl := self _stripWord(verSeq) split("-")
-        if(spl isEmpty or spl size > 2, Exception raise(ErrorNotRecognised)) 
+        if(spl isEmpty or spl size > 2, Exception raise(NotRecognisedError)) 
 
         res _parseNormal(spl at(0))
 
@@ -55,14 +55,14 @@ SemVer := Object clone do(
         index := seq asLowercase findSeqs(
             list("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "alpha",
                 "beta", "rc"))
-        if (index isNil, Exception raise(ErrorNotRecognised))
+        if (index isNil, Exception raise(NotRecognisedError))
         seq splitAt(index index) at(1))
 
     # Parse A.B.C
     _parseNormal := method(verSeq,
         spl := verSeq split(".")
         if(spl isEmpty or spl at(0) ?asNumber ?isNan or spl size > 3,
-            Exception raise(ErrorNotRecognised)) 
+            Exception raise(NotRecognisedError)) 
 
         self major = spl at(0) asNumber
         self minor = spl at(1) ?asNumber
@@ -70,19 +70,19 @@ SemVer := Object clone do(
 
     # Parse D.C
     _parsePre := method(verSeq,
-        if(self patch isNil, Exception raise(ErrorIlligibleVersioning))
+        if(self patch isNil, Exception raise(IlligibleVersioningError))
 
         spl := verSeq split(".")
-        if(spl isEmpty, Exception raise(ErrorNotRecognised)) 
+        if(spl isEmpty, Exception raise(NotRecognisedError)) 
 
         st := spl at(0) asUppercase
         legal := list("ALPHA", "BETA", "RC")
-        if(legal contains(st) not, Exception raise(ErrorParsePre))
+        if(legal contains(st) not, Exception raise(ParsePreError))
 
         self pre = st
 
         preNum := spl at(1) ?asNumber
-        if(preNum ?isNan, Exception raise(ErrorIlligibleVersioning))
+        if(preNum ?isNan, Exception raise(IlligibleVersioningError))
         self preNumber = spl at(1) ?asNumber)
 
     /*doc SemVer nextVersion 
@@ -111,6 +111,28 @@ SemVer := Object clone do(
             return "BETA"
         ) elseif (word == "BETA") then (
             return "RC"))
+
+    /*doc SemVer highestIn(List)
+    Get the highest version (covered by this version) in the provided `List`.*/
+    highestIn := method(versions,
+        if (versions isEmpty, return nil)
+
+        if (self major isNil, return self _highestVersion(versions))
+
+        result := self
+        versions foreach(ver, 
+            if (ver <= self and ver isPre == self isPre, 
+                result = ver))
+
+        result)
+
+    _highestVersion := method(versions,
+        result := versions at(0)
+
+        versions foreach(ver,
+            if (ver > result, result = ver))
+
+        result)
 
     //doc SemVer isShortened Returns a boolean whether the version is shortened.
     isShortened := method(
@@ -142,7 +164,7 @@ SemVer := Object clone do(
     < := method(right, self compare(right) == -1)
 
     compare := method(right,
-        if (right type != self type, Exception raise(ErrorWrongType))
+        if (right type != self type, Exception raise(WrongTypeError))
 
         if (self major == right major and(self minor == right minor) and(
             self patch == right patch) and(self pre == right pre) and(
@@ -174,7 +196,7 @@ SemVer := Object clone do(
         ) elseif (self preNumber > right preNumber) then (
             return 1)
 
-        Exception raise(ErrorUnreachable))
+        Exception raise(UnreachableError))
 
     # compares only pre part of SemVer
     # returns -1 if this pre is less then the argument's one
@@ -192,7 +214,7 @@ SemVer := Object clone do(
         ) else (
             return -1)
 
-        Exception raise(ErrorUnreachable))
+        Exception raise(UnreachableError))
 
 )
 
@@ -200,18 +222,18 @@ SemVer do (
 
     IsNilError := Error with("Version can not be initialized from 'nil'.")
 
-    ErrorNotRecognised := Error with(
+    NotRecognisedError := Error with(
         "The sequence is not recognised as semantic version.")
 
-    ErrorParsePre := Error with("The pre-release status is either 'alpha', " ..
+    ParsePreError := Error with("The pre-release status is either 'alpha', " ..
         "'beta' or 'rc' and optinaly contains version number after '.' symbol.")
 
-    ErrorIlligibleVersioning := Error with("The version is illigible. " ..
+    IlligibleVersioningError := Error with("The version is illigible. " ..
         "Please, read the docs for rules.")
 
-    ErrorUnreachable := Error with("The code is supposed to be unreachable." ..
+    UnreachableError := Error with("The code is supposed to be unreachable." ..
         "It's a bug if you see this message.")
 
-    ErrorWrongType := Error with("Wrong type used in operation.")
+    WrongTypeError := Error with("Wrong type used in operation.")
 
 )

@@ -38,42 +38,6 @@ PackageTest := UnitTest clone do (
         package := Package with("tests/_tmp/CFakePackUpdate")
         assertEquals(23, package versions size))
 
-    testHighestVersion := method(
-        package := Package with("tests/_packs/AFakePack")
-
-        package versions := list()
-        assertTrue(package highestVersionFor isNil)
-        assertTrue(package highestVersionFor(SemVer fromSeq("0.1.0")) isNil)
-
-        package versions := list(
-            SemVer fromSeq("0.1.0"),
-            SemVer fromSeq("0.1.1"),
-            SemVer fromSeq("0.1.2"),
-            SemVer fromSeq("0.1.3-alpha.1"),
-            SemVer fromSeq("0.1.3-beta.1"),
-            SemVer fromSeq("0.1.3-rc.1"),
-            SemVer fromSeq("0.1.3-rc.2"),
-            SemVer fromSeq("0.2.0"),
-            SemVer fromSeq("0.2.1"),
-            SemVer fromSeq("1.0.0-rc.1"))
-
-        assertEquals(package highestVersionFor, SemVer fromSeq("1.0.0-rc.1"))
-        assertEquals(
-            package highestVersionFor(SemVer fromSeq("0")),
-            SemVer fromSeq("0.2.1"))
-        assertEquals(
-            package highestVersionFor(SemVer fromSeq("0.1")),
-            SemVer fromSeq("0.1.2"))
-        assertEquals(
-            package highestVersionFor(SemVer fromSeq("0.1.3-rc")),
-            SemVer fromSeq("0.1.3-rc.2"))
-        assertEquals(
-            package highestVersionFor(SemVer fromSeq("0.2.0")),
-            SemVer fromSeq("0.2.0"))
-        assertEquals(
-            package highestVersionFor(SemVer fromSeq("0.2")),
-            SemVer fromSeq("0.2.1")))
-
 )
 
 StructureTest := UnitTest clone do (
