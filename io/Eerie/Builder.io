@@ -62,12 +62,12 @@ Builder := Object clone do (
     build := method(
         if (self package struct hasNativeCode not, 
             Logger log(
-                "The package #{self package name} has no code to compile",
+                "The package #{self package manifest name} has no code to compile",
                 "debug")
             return)
 
         Logger log(
-            "🔨 [[cyan bold;Building [[reset;#{self package name}" ,
+            "🔨 [[cyan bold;Building [[reset;#{self package manifest name}" ,
             "output")
 
         self _runBuildio

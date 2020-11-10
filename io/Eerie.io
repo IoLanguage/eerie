@@ -5,6 +5,9 @@ This proto is a singleton.*/
 
 Eerie := Object clone do (
 
+    //doc Eerie manifestName Get name of the manifest file.
+    manifestName := "eerie.json"
+
     //doc Eerie root Returns value of EERIEDIR environment variable.
     root := method(
         path := System getEnvironmentVariable("EERIEDIR") \

@@ -48,10 +48,10 @@ Installer := Object clone do (
 
         ver := self package highestVersionFor(version)
 
-        if (ver == destPackage version,
+        if (ver == destPackage manifest version,
             Logger log(
-                "☑  #{destPackage name} " .. 
-                "v#{destPackage version asSeq} " ..
+                "☑  #{destPackage manifest name} " .. 
+                "v#{destPackage manifest version asSeq} " ..
                 "is already updated", 
                 "output")
             return)
@@ -64,7 +64,7 @@ Installer := Object clone do (
         destPackage runHook("afterUpdate")
 
         Logger log(
-            "☑  [[magenta bold;#{destPackage name}[[reset; is " ..
+            "☑  [[magenta bold;#{destPackage manifest name}[[reset; is " ..
             "[[magenta bold;#{ver originalSeq}[[reset; now",
             "output"))
 
@@ -76,23 +76,23 @@ Installer := Object clone do (
             Exception raise(DestinationNotSetError with(""))))
 
     _checkSame := method(destPackage,
-        if (self package name != destPackage name, 
+        if (self package manifest name != destPackage manifest name, 
             Exception raise(
                 DifferentPackageError with(
-                    destPackage name, self package name))))
+                    destPackage manifest name, self package manifest name))))
 
     _logUpdate := method(version, destPackage,
-        if (version > destPackage version) then (
+        if (version > destPackage manifest version) then (
             Logger log("⬆ [[cyan bold;Updating [[reset;" ..
-                "#{destPackage name} " ..
+                "#{destPackage manifest name} " ..
                 "from [[magenta bold;" ..
-                "v#{destPackage version asSeq}[[reset; " ..
+                "v#{destPackage manifest version asSeq}[[reset; " ..
                 "to [[magenta bold;v#{version asSeq}", "output")
-        ) elseif (version < destPackage version) then (
+        ) elseif (version < destPackage manifest version) then (
             Logger log(
                 "⬇ [[cyan bold;Downgrading [[reset;" .. 
-                "#{destPackage name} " ..
-                "from v#{destPackage version asSeq} " ..
+                "#{destPackage manifest name} " ..
+                "from v#{destPackage manifest version asSeq} " ..
                 "to v#{version asSeq}", "output")))
 
     /*doc Installer install(version)
@@ -105,9 +105,9 @@ Installer := Object clone do (
 
         if (self destination exists, 
             Exception raise(DirectoryExistsError with(
-                self package name, self destination path)))
+                self package manifest name, self destination path)))
 
-        Logger log("📥 [[cyan bold;Installing [[reset;#{self package name}", 
+        Logger log("📥 [[cyan bold;Installing [[reset;#{self package manifest name}", 
             "output")
 
         self package runHook("beforeInstall")
@@ -128,8 +128,8 @@ Installer := Object clone do (
         self package runHook("afterInstall"))
 
     _checkGitBranch := method(
-        if (self package branch isNil, return)
-        System sh("git checkout #{self package branch}",
+        if (self package manifest branch isNil, return)
+        System sh("git checkout #{self package manifest branch}",
             false,
             self package struct root path))
 

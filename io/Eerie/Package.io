@@ -5,37 +5,6 @@ Package := Object clone do (
 
     //doc Package manifest Get the `Package Manifest`.
     manifest := nil
-    
-    //doc Package config Package's config file (the manifest) as a `Map`.
-    config ::= nil
-
-    //doc Package name
-    name := method(self config at("name"))
-
-    //doc Package version Returns parsed version (`SemVer`) of the package.
-    version ::= nil
-
-    /*doc Package versions
-    Get `List` of available versions. The versions are collected from git tags.
-    */
-    versions := method(
-        cmdOut := System sh("git tag", true, self struct root path)
-        cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
-
-    //doc Package branch Get git branch for this package.
-    //doc Package setBranch(Sequence) Set git branch for this package.
-    branch ::= lazySlot(self config at("branch"))
-
-    /*doc Package deps
-    Get the `List` of `Package Dependency` parsed from `"packs"` field in
-    `eerie.json`.*/
-    deps := lazySlot(
-        self config at("packs") map(dep, Dependency fromMap(dep, self)))
-
-    /*doc Package depNamed 
-    Get `Package Dependency` from `Package deps` with the given name (if
-    any).*/
-    depNamed := method(name, self deps detect(dep, dep name == name))
 
     //doc Package struct Get `Package Structure` for this package.
     struct := nil
@@ -43,10 +12,12 @@ Package := Object clone do (
     //doc Package packsio Get `Package PacksIo`.
     packsio := method(PacksIo with(self))
 
-    /*doc Package packRootFor 
-    Get a directory for package name (`Sequence`) inside `struct packs` whether
-    it's installed or not.*/ 
-    packRootFor := method(name, self struct packs directoryNamed(name))
+    /*doc Package versions
+    Get `List` of available versions. The versions are collected from git tags.
+    */
+    versions := method(
+        cmdOut := System sh("git tag", true, self struct root path)
+        cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
 
     /*doc Package dllFileName 
     Get the file name of the dynamic library provided by this package in the
@@ -58,7 +29,7 @@ Package := Object clone do (
     of compilation. Note, this is the name of the library, not the name of the
     dll file (i.e. without extension and `lib` prefix). Use `Package
     dllFileName` for the DLL file name.*/
-    dllName := method("Io" .. self name)
+    dllName := method("Io" .. self manifest name)
 
     /*doc Package staticLibFileName 
     Get the file name of the static library provided by this package in the
@@ -70,7 +41,7 @@ Package := Object clone do (
     compilation. Note, this is the name of the library, not the name of the dll
     file (i.e. the extension and without `lib` prefix). Use `Package
     staticLibFileName` for the static library file name.*/
-    staticLibName := method("Io" .. self name)
+    staticLibName := method("Io" .. self manifest name)
 
     /*doc Package dllPath
     Get the path to the dynamic library this package represents.*/
@@ -81,6 +52,9 @@ Package := Object clone do (
     staticLibPath := method(
         self struct build lib path .. "/" .. self staticLibFileName)
 
+    # FIXME each package has a subdirectory with its version now
+    # this should be removed and packsio should be used for linking or wherever
+    # dependency lists is needed
     /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
     packages := lazySlot(
@@ -101,12 +75,10 @@ Package := Object clone do (
         klone _checksIsPackage
 
         manifestFile := File with(
-            klone struct root path .. "/#{Package Manifest name}" interpolate) 
+            klone struct root path .. "/#{Eerie manifestName}" interpolate) 
         klone manifest := Manifest with(manifestFile)
         klone manifest validate
 
-        klone setConfig(manifestFile contents parseJson)
-        klone setVersion(Eerie SemVer fromSeq(klone config at("version")))
         # call to init the list
         klone packages
         klone)
@@ -142,14 +114,10 @@ Package := Object clone do (
 
         result)
 
-    /*doc Package checkHasDep(name)
-    Check whether the package has dependency (i.e. in eerie.json) with the
-    specified name (`Sequence`).
-
-    Raises `Package NoDependencyError` if it doesn't.*/
-    checkHasDep := method(depName,
-        if (self depNamed(depName) isNil,
-            Exception raise(NoDependencyError with(self name, depName))))
+    create := method(name, path,
+        name
+        # TODO inializes a new package
+    )
 
     /*doc Package install(destination)
     Install the package and its dependencies into the `destination` `Directory`.
@@ -159,8 +127,16 @@ Package := Object clone do (
         if (destDir isNil, destDir = self struct packs)
         lock := Eerie TransactionLock clone
         lock lock
-        self deps foreach(dep, dep install(destDir))
+        self manifest packs foreach(dep, dep install(destDir))
         lock unlock)
+
+    update := method(
+        # TODO
+    )
+
+    load := method(
+        # TODO
+    )
 
     //doc Package remove Removes self.
     remove := method(
@@ -174,7 +150,7 @@ Package := Object clone do (
         f exists ifTrue(
             Logger log(
                 "[[birghtBlue bold;Launching[[reset; #{hook} " ..
-                "hook for #{self name}")
+                "hook for #{self manifest name}")
             ctx := Object clone
             e := try(ctx doFile(f path))
             f close
@@ -194,10 +170,209 @@ Package do (
     FailedRunHookError := Eerie Error clone setErrorMsg(
         "Failed run hook \"#{call evalArgAt(0)}\":\n#{call evalArgAt(1)}")
 
-    //doc Package NoDependencyError
-    NoDependencyError := Eerie Error clone setErrorMsg(
-        "The package \"#{call evalArgAt(0)}\" has no dependency " .. 
-        "\"#{call evalArgAt(1)}\" in #{Package Manifest name}.")
+)
+
+//metadoc Manifest category Package
+//metadoc Manifest description Represents parsed manifest file.
+Package Manifest := Object clone do (
+
+    //doc Manifest file Get `File` for this manifest.
+    file := nil
+
+    # manifest contet parsed as `Map`
+    _map := nil
+
+    //doc Manifest name Get package name.
+    name := lazySlot(self _map at("name"))
+
+    //doc Manifest version Returns version (`SemVer`) of the package.
+    version := lazySlot(Eerie SemVer fromSeq(self _map at("version")))
+
+    //doc Manifest description Get description.
+    description := lazySlot(self _map at("description"))
+
+    //doc Manifest branch Get git branch.
+    branch := lazySlot(self _map at("branch"))
+
+    /*doc Manifest packs
+    Get the `List` of `Package Dependency` parsed from `"packs"` field in.*/
+    packs := lazySlot(
+        self _map at("packs") ifNilEval(list()) map(dep, 
+            Package Dependency fromMap(dep)))
+
+    //doc Manifest with(File) Init `Manifest` from file.
+    with := method(file,
+        klone := self clone
+        klone file = file
+        klone _map = file contents parseJson
+        klone)
+
+    /*doc Manifest validate(release) 
+    Validates the manifest. If the `release` is `true`, validates for
+    releasing/publishing.*/
+    validate := method(release,
+        self _checkRequired("name")
+        self _checkRequired("version")
+        self _checkRequired("author")
+        self _checkRequired("url")
+
+        # it's allowed to be empty for `protos`
+        self _checkField(self _map at("protos") isNil,
+            "The \"protos\" field is required.")
+
+        self _checkType("protos", List)
+
+        # `packs` is optional
+        if (self _map at("packs") isNil or \
+            self _map at("packs") isEmpty, return)
+
+        self _checkType("packs", List)
+
+        self _map at("packs") foreach(dep,
+            self _checkField(
+                dep at("name") isNil or dep at("name") isEmpty,
+                "The \"packs[n].name\" is required.")
+
+            self _checkField(
+                dep at("version") isNil,
+                "The \"packs[n].version\" is required."))
+
+        if (release, self _validateRelease))
+
+    # check's whether a field is not nil and not empty
+    # the `field` argument is key with subfields separated by dot:
+    # `foo.bar.baz`
+    # the optional `msg` argument is the message, which will be shown on
+    # invalid test
+    _checkRequired := method(field, msg,
+        value := self valueForKey(field)
+        msg := msg ifNilEval(
+            "The \"#{field}\" field is required and can't be empty." \
+                interpolate)
+
+        if (value isNil or value isEmpty,
+            Exception raise(
+                InsufficientManifestError with(self file path, msg))))
+
+    /*doc Manifest valueForKey(key) 
+    Get value for key (`Sequence`) in format where each field separated by
+    dot: `foo.bar.baz`.*/
+    valueForKey := method(key,
+        split := key split(".")
+        value := self _map
+        split foreach(key, value = value at(key))
+        value)
+
+    _checkEither := method(first, second,
+        valueA := self valueForKey(first)
+        valueB := self valueForKey(second)
+        msg := ("Either \"#{first}\" or \"#{second}\" field is required " .. 
+            "and can't be empty.") interpolate
+
+        if ((valueA isNil or valueA isEmpty) and \
+            (valueB isNil or valueB isEmpty),
+            Exception raise(
+                InsufficientManifestError with(self file path, msg))))
+
+    # check whether value specified by `key` is of type `input`
+    _checkType := method(key, input,
+        value := self valueForKey(key)
+        msg := (
+            "The field \"#{key}\" should be #{self _jsonTypeFor(input)}." \
+                interpolate)
+
+        if (value type != input type,
+            Exception raise(
+                InsufficientManifestError with(self file path, msg))))
+
+    # get json type name for argument type
+    _jsonTypeFor := method(input,
+        if (input type == Map type) then (
+            return "an object"
+        ) elseif (input type == List type) then (
+            return "an array"
+        ) elseif (input type == Number type) then (
+            return "a number"
+        ) elseif (input type == Sequence type) then (
+            return "a string"
+        ) elseif (input type == true type or input type == false type) \
+            then (
+                return "a boolean"
+        ) elseif (input type == nil type) then (
+            return "null"
+        ) else (
+            return "undefined"))
+
+    # the first argument is a boolean. If it's `true`,
+    # `InsufficientManifestError` will raise with the message at the second
+    # argument.
+    _checkField := method(test, msg,
+        test ifTrue(
+            Exception raise(
+                InsufficientManifestError with(self file path, msg))))
+
+    _validateRelease := method(
+        self _checkVersionShortened
+        self _checkDescription
+        self _checkReadme
+        self _checkLicense)
+
+    _checkVersionShortened := method(
+        if (self version isShortened,
+            Exception raise(VersionIsShortenedError with(self version asSeq))))
+
+    _checkDescription := method(
+        desc := self description
+        if (desc isNil or desc isEmpty, 
+            Exception raise(NoDescriptionError with(""))))
+
+    _checkReadme := method(
+        path := self valueForKey("readme")
+        if (self _hasRequiredFile(path) not, 
+            Exception raise(ReadmeError with(""))))
+
+    _checkLicense := method(
+        path := self valueForKey("license")
+        if (self _hasRequiredFile(path) not, 
+            Exception raise(LicenseError with(""))))
+
+    _hasRequiredFile := method(path,
+        if (path isNil or path isEmpty, return false)
+
+        file := File with(self file parentDirectory path .. "/" .. path)
+        
+        (file exists not or file ?contents ?isEmpty) not)
+
+)
+
+# Manifest error types
+Package Manifest do (
+
+    //doc Manifest InsufficientManifestError
+    InsufficientManifestError := Eerie Error clone setErrorMsg(
+        "The manifest at #{call evalArgAt(0)} doesn't satisfy " ..
+        "all requirements." .. 
+        "#{if(call evalArgAt(1) isNil, " ..
+            "\"\", \"\\n\" .. call evalArgAt(1))}")
+
+    //doc Manifest VersionIsShortenedError
+    VersionIsShortenedError := Eerie Error clone setErrorMsg(
+        "The release version shouldn't be shortened.")
+
+    //doc Manifest NoDescriptionError
+    NoDescriptionError := Eerie Error clone setErrorMsg(
+        "Published packages should have \"description\" in " ..
+        "#{Eerie manifestName}.")
+
+    //doc Manifest ReadmeError
+    ReadmeError := Eerie Error clone setErrorMsg(
+        "README file is required for published packages and shouldn't be " ..
+        "empty.")
+
+    //doc Manifest LicenseError
+    LicenseError := Eerie Error clone setErrorMsg(
+        "LICENSE file is required for published packages and shouldn't be " ..
+        "empty.")
 
 )
 
@@ -243,6 +418,11 @@ Package Structure := Object clone do (
     //doc Structure buildio The `build.io` file.
     buildio := lazySlot(self root fileNamed("build.io"))
 
+    /*doc Structure packRootFor 
+    Get a directory for package name (`Sequence`) inside `packs` whether it's
+    installed or not.*/ 
+    packRootFor := method(name, self packs directoryNamed(name))
+
     /*doc Structure with(rootPath) 
     Init `Structure` with the path to the root directory (`Sequence`).*/
     with := method(rootPath,
@@ -256,7 +436,7 @@ Package Structure := Object clone do (
     isPackage := method(
         ioDir := self root directoryNamed("io")
         manifest := File with(
-            self root path .. "/#{Package Manifest name}" interpolate)
+            self root path .. "/#{Eerie manifestName}" interpolate)
 
         self root exists and manifest exists and ioDir exists)
 
@@ -292,140 +472,6 @@ Package Structure := Object clone do (
 
 )
 
-//metadoc Manifest category Package
-//metadoc Manifest description Represents parsed manifest file.
-Package Manifest := Object clone do (
-
-    //doc Manifest name Get name of the manifest file.
-    name := "eerie.json"
-
-    //doc Manifest file Get `File` for this manifest.
-    file := nil
-
-    # manifest contet parsed as `Map`
-    _map := nil
-
-    //doc Manifest with(File) Init `Manifest` from file.
-    with := method(file,
-        klone := self clone
-        klone file = file
-        klone _map = file contents parseJson
-        klone)
-
-    //doc Manifest validate Validates the manifest.
-    validate := method(
-        self _checkRequired("name")
-        self _checkRequired("version")
-        self _checkRequired("author")
-        self _checkRequired("url")
-
-        # it's allowed to be empty for `protos`
-        self _checkField(self _map at("protos") isNil,
-            "The \"protos\" field is required.")
-
-        self _checkType("protos", List)
-
-        # `packs` is optional
-        if (self _map at("packs") isNil or \
-            self _map at("packs") isEmpty, return)
-
-        self _checkType("packs", List)
-
-        self _map at("packs") foreach(dep,
-            self _checkField(
-                dep at("name") isNil or dep at("name") isEmpty,
-                "The \"packs[n].name\" is required.")
-
-            self _checkField(
-                dep at("version") isNil,
-                "The \"packs[n].version\" is required.")))
-
-        # check's whether a field is not nil and not empty
-        # the `field` argument is key with subfields separated by dot:
-        # `foo.bar.baz`
-        # the optional `msg` argument is the message, which will be shown on
-        # invalid test
-        _checkRequired := method(field, msg,
-            value := self valueForKey(field)
-            msg := msg ifNilEval(
-                "The \"#{field}\" field is required and can't be empty." \
-                    interpolate)
-
-            if (value isNil or value isEmpty,
-                Exception raise(
-                    InsufficientManifestError with(self file path, msg))))
-
-        /*doc Manifest valueForKey(key) 
-        Get value for key (`Sequence`) in format where each field separated by
-        dot: `foo.bar.baz`.*/
-        valueForKey := method(key,
-            split := key split(".")
-            value := self _map
-            split foreach(key, value = value at(key))
-            value)
-
-        _checkEither := method(first, second,
-            valueA := self valueForKey(first)
-            valueB := self valueForKey(second)
-            msg := ("Either \"#{first}\" or \"#{second}\" field is required " .. 
-                "and can't be empty.") interpolate
-
-            if ((valueA isNil or valueA isEmpty) and \
-                (valueB isNil or valueB isEmpty),
-                Exception raise(
-                    InsufficientManifestError with(self file path, msg))))
-
-        # check whether value specified by `key` is of type `input`
-        _checkType := method(key, input,
-            value := self valueForKey(key)
-            msg := (
-                "The field \"#{key}\" should be #{self _jsonTypeFor(input)}." \
-                    interpolate)
-
-            if (value type != input type,
-                Exception raise(
-                    InsufficientManifestError with(self file path, msg))))
-
-        # get json type name for argument type
-        _jsonTypeFor := method(input,
-            if (input type == Map type) then (
-                return "an object"
-            ) elseif (input type == List type) then (
-                return "an array"
-            ) elseif (input type == Number type) then (
-                return "a number"
-            ) elseif (input type == Sequence type) then (
-                return "a string"
-            ) elseif (input type == true type or input type == false type) \
-                then (
-                    return "a boolean"
-            ) elseif (input type == nil type) then (
-                return "null"
-            ) else (
-                return "undefined"))
-
-        # the first argument is a boolean. If it's `true`,
-        # `InsufficientManifestError` will raise with the message at the second
-        # argument.
-        _checkField := method(test, msg,
-            test ifTrue(
-                Exception raise(
-                    InsufficientManifestError with(self file path, msg))))
-
-)
-
-# Manifest error types
-Package Manifest do (
-
-    //doc Manifest InsufficientManifestError
-    InsufficientManifestError := Eerie Error clone setErrorMsg(
-        "The manifest at #{call evalArgAt(0)} doesn't satisfy " ..
-        "all requirements." .. 
-        "#{if(call evalArgAt(1) isNil, " ..
-            "\"\", \"\\n\" .. call evalArgAt(1))}")
-
-)
-
 //metadoc Dependency category Package
 /*metadoc Dependency description 
 Package dependency parsed from `"packs"` in `eerie.json`.*/
@@ -437,20 +483,19 @@ Package Dependency := Object clone do (
     //doc Dependency version Get version. Can be shortened.
     version := nil
 
-    //doc Dependency parentPkg The parent `Package` of this dependency.
-    parentPkg := nil
-
     //doc Dependency url Get URL.
     url := nil
 
     //doc Dependency branch Get git branch.
     branch := nil
 
-    /*doc Dependency fromMap(map, parentPkg)
+    # the structure initialized from destination directory
+    _struct := nil
+
+    /*doc Dependency fromMap(map)
     Initialize dependency from `Map` parsed from `"packs"` array items.*/
-    fromMap := method(dep, parentPkg,
+    fromMap := method(dep,
         klone := self clone
-        klone parentPkg = parentPkg
         klone name = dep at("name")
         klone version = Eerie SemVer fromSeq(dep at("version"))
         # if url is nil the pack supposed to be in the db, so we try to get it
@@ -487,22 +532,24 @@ Package Dependency := Object clone do (
     # 
     # The first scenario has more priority, so we try to get the user specified
     # branch first and then if it's `nil` we check the developer's one.
-    install := method(destDir,
-        destDir createIfAbsent
+    install := method(destRoot,
+        destRoot createIfAbsent
+
+        self struct = Package Structure with(destRoot)
 
         package := self _download
 
-        installDir := self _installDir(destDir, package version)
+        installDir := self _installDir(destRoot, package manifest version)
 
         if (installDir exists, return)
 
         # install dependencies of dependency
-        package install(destDir)
+        package install(destRoot)
 
         # install the dependency
         self _installPackage(package, installDir)
 
-        self parentPkg struct tmp remove)
+        self struct tmp remove)
 
     # download the package and instantiate it
     _download := method(
@@ -514,23 +561,24 @@ Package Dependency := Object clone do (
         downloader := Downloader detect(self url, self _downloadDir)
         downloader download
 
-        Package with(download destDir))
+        Package with(downloader destDir))
 
     _downloadDir := lazySlot(
-        self parentPkg struct tmp \
+        self struct tmp \
             directoryNamed(self name) \
-                directoryNamed(self version))
+                directoryNamed(self version) \
+                    createIfAbsent)
 
     _installDir := method(destDir, version,
         destDir directoryNamed(self name) directoryNamed(version))
 
     _installPackage := method(package, installDir,
-        package branch = self branch ifNilEval(package branch)
+        package manifest branch = self branch ifNilEval(package manifest branch)
 
         installer := Installer with(
             package, 
             installDir,
-            self parentPkg struct binDest)
+            self struct binDest)
 
         installer install(self version))
 
@@ -570,9 +618,9 @@ Package PacksIo := Object clone do (
     /*doc PacksIo generate
     Generate the file.*/
     generate := method(
-        self package deps foreach(dep,
+        self package manifest packs foreach(dep,
             # TODO we should generate subdependencies as well
-            depRoot := self package packRootFor(dep name)
+            depRoot := self package struct packRootFor(dep name)
             if (depRoot exists not,
                 Exception raise(
                     DependencyNotInstalledError with(dep name, self package)))

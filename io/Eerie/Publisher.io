@@ -12,7 +12,7 @@ Publisher := Object clone do (
 
     /*doc Publisher gitTag 
     Get git tag name, which will be used for the release.*/
-    gitTag := method("v" .. self package version asSeq)
+    gitTag := method("v" .. self package manifest version asSeq)
 
     /*doc Publisher shouldPush 
     Whether git push should be performed after release. `true`, `false` or
@@ -49,8 +49,8 @@ Publisher := Object clone do (
         self _promptPush
 
         Logger log(
-            "🎉 [[magenta;Successfully released [[bold;#{self package name} " ..
-            "v#{self package version asSeq}[[reset magenta;![[reset;\n\n" .. 
+            "🎉 [[magenta;Successfully released [[bold;#{self package manifest name} " ..
+            "v#{self package manifest version asSeq}[[reset magenta;![[reset;\n\n" .. 
             "Now publish it in Eerie database.\n" .. 
             "Look [[green;https://github.com/IoLanguage/eerie-db[[reset; " .. 
             "for instructions.")
@@ -68,59 +68,23 @@ Publisher := Object clone do (
     Check whether the `package` satisfies all the requirements for published
     packages.*/
     validate := method(
-        self _checkVersion
-        self _checkDescription
-        self _checkReadme
-        self _checkLicense)
-
-    _checkVersion := method(
-        self _checkVersionNewer
-        self _checkVersionShortened)
+        self package manifest validate(true)
+        self _checkVersionNewer)
 
     _checkVersionNewer := method(
-        verSeq := Database valueFor(self package name, "version")
+        verSeq := Database valueFor(self package manifest name, "version")
         previous := if (verSeq isNil,
             self package highestVersionFor,
             SemVer fromSeq(verSeq))
 
         if (previous isNil, return)
 
-        if (previous >= self package version, 
+        if (previous >= self package manifest version, 
             Exception raise(
                 VersionIsOlderError with(
-                    self package name, 
-                    self package version originalSeq,
+                    self package manifest name, 
+                    self package manifest version originalSeq,
                     previous originalSeq))))
-
-    _checkVersionShortened := method(
-        if (self package version isShortened,
-            Exception raise(
-                VersionIsShortened with(self package version asSeq))))
-
-    _checkDescription := method(
-        desc := self package config at("description")
-        if (desc isNil or desc isEmpty, 
-            Exception raise(NoDescriptionError with(""))))
-
-    _checkReadme := method(
-        path := self package config at("readme")
-        if (self _hasRequiredFile(path) not, 
-            Exception raise(ReadmeError with(""))))
-
-    _hasRequiredFile := method(path,
-        if (path isNil or path isEmpty, return false)
-
-        file := File with(self package struct root path .. "/" .. path)
-        
-        if (file exists not or file ?contents isEmpty, 
-            return false)
-
-        return true)
-
-    _checkLicense := method(
-        path := self package config at("license")
-        if (self _hasRequiredFile(path) not, 
-            Exception raise(LicenseError with(""))))
 
     _checkHasGitChanges := method(
         cmdOut := System sh(
@@ -129,7 +93,7 @@ Publisher := Object clone do (
         res := cmdOut stdout split("\n") select(seq,
             seq endsWithSeq("-stdout") not and seq endsWithSeq("-stderr") not)
         if (res isEmpty not, 
-            Exception raise(HasGitChangesError with(self package name))))
+            Exception raise(HasGitChangesError with(self package manifest name))))
 
     _addGitTag := method(
         self _checkGitTagExists
@@ -145,7 +109,8 @@ Publisher := Object clone do (
 
         if (cmdOut stdout split("\n") contains(self gitTag),
             Exception raise(
-                GitTagExistsError with(self gitTag, self package name))))
+                GitTagExistsError with(
+                    self gitTag, self package manifest name))))
 
     _promptPush := method(
         if (self shouldPush isNil not, return)
@@ -175,21 +140,6 @@ Publisher do (
         "The release version \"#{call evalArgAt(1)}\" " ..
         "of package \"#{call evalArgAt(0)}\" " ..
         "should be higher than the previous version (\"#{call evalArgAt(2)}\")")
-
-    VersionIsShortened := Eerie Error clone setErrorMsg(
-        "The release version shouldn't be shortened.")
-
-    NoDescriptionError := Eerie Error clone setErrorMsg(
-        "Published packages should have \"description\" in " ..
-        "#{Package Manifest name}.")
-
-    ReadmeError := Eerie Error clone setErrorMsg(
-        "README file is required for published packages and shouldn't be " ..
-        "empty.")
-
-    LicenseError := Eerie Error clone setErrorMsg(
-        "LICENSE file is required for published packages and shouldn't be " ..
-        "empty.")
 
     GitTagExistsError := Eerie Error clone setErrorMsg(
         "Git tag #{call evalArgAt(0)} already exists in package " .. 

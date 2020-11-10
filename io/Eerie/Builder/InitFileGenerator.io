@@ -5,7 +5,7 @@ InitFileGenerator := Object clone do (
 
     # the output file
     output := lazySlot(
-        path := "source/Io#{self package name}Init.c" interpolate
+        path := "source/Io#{self package manifest name}Init.c" interpolate
         self package struct root fileNamed(path))
 
     # directory with Io code
