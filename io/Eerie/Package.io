@@ -52,7 +52,7 @@ Package := Object clone do (
     staticLibPath := method(
         self struct build lib path .. "/" .. self staticLibFileName)
 
-    # FIXME each package has a subdirectory with its version now
+    # TODO
     # this should be removed and packsio should be used for linking or wherever
     # dependency lists is needed
     /*doc Package packages 
@@ -629,9 +629,21 @@ Package DepDesc := Object clone do (
     //doc DepDesc setChildren(Map) Set children.
     children ::= Map clone
 
+    //doc DepDesc parent Get parent `DepDesc`. Can return `nil`.
+    //doc DepDesc setParent(DepDesc) Set parent.
+    parent ::= nil 
+
+    //doc DepDesc recursive Get a boolean whether `DepDesc` is recursive.
+    //doc DepDesc setRecursive(boolean) `DepDesc recursive` setter.
+    recursive ::= false
+
+    //doc DepDesc dir(root) Get the destination `Directory` relative to `root`.
+    dir := method(root,
+        root directoryNamed(self name) directoryNamed(self version))
+
     /*doc DepDesc fromDep(dep, package) 
-    Recursively initializes `DepDesc` from `Package Dependency` and dependency
-    root `Directory`.*/
+    Recursively initializes `DepDesc` from `Package Dependency` and the
+    dependency root `Directory`.*/
     fromDep := method(dep, depRoot,
         if (depRoot exists not,
             Exception raise(DependencyNotInstalledError with(dep name)))
@@ -640,11 +652,15 @@ Package DepDesc := Object clone do (
 
         result := DepDesc clone setName(dep name) setVersion(version asSeq)
 
+        if (self _hasAncestor(result), return result setRecursive(true))
+
         deps := Package with(self dir(depRoot) path) manifest packs
 
-        # FIXME possbile recursive dependencies
-        # for ex., Eerie <-> Docio
-        deps foreach(dep, result addChild(DepDesc fromDep(dep, depRoot)))
+        deps foreach(dep, 
+            # TODO is setParent by copy or by reference?
+            # because if it's by copy, parent will not have children
+            result addChild(
+                DepDesc clone setParent(result) fromDep(dep, depRoot)))
 
         result)
 
@@ -658,9 +674,13 @@ Package DepDesc := Object clone do (
     _versionsInDir := method(dir,
         dir directories map(subdir, SemVer fromSeq(subdir name)))
 
-    //doc DepDesc dir(root) Get the destination `Directory` relative to `root`.
-    dir := method(root,
-        root directoryNamed(self name) directoryNamed(self version))
+    _hasAncestor := method(desc,
+        if (self parent isNil, return false)
+
+        if (self parent name == desc name and(
+            self parent version == desc version),
+        return true,
+        return self parent _hasAncestor(desc)))
 
     //doc DepDesc addChild(DepDesc) Adds a child.
     addChild := method(desc, self children atPut(desc name, desc))
