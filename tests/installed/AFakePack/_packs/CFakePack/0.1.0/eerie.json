@@ -1,0 +1,25 @@
+{
+    "name": "CFakePack",
+    "version": "0.1.0",
+    "description": "A fake pack for testing.",
+    "author": "Test",
+    "readme": "",
+    "website": "https://iolanguage.github.io/eerie",
+    "url": "tests/_packs/CFakePack",
+    "categories": [],
+    "protos": [
+        "CFakePack"
+    ],
+    "packs": [
+        {
+            "name": "BFakePack",
+            "version": "0.1",
+            "url": "tests/_packs/BFakePack"
+        },
+        {
+            "name": "AFakePack",
+            "version": "0.1",
+            "url": "tests/_packs/AFakePack"
+        }
+    ]
+}

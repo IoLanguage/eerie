@@ -57,8 +57,10 @@ Package := Object clone do (
     # dependency lists is needed
     /*doc Package packages 
     Get the `List` of installed dependencies for this package.*/
-    packages := lazySlot(
-        self struct packs directories map(dir, Package with(dir path)))
+    # packages := lazySlot(
+        # self struct packs directories map(dir, Package with(dir path)))
+    # XXX disabled it for now
+    packages := list()
 
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
@@ -592,7 +594,7 @@ Package PacksIo := Object clone do (
     Generate the file.*/
     generate := method(
         self package manifest packs foreach(dep,
-            self addDesc(Package DepDesc with(dep, self package struct packs)))
+            self addDesc(Package DepDesc with(dep, self package struct)))
 
         self store)
 
@@ -626,7 +628,7 @@ Package DepDesc := Object clone do (
 
     //doc DepDesc children Get children of this `DepDesc` (`Map`).
     //doc DepDesc setChildren(Map) Set children.
-    children ::= Map clone
+    children ::= nil
 
     //doc DepDesc parent Get parent `DepDesc`. Can return `nil`.
     //doc DepDesc setParent(DepDesc) Set parent.
@@ -636,33 +638,31 @@ Package DepDesc := Object clone do (
     //doc DepDesc setRecursive(boolean) `DepDesc recursive` setter.
     recursive ::= false
 
-    //doc DepDesc dest(root) Get the destination `Directory` relative to `root`.
-    dest := method(root,
-        root directoryNamed(self name) directoryNamed(self version))
+    /*doc DepDesc with(dep, struct, parent) 
+    Recursively initializes `DepDesc` from `Package Dependency`, 
+    `Package Structure` and parent `DepDesc` (can be `nil`).*/
+    with := method(dep, struct, parent,
+        depRoot := struct packRootFor(dep name)
 
-    /*doc DepDesc with(dep, root, parent) 
-    Recursively initializes `DepDesc` from `Package Dependency`, dependencies
-    root `Directory` (`_packs`) and parent `DepDesc` (can be `nil`).*/
-    with := method(dep, root, parent,
-        if (dep root(root) exists not,
+        if (depRoot exists not,
             Exception raise(DependencyNotInstalledError with(dep name)))
 
-        version := self _installedVersionFor(dep, root)
+        version := self _installedVersionFor(dep, depRoot)
 
-        result := DepDesc clone \
+        packDir := struct packFor(dep name, version)
+
+        if (packDir exists not, 
+            Exception raise(DependencyNotInstalledError with(dep name)))
+
+        result := Package DepDesc clone \
             setName(dep name) \
                 setVersion(version asSeq) \
                     setParent(parent)
+                    
+        result _collectChildren(packDir, struct))
 
-        if (result dest(root) exists not, 
-            Exception raise(DependencyNotInstalledError with(dep name)))
-
-        if (self _hasAncestor(result), return result setRecursive(true))
-
-        self _collectChildren(result, root))
-
-    _installedVersionFor := method(dep, root,
-        versions := self _versionsInDir(dep root(root))
+    _installedVersionFor := method(dep, depRoot,
+        versions := self _versionsInDir(depRoot)
         dep version highestIn(versions))
 
     # get list of `SemVer` in a package dir
@@ -677,18 +677,25 @@ Package DepDesc := Object clone do (
             return true,
             return self parent _hasAncestor(desc)))
 
-    _collectChildren := method(desc, root,
-        deps := Package with(desc dest(root) path) manifest packs
+    _collectChildren := method(packDir, struct,
+        if (self _hasAncestor(self), return self setRecursive(true))
 
-        deps foreach(dep, desc addChild(DepDesc with(dep, root, desc)))
+        deps := Package with(packDir path) manifest packs
+
+        deps foreach(dep,
+            self addChild(Package DepDesc with(dep, struct, self)))
     
-        desc)
+        self)
 
     //doc DepDesc addChild(DepDesc) Adds a child.
-    addChild := method(desc, self children atPut(desc name, desc))
+    addChild := method(desc,
+        if (self children isNil, self setChildren(Map clone))
+        self children atPut(desc name, desc))
 
     //doc DepDesc removeChild(Sequence) Removes a child by its name.
-    removeChild := method(name, self children removeAt(name))
+    removeChild := method(name, 
+        if (self children isNil, return)
+        self children removeAt(name))
 
 )
 

@@ -1,6 +1,11 @@
 PackageTest := UnitTest clone do (
 
     testInstalledPackages := method(
+        Eerie Rainbow redBg bold
+        " Package packages should be removed " println
+        Eerie Rainbow reset
+        return
+
         package := Package with("tests/_packs/BFakePack")
         assertEquals(2, package packages size)
 
@@ -257,5 +262,43 @@ ManifestTest := UnitTest clone do (
             File with("tests/_packs/AFakePack/eerie.json"))
         manifest _checkDescription)
 
+
+)
+
+DepDescTest := UnitTest clone do (
+
+    testInit := method(
+        package := Package with("tests/installed/AFakePack")
+        descs := package manifest packs map(dep, 
+            Package DepDesc with( dep, package struct))
+        expected := list("AFakePack", "BFakePack")
+        assertEquals(expected, descs at(0) children keys sort)
+
+        expected = list("AFakePack", "CFakePack")
+        assertEquals(expected, descs at(1) children keys sort)
+
+        descs foreach(desc, 
+            desc children foreach(key, child, 
+                assertEquals(child parent name, desc name)))
+
+        assertTrue(
+            descs at(0) children \
+                at("BFakePack") children \
+                    at("CFakePack") recursive)
+
+        assertTrue(
+            descs at(0) children \
+                at("AFakePack") children \
+                    at("CFakePack") recursive)
+
+        assertTrue(
+            descs at(1) children \
+                at("AFakePack") children \
+                    at("BFakePack") recursive)
+
+        assertTrue(
+            descs at(1) children \
+                at("CFakePack") children \
+                    at("BFakePack") recursive))
 
 )

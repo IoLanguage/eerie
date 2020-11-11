@@ -1,4 +1,4 @@
-_packs/
+./_packs/
 _bin/
 _build/
 ./_tmp/

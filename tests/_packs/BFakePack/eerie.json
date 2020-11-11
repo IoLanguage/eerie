@@ -1,0 +1,25 @@
+{
+    "name": "BFakePack",
+    "version": "0.1.0",
+    "description": "",
+    "author": "Test",
+    "readme": "",
+    "website": "https://iolanguage.github.io/eerie",
+    "url": "tests/_packs/BFakePack",
+    "categories": [],
+    "protos": [
+        "BFakePack"
+    ],
+    "packs": [
+        {
+            "name": "CFakePack",
+            "version": "0.1",
+            "url": "tests/_packs/CFakePack"
+        },
+        {
+            "name": "AFakePack",
+            "version": "0.1",
+            "url": "tests/_packs/AFakePack"
+        }
+    ]
+}
