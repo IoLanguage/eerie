@@ -92,15 +92,16 @@ Package := Object clone do (
         # TODO inializes a new package
     )
 
-    /*doc Package install(destination)
-    Install the package and its dependencies into the `destination` `Directory`.
+    /*doc Package install(Structure)
+    Install the package and its dependencies. The argument is 
+    `Package Structure`.
 
-    If the `destination` is `nil`, `self struct packs` is used.*/
-    install := method(destDir,
-        if (destDir isNil, destDir = self struct packs)
+    If the argument is `nil`, `self struct` is used.*/
+    install := method(struct,
+        if (struct isNil, struct = self struct)
         lock := Eerie TransactionLock clone
         lock lock
-        self manifest packs foreach(dep, dep install(destDir))
+        self manifest packs foreach(dep, dep install(struct))
         lock unlock)
 
     update := method(
@@ -391,10 +392,16 @@ Package Structure := Object clone do (
     //doc Structure buildio The `build.io` file.
     buildio := lazySlot(self root fileNamed("build.io"))
 
-    /*doc Structure packRootFor 
+    /*doc Structure packRootFor(name)
     Get a directory for package name (`Sequence`) inside `packs` whether it's
     installed or not.*/ 
     packRootFor := method(name, self packs directoryNamed(name))
+
+    /*doc Structure packFor(name, version)
+    Get `Directory` for package inside `packs` for its name (`Sequence`) and
+    version (`SemVer`).*/
+    packFor := method(name, version,
+        self packRootFor(name) directoryNamed(version asSeq))
 
     /*doc Structure with(rootPath) 
     Init `Structure` with the path to the root directory (`Sequence`).*/
@@ -462,9 +469,6 @@ Package Dependency := Object clone do (
     //doc Dependency branch Get git branch.
     branch := nil
 
-    # the structure initialized from destination directory
-    _struct := nil
-
     /*doc Dependency fromMap(map)
     Initialize dependency from `Map` parsed from `"packs"` array items.*/
     fromMap := method(dep,
@@ -482,7 +486,7 @@ Package Dependency := Object clone do (
     Download and install the dependency this `Dependency` describes to the
     destination root `Directory`. 
 
-    The destination `Directory` is the root for the depdency. That means, for
+    The destination `Directory` is the root for the dependency. That means, for
     dependency **A** with version **1.0.0** and destination `foo/bar`, the
     package will be installed in: `foo/bar/A/1.0.0`.*/
 
@@ -505,55 +509,50 @@ Package Dependency := Object clone do (
     # 
     # The first scenario has more priority, so we try to get the user specified
     # branch first and then if it's `nil` we check the developer's one.
-    install := method(destRoot,
-        destRoot createIfAbsent
+    install := method(struct,
+        struct packs createIfAbsent
+        struct tmp createIfAbsent
 
-        self struct = Package Structure with(destRoot)
+        package := self _download(struct)
 
-        package := self _download
+        version := self version highestIn(self package versions)
 
-        installDir := self _installDir(destRoot, package manifest version)
+        installDir := struct packFor(self name, version)
 
         if (installDir exists, return)
 
         # install dependencies of dependency
-        package install(destRoot)
+        package install(struct)
 
         # install the dependency
-        self _installPackage(package, installDir)
+        package manifest branch = self branch ifNilEval(package manifest branch)
 
-        self struct tmp remove)
+        Installer with(
+            package,
+            installDir,
+            struct binDest) install(version)
+
+        struct tmp remove)
 
     # download the package and instantiate it
-    _download := method(
+    _download := method(struct,
         if (self url isNil or self url isEmpty, 
             Exception raise(NoUrlError with(self name)))
 
-        if (self _downloadDir exists, return Package with(self _downloadDir))
+        downloadDir := self _downloadDir(struct)
 
-        downloader := Downloader detect(self url, self _downloadDir)
+        if (downloadDir exists, return Package with(downloadDir path))
+
+        downloader := Downloader detect(self url, downloadDir)
         downloader download
 
         Package with(downloader destDir))
 
-    _downloadDir := lazySlot(
-        self struct tmp \
+    _downloadDir := method(struct,
+        struct tmp \
             directoryNamed(self name) \
                 directoryNamed(self version) \
                     createIfAbsent)
-
-    _installDir := method(destDir, version,
-        destDir directoryNamed(self name) directoryNamed(version))
-
-    _installPackage := method(package, installDir,
-        package manifest branch = self branch ifNilEval(package manifest branch)
-
-        installer := Installer with(
-            package, 
-            installDir,
-            self struct binDest)
-
-        installer install(self version))
 
 )
 
@@ -593,8 +592,7 @@ Package PacksIo := Object clone do (
     Generate the file.*/
     generate := method(
         self package manifest packs foreach(dep,
-            depRoot := self package struct packRootFor(dep name)
-            self addDesc(Package DepDesc fromDep(dep, depRoot)))
+            self addDesc(Package DepDesc with(dep, self package struct packs)))
 
         self store)
 
@@ -614,7 +612,8 @@ Package PacksIo := Object clone do (
 
 //metadoc DepDesc category Package
 /*metadoc DepDesc description
-Dependency description. Serialization of this type is stored in `packs.io`.*/
+Description of an installed dependency. Serialization of this type is stored in
+`packs.io`.*/
 Package DepDesc := Object clone do (
 
     //doc DepDesc name Get name.
@@ -637,38 +636,34 @@ Package DepDesc := Object clone do (
     //doc DepDesc setRecursive(boolean) `DepDesc recursive` setter.
     recursive ::= false
 
-    //doc DepDesc dir(root) Get the destination `Directory` relative to `root`.
-    dir := method(root,
+    //doc DepDesc dest(root) Get the destination `Directory` relative to `root`.
+    dest := method(root,
         root directoryNamed(self name) directoryNamed(self version))
 
-    /*doc DepDesc fromDep(dep, package) 
-    Recursively initializes `DepDesc` from `Package Dependency` and the
-    dependency root `Directory`.*/
-    fromDep := method(dep, depRoot,
-        if (depRoot exists not,
+    /*doc DepDesc with(dep, root, parent) 
+    Recursively initializes `DepDesc` from `Package Dependency`, dependencies
+    root `Directory` (`_packs`) and parent `DepDesc` (can be `nil`).*/
+    with := method(dep, root, parent,
+        if (dep root(root) exists not,
             Exception raise(DependencyNotInstalledError with(dep name)))
 
-        version := self _installedVersionFor(dep, depRoot)
+        version := self _installedVersionFor(dep, root)
 
-        result := DepDesc clone setName(dep name) setVersion(version asSeq)
+        result := DepDesc clone \
+            setName(dep name) \
+                setVersion(version asSeq) \
+                    setParent(parent)
+
+        if (result dest(root) exists not, 
+            Exception raise(DependencyNotInstalledError with(dep name)))
 
         if (self _hasAncestor(result), return result setRecursive(true))
 
-        deps := Package with(self dir(depRoot) path) manifest packs
+        self _collectChildren(result, root))
 
-        deps foreach(dep, 
-            # TODO is setParent by copy or by reference?
-            # because if it's by copy, parent will not have children
-            result addChild(
-                DepDesc clone setParent(result) fromDep(dep, depRoot)))
-
-        result)
-
-    _installedVersionFor := method(dep, depRoot,
-        versions := self _versionsInDir(depRoot)
-        if (dep version isNil,
-            return SemVer highestIn(versions),
-            return dep version highestIn(versions)))
+    _installedVersionFor := method(dep, root,
+        versions := self _versionsInDir(dep root(root))
+        dep version highestIn(versions))
 
     # get list of `SemVer` in a package dir
     _versionsInDir := method(dir,
@@ -679,8 +674,15 @@ Package DepDesc := Object clone do (
 
         if (self parent name == desc name and(
             self parent version == desc version),
-        return true,
-        return self parent _hasAncestor(desc)))
+            return true,
+            return self parent _hasAncestor(desc)))
+
+    _collectChildren := method(desc, root,
+        deps := Package with(desc dest(root) path) manifest packs
+
+        deps foreach(dep, desc addChild(DepDesc with(dep, root, desc)))
+    
+        desc)
 
     //doc DepDesc addChild(DepDesc) Adds a child.
     addChild := method(desc, self children atPut(desc name, desc))

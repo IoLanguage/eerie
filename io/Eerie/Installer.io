@@ -46,9 +46,7 @@ Installer := Object clone do (
         destPackage := Package with(self destination path)
         self _checkSame(destPackage)
 
-        ver := if (version isNil,
-            SemVer highestIn(self package versions),
-            version highestIn(self package versions))
+        ver := self versionFor(version)
 
         if (ver == destPackage manifest version,
             Logger log(
@@ -83,6 +81,14 @@ Installer := Object clone do (
                 DifferentPackageError with(
                     destPackage manifest name, self package manifest name))))
 
+    /*doc Installer versionFor(SemVer) 
+    Get version (`SemVer`) of the `package`, which will be used for passed
+    `SemVer`*/
+    versionFor := method(version,
+        if (version isNil,
+            return SemVer highestIn(self package versions),
+            return version highestIn(self package versions)))
+
     _logUpdate := method(version, destPackage,
         if (version > destPackage manifest version) then (
             Logger log("⬆ [[cyan bold;Updating [[reset;" ..
@@ -116,9 +122,7 @@ Installer := Object clone do (
 
         self _checkGitBranch
 
-        ver := if (version isNil,
-            SemVer highestIn(self package versions),
-            version highestIn(self package versions))
+        ver := self versionFor(version)
 
         if (ver isNil not, self _checkGitTag(ver))
 

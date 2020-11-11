@@ -40,19 +40,20 @@ InstallerTest := UnitTest clone do (
 
         # this package has binaries, so we check binaries installation too
         package := Package with("tests/_packs/BFakePack")
+        destDir := parentPkg struct packs directoryNamed(package manifest name)
         installer := Installer with(
             package,
-            parentPkg struct packRootFor(package manifest name) path,
+            destDir path,
             parentPkg struct binDest path)
 
-        assertFalse(parentPkg struct packRootFor(package manifest name) exists)
+        assertFalse(destDir exists)
 
         installer install
 
-        assertTrue(parentPkg struct packRootFor(package manifest name) exists)
+        assertTrue(destDir exists)
 
         # validate package
-        Package with(parentPkg struct packRootFor(package manifest name) path)
+        Package with(destDir path)
 
         # check binaries installation
         assertTrue(parentPkg struct binDest exists)
