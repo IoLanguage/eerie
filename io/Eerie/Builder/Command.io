@@ -37,7 +37,7 @@ CompilerCommand := Command clone do (
     _depsManager := nil
 
     _defines := lazySlot(
-        build := "BUILDING_#{self package manifest name asUppercase}_Pack" interpolate 
+        build := "BUILDING_#{self package struct manifest name asUppercase}_Pack" interpolate 
         
         result := if(Eerie platform == "windows",
             list(

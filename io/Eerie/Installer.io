@@ -48,10 +48,10 @@ Installer := Object clone do (
 
         ver := self versionFor(version)
 
-        if (ver == destPackage manifest version,
+        if (ver == destPackage struct manifest version,
             Logger log(
-                "☑  #{destPackage manifest name} " .. 
-                "v#{destPackage manifest version asSeq} " ..
+                "☑  #{destPackage struct manifest name} " .. 
+                "v#{destPackage struct manifest version asSeq} " ..
                 "is already updated", 
                 "output")
             return)
@@ -64,7 +64,7 @@ Installer := Object clone do (
         destPackage runHook("afterUpdate")
 
         Logger log(
-            "☑  [[magenta bold;#{destPackage manifest name}[[reset; is " ..
+            "☑  [[magenta bold;#{destPackage struct manifest name}[[reset; is " ..
             "[[magenta bold;#{ver originalSeq}[[reset; now",
             "output"))
 
@@ -76,10 +76,10 @@ Installer := Object clone do (
             Exception raise(DestinationNotSetError with(""))))
 
     _checkSame := method(destPackage,
-        if (self package manifest name != destPackage manifest name, 
+        if (self package struct manifest name != destPackage struct manifest name, 
             Exception raise(
                 DifferentPackageError with(
-                    destPackage manifest name, self package manifest name))))
+                    destPackage struct manifest name, self package struct manifest name))))
 
     /*doc Installer versionFor(SemVer) 
     Get version (`SemVer`) of the `package`, which will be used for passed
@@ -90,17 +90,17 @@ Installer := Object clone do (
             return version highestIn(self package versions)))
 
     _logUpdate := method(version, destPackage,
-        if (version > destPackage manifest version) then (
+        if (version > destPackage struct manifest version) then (
             Logger log("⬆ [[cyan bold;Updating [[reset;" ..
-                "#{destPackage manifest name} " ..
+                "#{destPackage struct manifest name} " ..
                 "from [[magenta bold;" ..
-                "v#{destPackage manifest version asSeq}[[reset; " ..
+                "v#{destPackage struct manifest version asSeq}[[reset; " ..
                 "to [[magenta bold;v#{version asSeq}", "output")
-        ) elseif (version < destPackage manifest version) then (
+        ) elseif (version < destPackage struct manifest version) then (
             Logger log(
                 "⬇ [[cyan bold;Downgrading [[reset;" .. 
-                "#{destPackage manifest name} " ..
-                "from v#{destPackage manifest version asSeq} " ..
+                "#{destPackage struct manifest name} " ..
+                "from v#{destPackage struct manifest version asSeq} " ..
                 "to v#{version asSeq}", "output")))
 
     /*doc Installer install(version)
@@ -113,9 +113,9 @@ Installer := Object clone do (
 
         if (self destination exists, 
             Exception raise(DirectoryExistsError with(
-                self package manifest name, self destination path)))
+                self package struct manifest name, self destination path)))
 
-        Logger log("📥 [[cyan bold;Installing [[reset;#{self package manifest name}", 
+        Logger log("📥 [[cyan bold;Installing [[reset;#{self package struct manifest name}", 
             "output")
 
         self package runHook("beforeInstall")
@@ -137,8 +137,8 @@ Installer := Object clone do (
         self package runHook("afterInstall"))
 
     _checkGitBranch := method(
-        if (self package manifest branch isNil, return)
-        System sh("git checkout #{self package manifest branch}",
+        if (self package struct manifest branch isNil, return)
+        System sh("git checkout #{self package struct manifest branch}",
             false,
             self package struct root path))
 

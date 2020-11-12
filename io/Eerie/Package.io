@@ -3,12 +3,10 @@
 
 Package := Object clone do (
 
-    //doc Package manifest Get the `Package Manifest`.
-    manifest := nil
-
     //doc Package struct Get `Package Structure` for this package.
     struct := nil
 
+    # TODO move into Structure
     //doc Package packsio Get `Package PacksIo`.
     packsio := method(PacksIo with(self))
 
@@ -19,30 +17,35 @@ Package := Object clone do (
         cmdOut := System sh("git tag", true, self struct root path)
         cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
 
+    # TODO move into Structure
     /*doc Package dllFileName 
     Get the file name of the dynamic library provided by this package in the
     result of compilation with `lib` prefix.*/
     dllFileName := method("lib" .. self dllName .. "." .. Eerie dllExt)
 
+    # TODO move into Structure
     /*doc Package dllName 
     Get the name of the dynamic library provided by this package in the result
     of compilation. Note, this is the name of the library, not the name of the
     dll file (i.e. without extension and `lib` prefix). Use `Package
     dllFileName` for the DLL file name.*/
-    dllName := method("Io" .. self manifest name)
+    dllName := method("Io" .. self struct manifest name)
 
+    # TODO move into Structure
     /*doc Package staticLibFileName 
     Get the file name of the static library provided by this package in the
     result of compilation.*/
     staticLibFileName := method("lib" .. self staticLibName .. ".a")
 
+    # TODO move into Structure
     /*doc Package staticLibName 
     Get the name of the static library provided by this package in the result of
     compilation. Note, this is the name of the library, not the name of the dll
     file (i.e. the extension and without `lib` prefix). Use `Package
     staticLibFileName` for the static library file name.*/
-    staticLibName := method("Io" .. self manifest name)
+    staticLibName := method("Io" .. self struct manifest name)
 
+    # TODO move into Structure
     /*doc Package dllPath
     Get the path to the dynamic library this package represents.*/
     dllPath := method(self struct build dll path .. "/" .. self dllFileName)
@@ -74,12 +77,8 @@ Package := Object clone do (
     with := method(path,
         klone := self clone
         klone struct := Structure with(path)
+        klone struct manifest validate
         klone _checksIsPackage
-
-        manifestFile := File with(
-            klone struct root path .. "/#{Eerie manifestName}" interpolate) 
-        klone manifest := Manifest with(manifestFile)
-        klone manifest validate
 
         # call to init the list
         klone packages
@@ -103,7 +102,7 @@ Package := Object clone do (
         if (struct isNil, struct = self struct)
         lock := Eerie TransactionLock clone
         lock lock
-        self manifest packs foreach(dep, dep install(struct))
+        self struct manifest packs foreach(dep, dep install(struct))
         lock unlock)
 
     update := method(
@@ -126,7 +125,7 @@ Package := Object clone do (
         f exists ifTrue(
             Logger log(
                 "[[birghtBlue bold;Launching[[reset; #{hook} " ..
-                "hook for #{self manifest name}")
+                "hook for #{self struct manifest name}")
             ctx := Object clone
             e := try(ctx doFile(f path))
             f close
@@ -145,6 +144,115 @@ Package do (
     //doc Package FailedRunHookError
     FailedRunHookError := Eerie Error clone setErrorMsg(
         "Failed run hook \"#{call evalArgAt(0)}\":\n#{call evalArgAt(1)}")
+
+)
+
+//metadoc Structure category Package
+//metadoc Structure description Directory structure of `Package`.
+Package Structure := Object clone do (
+
+    //doc Structure root The root `Directory`.
+    root := nil
+
+    /*doc Structure bin
+    The `bin` directory. `Directory` with binaries of the package.*/
+    bin := method(self root directoryNamed("bin"))
+
+    /*doc Structure binDest
+    Get the `_bin` directory, where binaries of dependencies are installed.*/
+    binDest := method(self root createSubdirectory("_bin"))
+
+    /*doc Structure build
+    Get object with `_build` directory structure.
+
+    - `build root` - the `_build` root `Directory`
+    - `build dll` - the output `Directory` for dynamic library the package
+    represents
+    - `build headers` - the `Directory` where all the headers of the package is
+    installed
+    - `build lib` - the output `Directory` for static library the package
+    represents
+    - `build objs` - the output `Directory for the compiled objects*/
+    build := nil
+
+    //doc Structure packs Get the `_packs` `Directory`.
+    packs := method(self root createSubdirectory("_packs"))
+
+    /*doc Structure source
+    The `source` directory. The `Directory` with native (C) code.*/
+    source := method(self root createSubdirectory("source"))
+
+    /*doc Structure tmp
+    Get `_tmp` `Directory`.*/
+    tmp := method(self root createSubdirectory("_tmp"))
+
+    //doc Structure buildio The `build.io` file.
+    buildio := lazySlot(self root fileNamed("build.io"))
+
+    //doc Structure manifest Get the `Package Manifest`.
+    manifest := nil
+
+    /*doc Structure packRootFor(name)
+    Get a directory for package name (`Sequence`) inside `packs` whether it's
+    installed or not.*/ 
+    packRootFor := method(name, self packs directoryNamed(name))
+
+    /*doc Structure packFor(name, version)
+    Get `Directory` for package inside `packs` for its name (`Sequence`) and
+    version (`SemVer`).*/
+    packFor := method(name, version,
+        self packRootFor(name) directoryNamed(version asSeq))
+
+    /*doc Structure with(rootPath) 
+    Init `Structure` with the path to the root directory (`Sequence`).*/
+    with := method(rootPath,
+        klone := self clone
+        klone root = Directory with(rootPath)
+        klone build := BuildDir with(klone root)
+        manifestFile := File with(
+            rootPath .. "/#{Eerie manifestName}" interpolate) 
+        klone manifest := Package Manifest with(manifestFile)
+
+        klone)
+
+    /*doc Structure isPackage
+    Returns boolean whether the structure is a `Package`.*/
+    isPackage := method(
+        ioDir := self root directoryNamed("io")
+        manifest := File with(
+            self root path .. "/" .. "#{Eerie manifestName}" interpolate)
+
+        self root exists and manifest exists and ioDir exists)
+
+    /*doc Structure hasNativeCode 
+    Returns `true` if the structure has native code and `false` otherwise.*/
+    hasNativeCode := method(
+        self source files isEmpty not or self source directories isEmpty not)
+
+    /*doc Structure hasBinaries
+    Returns `true` if `self bin` has files and `false` otherwise.*/
+    hasBinaries := method(self bin exists and self bin files isEmpty not)
+
+    BuildDir := Object clone do (
+        
+        parent := nil
+
+        with := method(parent,
+            klone := self clone
+            klone parent = parent
+            klone)
+
+        root := method(self parent createSubdirectory("_build"))
+
+        dll := method(self root createSubdirectory("dll"))
+
+        headers := method(self root createSubdirectory("headers"))
+
+        lib := method(self root createSubdirectory("lib"))
+
+        objs := method(self root createSubdirectory("objs"))
+
+    )
 
 )
 
@@ -180,6 +288,8 @@ Package Manifest := Object clone do (
     with := method(file,
         klone := self clone
         klone file = file
+        if (file exists not,
+            Exception raise(FileNotExistsError with(file path)))
         klone _map = file contents parseJson
         klone)
 
@@ -324,6 +434,10 @@ Package Manifest := Object clone do (
 # Manifest error types
 Package Manifest do (
 
+    //doc Manifest FileNotExistsError
+    FileNotExistsError := Eerie Error clone setErrorMsg(
+        "The manifest file at '#{call evalArgAt(0)}' doesn't exist.")
+
     //doc Manifest InsufficientManifestError
     InsufficientManifestError := Eerie Error clone setErrorMsg(
         "The manifest at #{call evalArgAt(0)} doesn't satisfy " ..
@@ -349,108 +463,6 @@ Package Manifest do (
     LicenseError := Eerie Error clone setErrorMsg(
         "LICENSE file is required for published packages and shouldn't be " ..
         "empty.")
-
-)
-
-//metadoc Structure category Package
-//metadoc Structure description Directory structure of `Package`.
-Package Structure := Object clone do (
-
-    //doc Structure root The root `Directory`.
-    root := nil
-
-    /*doc Structure bin
-    The `bin` directory. `Directory` with binaries of the package.*/
-    bin := method(self root directoryNamed("bin"))
-
-    /*doc Structure binDest
-    Get the `_bin` directory, where binaries of dependencies are installed.*/
-    binDest := method(self root createSubdirectory("_bin"))
-
-    /*doc Structure build
-    Get object with `_build` directory structure.
-
-    - `build root` - the `_build` root `Directory`
-    - `build dll` - the output `Directory` for dynamic library the package
-    represents
-    - `build headers` - the `Directory` where all the headers of the package is
-    installed
-    - `build lib` - the output `Directory` for static library the package
-    represents
-    - `build objs` - the output `Directory for the compiled objects*/
-    build := nil
-
-    //doc Structure packs Get the `_packs` `Directory`.
-    packs := method(self root createSubdirectory("_packs"))
-
-    /*doc Structure source
-    The `source` directory. The `Directory` with native (C) code.*/
-    source := method(self root createSubdirectory("source"))
-
-    /*doc Structure tmp
-    Get `_tmp` `Directory`.*/
-    tmp := method(self root createSubdirectory("_tmp"))
-
-    //doc Structure buildio The `build.io` file.
-    buildio := lazySlot(self root fileNamed("build.io"))
-
-    /*doc Structure packRootFor(name)
-    Get a directory for package name (`Sequence`) inside `packs` whether it's
-    installed or not.*/ 
-    packRootFor := method(name, self packs directoryNamed(name))
-
-    /*doc Structure packFor(name, version)
-    Get `Directory` for package inside `packs` for its name (`Sequence`) and
-    version (`SemVer`).*/
-    packFor := method(name, version,
-        self packRootFor(name) directoryNamed(version asSeq))
-
-    /*doc Structure with(rootPath) 
-    Init `Structure` with the path to the root directory (`Sequence`).*/
-    with := method(rootPath,
-        klone := self clone
-        klone root = Directory with(rootPath)
-        klone build := BuildDir with(klone root)
-        klone)
-
-    /*doc Structure isPackage
-    Returns boolean whether the structure is a `Package`.*/
-    isPackage := method(
-        ioDir := self root directoryNamed("io")
-        manifest := File with(
-            self root path .. "/#{Eerie manifestName}" interpolate)
-
-        self root exists and manifest exists and ioDir exists)
-
-    /*doc Structure hasNativeCode 
-    Returns `true` if the structure has native code and `false` otherwise.*/
-    hasNativeCode := method(
-        self source files isEmpty not or self source directories isEmpty not)
-
-    /*doc Structure hasBinaries
-    Returns `true` if `self bin` has files and `false` otherwise.*/
-    hasBinaries := method(self bin exists and self bin files isEmpty not)
-
-    BuildDir := Object clone do (
-        
-        parent := nil
-
-        with := method(parent,
-            klone := self clone
-            klone parent = parent
-            klone)
-
-        root := method(self parent createSubdirectory("_build"))
-
-        dll := method(self root createSubdirectory("dll"))
-
-        headers := method(self root createSubdirectory("headers"))
-
-        lib := method(self root createSubdirectory("lib"))
-
-        objs := method(self root createSubdirectory("objs"))
-
-    )
 
 )
 
@@ -527,7 +539,8 @@ Package Dependency := Object clone do (
         package install(struct)
 
         # install the dependency
-        package manifest branch = self branch ifNilEval(package manifest branch)
+        package struct manifest branch = self branch ifNilEval(
+            package struct manifest branch)
 
         Installer with(
             package,
@@ -582,18 +595,33 @@ Package PacksIo := Object clone do (
     with := method(package,
         klone := self clone
         klone package = package
-        klone _descs := doFile(klone file path) ifNilEval(Map clone)
+        _descs := doFile(klone file path) ifNilEval(Map clone)
+        klone _descs := self deserializeDescs(_descs)
         klone)
 
-    //doc PacksIo missing Get list of missing dependencies.
+    _deserializeDescs := method(descs,
+        result := Map clone
+        descs foreach(key, value,
+            result atPut(key, Package DepDesc fromSerializedObj(value)))
+
+        result)
+
+    //doc PacksIo missing Returns list of missing dependencies.
     missing := method(
+        # TODO
+    )
+
+    /*doc PacksIo abandoned
+    Returns list of abandoned dependencies (i.e. those which are no more in
+    `eerie.json`).*/
+    abandoned := method(
         # TODO
     )
 
     /*doc PacksIo generate
     Generate the file.*/
     generate := method(
-        self package manifest packs foreach(dep,
+        self package struct manifest packs foreach(dep,
             self addDesc(Package DepDesc with(dep, self package struct)))
 
         self store)
@@ -649,16 +677,19 @@ Package DepDesc := Object clone do (
         obj serialized)
 
     /*doc DepDesc deserialize(Sequence) 
-    Deserialize `DepDesc` from the given `Sequence`.
+    Deserializes `DepDesc` from the given `Sequence`.
 
     Note, the serialized `DepDesc` is considered the top level `DepDesc` so its
     `parent` is always `nil`.*/
     deserialize := method(seq,
         obj := doString(seq)
+        self fromSerializedObj(obj))
 
-        self _fromSerializedObj(obj))
+    /*doc DepDesc fromSerializedObj(Object, DepDesc)
+    Init `DepDesc` from a serialized `Object`.
 
-    _fromSerializedObj := method(obj, parent,
+    The second argument is optional `parent` for this `DepDesc`.*/
+    fromSerializedObj := method(obj, parent,
         result := Package DepDesc clone
         result name = obj name
         result version = obj version
@@ -671,7 +702,7 @@ Package DepDesc := Object clone do (
         if (obj children isNil, return)
         children := Map clone
         obj children foreach(key, value,
-            children atPut(key, self _fromSerializedObj(value, self)))
+            children atPut(key, self fromSerializedObj(value, self)))
         children)
 
     /*doc DepDesc with(dep, struct, parent) 
@@ -716,7 +747,7 @@ Package DepDesc := Object clone do (
     _collectChildren := method(packDir, struct,
         if (self _hasAncestor(self), return self setRecursive(true))
 
-        deps := Package with(packDir path) manifest packs
+        deps := Package with(packDir path) struct manifest packs
 
         deps foreach(dep,
             self addChild(Package DepDesc with(dep, struct, self)))

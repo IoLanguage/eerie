@@ -40,7 +40,7 @@ InstallerTest := UnitTest clone do (
 
         # this package has binaries, so we check binaries installation too
         package := Package with("tests/_packs/BFakePack")
-        destDir := parentPkg struct packs directoryNamed(package manifest name)
+        destDir := parentPkg struct packs directoryNamed(package struct manifest name)
         installer := Installer with(
             package,
             destDir path,
@@ -81,7 +81,7 @@ InstallerTest := UnitTest clone do (
         installer install
 
         installed := Package with(tmpDest path)
-        assertEquals(installed manifest version, SemVer fromSeq("0.1.0"))
+        assertEquals(installed struct manifest version, SemVer fromSeq("0.1.0"))
 
         updatee := Package with("tests/_tmp/CFakePackUpdate")
         installer setPackage(updatee)
@@ -91,7 +91,7 @@ InstallerTest := UnitTest clone do (
         installer update(newVersion)
 
         installed := Package with(tmpDest path)
-        assertEquals(installed manifest version, SemVer fromSeq("0.1.4"))
+        assertEquals(installed struct manifest version, SemVer fromSeq("0.1.4"))
 
         installed remove)
 

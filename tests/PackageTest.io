@@ -10,12 +10,8 @@ PackageTest := UnitTest clone do (
         assertEquals(2, package packages size)
 
         expected := list("AFakePack", "CFakePack")
-        result := package packages map(manifest name) sort
+        result := package packages map(struct manifest name) sort
         assertEquals(expected, result))
-
-    testDirectoryValidation := method(
-        e := try (Package with("tests/_fpacks/NotPack"))
-        assertEquals(e error type, Package NotPackageError type))
 
     testDeps := method(
         package := Package with("tests/_packs/AFakePack")
@@ -32,7 +28,7 @@ PackageTest := UnitTest clone do (
         dep url = "tests/_packs/BFakePack"
         expected append(dep)
 
-        result := package manifest packs
+        result := package struct manifest packs
 
         expected foreach(n, item, 
             assertEquals(item name, result at(n) name)
@@ -69,6 +65,12 @@ StructureTest := UnitTest clone do (
 )
 
 ManifestTest := UnitTest clone do (
+
+    testFileExists := method(
+        e := try (Package Manifest with(
+            File with(
+                "tests/_fpacks/NotPack/#{Eerie manifestName}" interpolate)))
+        assertEquals(e error type, Package Manifest FileNotExistsError type))
 
     testValueForKey := method(
         manifest := Package Manifest clone
@@ -269,8 +271,8 @@ DepDescTest := UnitTest clone do (
 
     testInit := method(
         package := Package with("tests/installed/AFakePack")
-        descs := package manifest packs map(dep, 
-            Package DepDesc with( dep, package struct))
+        descs := package struct manifest packs map(dep, 
+            Package DepDesc with(dep, package struct))
         expected := list("AFakePack", "BFakePack")
         assertEquals(expected, descs at(0) children keys sort)
 
@@ -304,7 +306,7 @@ DepDescTest := UnitTest clone do (
     testSerialization := method(
         package := Package with("tests/installed/AFakePack")
         desc := Package DepDesc with(
-            package manifest packs at(0),
+            package struct manifest packs at(0),
             package struct)
 
         de := Package DepDesc deserialize(desc serialized)

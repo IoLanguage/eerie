@@ -22,7 +22,7 @@ PublisherTest := UnitTest clone do (
         e := try (publisher _checkVersionNewer)
         assertEquals(e error type, Publisher VersionIsOlderError type)
 
-        package manifest version = SemVer fromSeq("0.1.1")
+        package struct manifest version = SemVer fromSeq("0.1.1")
         # should pass now
         publisher _checkVersionNewer)
 
@@ -46,12 +46,12 @@ PublisherTest := UnitTest clone do (
     testGitTagExists := method(
         package := Package with("tests/_tmp/CFakePackUpdate")
         publisher := Publisher with(package)
-        package manifest version := SemVer fromSeq("0.1.0")
+        package struct manifest version := SemVer fromSeq("0.1.0")
 
         e := try (publisher _checkGitTagExists)
         assertEquals(e error type, Publisher GitTagExistsError type)
 
-        package manifest version := SemVer fromSeq("10.0.0")
+        package struct manifest version := SemVer fromSeq("10.0.0")
         publisher _checkGitTagExists)
 
     testPromptPush := method(

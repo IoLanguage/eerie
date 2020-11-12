@@ -12,7 +12,7 @@ Publisher := Object clone do (
 
     /*doc Publisher gitTag 
     Get git tag name, which will be used for the release.*/
-    gitTag := method("v" .. self package manifest version asSeq)
+    gitTag := method("v" .. self package struct manifest version asSeq)
 
     /*doc Publisher shouldPush 
     Whether git push should be performed after release. `true`, `false` or
@@ -49,8 +49,8 @@ Publisher := Object clone do (
         self _promptPush
 
         Logger log(
-            "🎉 [[magenta;Successfully released [[bold;#{self package manifest name} " ..
-            "v#{self package manifest version asSeq}[[reset magenta;![[reset;\n\n" .. 
+            "🎉 [[magenta;Successfully released [[bold;#{self package struct manifest name} " ..
+            "v#{self package struct manifest version asSeq}[[reset magenta;![[reset;\n\n" .. 
             "Now publish it in Eerie database.\n" .. 
             "Look [[green;https://github.com/IoLanguage/eerie-db[[reset; " .. 
             "for instructions.")
@@ -68,22 +68,22 @@ Publisher := Object clone do (
     Check whether the `package` satisfies all the requirements for published
     packages.*/
     validate := method(
-        self package manifest validate(true)
+        self package struct manifest validate(true)
         self _checkVersionNewer)
 
     _checkVersionNewer := method(
-        verSeq := Database valueFor(self package manifest name, "version")
+        verSeq := Database valueFor(self package struct manifest name, "version")
         previous := if (verSeq isNil,
             SemVer highestIn(self package versions),
             SemVer fromSeq(verSeq))
 
         if (previous isNil, return)
 
-        if (previous >= self package manifest version, 
+        if (previous >= self package struct manifest version, 
             Exception raise(
                 VersionIsOlderError with(
-                    self package manifest name, 
-                    self package manifest version originalSeq,
+                    self package struct manifest name, 
+                    self package struct manifest version originalSeq,
                     previous originalSeq))))
 
     _checkHasGitChanges := method(
@@ -93,7 +93,7 @@ Publisher := Object clone do (
         res := cmdOut stdout split("\n") select(seq,
             seq endsWithSeq("-stdout") not and seq endsWithSeq("-stderr") not)
         if (res isEmpty not, 
-            Exception raise(HasGitChangesError with(self package manifest name))))
+            Exception raise(HasGitChangesError with(self package struct manifest name))))
 
     _addGitTag := method(
         self _checkGitTagExists
@@ -110,7 +110,7 @@ Publisher := Object clone do (
         if (cmdOut stdout split("\n") contains(self gitTag),
             Exception raise(
                 GitTagExistsError with(
-                    self gitTag, self package manifest name))))
+                    self gitTag, self package struct manifest name))))
 
     _promptPush := method(
         if (self shouldPush isNil not, return)
