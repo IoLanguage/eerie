@@ -638,6 +638,42 @@ Package DepDesc := Object clone do (
     //doc DepDesc setRecursive(boolean) `DepDesc recursive` setter.
     recursive ::= false
 
+    //doc DepDesc serialized Get serialized version of `DepDesc` (`Sequence`).
+    serialized := method(
+        obj := Object clone
+        obj name := self name
+        obj version := self version
+        obj children := self children
+        # obj parent := self parent
+        obj recursive := self recursive
+        obj serialized)
+
+    /*doc DepDesc deserialize(Sequence) 
+    Deserialize `DepDesc` from the given `Sequence`.
+
+    Note, the serialized `DepDesc` is considered the top level `DepDesc` so its
+    `parent` is always `nil`.*/
+    deserialize := method(seq,
+        obj := doString(seq)
+
+        self _fromSerializedObj(obj))
+
+    _fromSerializedObj := method(obj, parent,
+        result := Package DepDesc clone
+        result name = obj name
+        result version = obj version
+        result recursive = obj recursive
+        result parent = parent
+        result children = result _deserializeChildren(obj)
+        result)
+
+    _deserializeChildren := method(obj,
+        if (obj children isNil, return)
+        children := Map clone
+        obj children foreach(key, value,
+            children atPut(key, self _fromSerializedObj(value, self)))
+        children)
+
     /*doc DepDesc with(dep, struct, parent) 
     Recursively initializes `DepDesc` from `Package Dependency`, 
     `Package Structure` and parent `DepDesc` (can be `nil`).*/

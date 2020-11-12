@@ -301,4 +301,32 @@ DepDescTest := UnitTest clone do (
                 at("CFakePack") children \
                     at("BFakePack") recursive))
 
+    testSerialization := method(
+        package := Package with("tests/installed/AFakePack")
+        desc := Package DepDesc with(
+            package manifest packs at(0),
+            package struct)
+
+        de := Package DepDesc deserialize(desc serialized)
+        assertEquals(de name, desc name)
+        assertEquals(de version, desc version)
+        assertEquals(de recursive, desc recursive)
+        assertEquals(de children keys, desc children keys)
+
+        self _checkParents(de)
+
+        de children foreach(key, child,
+            assertEquals(child parent, de)
+
+            child children foreach(key, ch,
+                assertEquals(ch parent, child)))
+
+        assertEquals(de serialized, desc serialized))
+
+    _checkParents := method(de,
+        de children ?foreach(key, child,
+            self _checkParents(child)
+            assertEquals(child parent, de)))
+
 )
+
