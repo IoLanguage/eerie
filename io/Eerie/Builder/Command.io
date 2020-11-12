@@ -134,7 +134,7 @@ StaticLinkerCommand := Command clone do (
     asSeq := method(
         path := self package struct root path
         result := ("#{self _ar} #{self _arFlags}" ..
-            "#{self package staticLibPath} " ..
+            "#{self package struct staticLibPath} " ..
             "#{self package struct build objs path}/*.o") interpolate
 
         if (self _ranlibSeq isEmpty, return result)
@@ -145,7 +145,7 @@ StaticLinkerCommand := Command clone do (
         if (self _ranlib isNil, return "") 
 
         path := self package struct root path
-        "#{self _ranlib} #{self package staticLibPath}" interpolate)
+        "#{self _ranlib} #{self package struct staticLibPath}" interpolate)
 
 )
 
@@ -189,7 +189,7 @@ DynamicLinkerCommand := Command clone do (
     _depsManager := nil
 
     # this is for windows only
-    manifestPath := method(self package dllPath .. ".manifest")
+    manifestPath := method(self package struct dllPath .. ".manifest")
 
     with := method(pkg, depsManager,
         klone := self clone
@@ -203,14 +203,14 @@ DynamicLinkerCommand := Command clone do (
         # against it should look for the library. The path is relative, so it
         # may cause library not found error. Needs investigation on macOS. 
         installNameFlag := if (Eerie platform == "darwin",
-            " -install_name " .. self package dllPath,
+            " -install_name " .. self package struct dllPath,
             "")
 
         cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
         result := ("#{self _linkerCmd} #{cflags} " .. 
             "#{self _dllCommand} #{installNameFlag} " ..
             "#{self _outFlag}" ..
-            "#{self package dllPath} " .. 
+            "#{self package struct dllPath} " .. 
             "#{self package struct build objs path}/*.o #{links}") interpolate
 
         result .. " && " .. self _embedManifestCmd)
@@ -224,7 +224,7 @@ DynamicLinkerCommand := Command clone do (
 
         links appendSeq(self package packages map(pkg,
             ("#{self libFlag}" ..
-                "#{self _nameWithLibSuffix(pkg dllName)}") interpolate))
+                "#{self _nameWithLibSuffix(pkg struct dllName)}") interpolate))
 
         if(Eerie platform == "windows",
             links appendSeq(self _depsManager _syslibs map(v, v .. ".lib")))
@@ -268,6 +268,6 @@ DynamicLinkerCommand := Command clone do (
         if((Eerie platform == "windows") not, return "")
 
         "mt.exe -manifest " .. self manifestPath ..
-        " -outputresource:" .. self package dllPath)
+        " -outputresource:" .. self package struct dllPath)
 
 )

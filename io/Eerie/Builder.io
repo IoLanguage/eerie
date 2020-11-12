@@ -130,7 +130,7 @@ Builder := Object clone do (
     _buildStaticLib := method(
         Logger log(
             "🧩 [[brightBlue bold;Linking [[reset;" .. 
-            "#{self package staticLibFileName}",
+            "#{self package struct staticLibFileName}",
             "output")
 
         self staticLibBuildStarted
@@ -140,7 +140,7 @@ Builder := Object clone do (
     _buildDynLib := method(
         Logger log(
             "🧩 [[brightBlue bold;Linking [[reset;" .. 
-            "#{self package dllFileName}",
+            "#{self package struct dllFileName}",
             "output")
 
         self dynLibBuildStarted
@@ -148,7 +148,7 @@ Builder := Object clone do (
         # create DLL output dir if it doesn't exist
         self package struct build dll 
 
-        libname := self package dllName
+        libname := self package struct dllName
 
         System sh(self _dynLinkerCommand asSeq)
 

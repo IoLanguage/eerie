@@ -6,54 +6,12 @@ Package := Object clone do (
     //doc Package struct Get `Package Structure` for this package.
     struct := nil
 
-    # TODO move into Structure
-    //doc Package packsio Get `Package PacksIo`.
-    packsio := method(PacksIo with(self))
-
     /*doc Package versions
     Get `List` of available versions. The versions are collected from git tags.
     */
     versions := method(
         cmdOut := System sh("git tag", true, self struct root path)
         cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
-
-    # TODO move into Structure
-    /*doc Package dllFileName 
-    Get the file name of the dynamic library provided by this package in the
-    result of compilation with `lib` prefix.*/
-    dllFileName := method("lib" .. self dllName .. "." .. Eerie dllExt)
-
-    # TODO move into Structure
-    /*doc Package dllName 
-    Get the name of the dynamic library provided by this package in the result
-    of compilation. Note, this is the name of the library, not the name of the
-    dll file (i.e. without extension and `lib` prefix). Use `Package
-    dllFileName` for the DLL file name.*/
-    dllName := method("Io" .. self struct manifest name)
-
-    # TODO move into Structure
-    /*doc Package staticLibFileName 
-    Get the file name of the static library provided by this package in the
-    result of compilation.*/
-    staticLibFileName := method("lib" .. self staticLibName .. ".a")
-
-    # TODO move into Structure
-    /*doc Package staticLibName 
-    Get the name of the static library provided by this package in the result of
-    compilation. Note, this is the name of the library, not the name of the dll
-    file (i.e. the extension and without `lib` prefix). Use `Package
-    staticLibFileName` for the static library file name.*/
-    staticLibName := method("Io" .. self struct manifest name)
-
-    # TODO move into Structure
-    /*doc Package dllPath
-    Get the path to the dynamic library this package represents.*/
-    dllPath := method(self struct build dll path .. "/" .. self dllFileName)
-
-    /*doc Package staticLibPath
-    Get the path to the static library this package represents.*/
-    staticLibPath := method(
-        self struct build lib path .. "/" .. self staticLibFileName)
 
     # TODO
     # this should be removed and packsio should be used for linking or wherever
@@ -76,17 +34,17 @@ Package := Object clone do (
     Use this to initialize a `Package`.*/
     with := method(path,
         klone := self clone
+        klone _checksIsPackage(Directory with(path))
         klone struct := Structure with(path)
         klone struct manifest validate
-        klone _checksIsPackage
 
         # call to init the list
         klone packages
         klone)
 
-    _checksIsPackage := method(
-        if (self struct isPackage not, 
-            Exception raise(NotPackageError with(self struct root path))))
+    _checksIsPackage := method(root,
+        if (Structure isPackage(root) not, 
+            Exception raise(NotPackageError with(root path))))
 
     create := method(name, path,
         name
@@ -192,6 +150,9 @@ Package Structure := Object clone do (
     //doc Structure manifest Get the `Package Manifest`.
     manifest := nil
 
+    //doc Structure packsio Get the `Package PacksIo`.
+    packsio := lazySlot(PacksIo with(self))
+
     /*doc Structure packRootFor(name)
     Get a directory for package name (`Sequence`) inside `packs` whether it's
     installed or not.*/ 
@@ -215,14 +176,14 @@ Package Structure := Object clone do (
 
         klone)
 
-    /*doc Structure isPackage
-    Returns boolean whether the structure is a `Package`.*/
-    isPackage := method(
-        ioDir := self root directoryNamed("io")
+    /*doc Structure isPackage(root)
+    Returns boolean whether the `root` `Directory` is a `Package`.*/
+    isPackage := method(root,
+        ioDir := root directoryNamed("io")
         manifest := File with(
-            self root path .. "/" .. "#{Eerie manifestName}" interpolate)
+            root path .. "/" .. "#{Eerie manifestName}" interpolate)
 
-        self root exists and manifest exists and ioDir exists)
+        root exists and manifest exists and ioDir exists)
 
     /*doc Structure hasNativeCode 
     Returns `true` if the structure has native code and `false` otherwise.*/
@@ -232,6 +193,39 @@ Package Structure := Object clone do (
     /*doc Structure hasBinaries
     Returns `true` if `self bin` has files and `false` otherwise.*/
     hasBinaries := method(self bin exists and self bin files isEmpty not)
+
+    /*doc Structure dllPath
+    Get the path to the dynamic library this package represents.*/
+    dllPath := method(self build dll path .. "/" .. self dllFileName)
+
+    /*doc Structure dllFileName 
+    Get the file name of the dynamic library provided by this package in the
+    result of compilation with `lib` prefix.*/
+    dllFileName := method("lib" .. self dllName .. "." .. Eerie dllExt)
+
+    /*doc Structure dllName 
+    Get the name of the dynamic library provided by this package in the result
+    of compilation. Note, this is the name of the library, not the name of the
+    dll file (i.e. without extension and `lib` prefix). Use `Package
+    dllFileName` for the DLL file name.*/
+    dllName := method("Io" .. self manifest name)
+
+    /*doc Structure staticLibPath
+    Get the path to the static library this package represents.*/
+    staticLibPath := method(
+        self build lib path .. "/" .. self staticLibFileName)
+
+    /*doc Structure staticLibFileName 
+    Get the file name of the static library provided by this package in the
+    result of compilation.*/
+    staticLibFileName := method("lib" .. self staticLibName .. ".a")
+
+    /*doc Structure staticLibName 
+    Get the name of the static library provided by this package in the result of
+    compilation. Note, this is the name of the library, not the name of the dll
+    file (i.e. the extension and without `lib` prefix). Use `Package
+    staticLibFileName` for the static library file name.*/
+    staticLibName := method("Io" .. self manifest name)
 
     BuildDir := Object clone do (
         
@@ -582,19 +576,19 @@ Package Dependency do (
 //metadoc PacksIo description Represents `packs.io` file.
 Package PacksIo := Object clone do (
 
-    //doc PacksIo package Get the `Package`.
-    package := nil
+    //doc PacksIo struct Get the `Package Structure`.
+    struct := nil
 
     //doc PacksIo file Get `packs.io` `File`.
-    file := method(self package struct root fileNamed("packs.io"))
+    file := method(self struct root fileNamed("packs.io"))
 
     _descs := nil
 
-    /*doc PacksIo with(package) 
-    Init `PacksIo` with `Package`.*/
-    with := method(package,
+    /*doc PacksIo with(Structure) 
+    Init `PacksIo` with `Structure`.*/
+    with := method(struct,
         klone := self clone
-        klone package = package
+        klone struct = struct
         _descs := doFile(klone file path) ifNilEval(Map clone)
         klone _descs := self deserializeDescs(_descs)
         klone)
@@ -621,8 +615,8 @@ Package PacksIo := Object clone do (
     /*doc PacksIo generate
     Generate the file.*/
     generate := method(
-        self package struct manifest packs foreach(dep,
-            self addDesc(Package DepDesc with(dep, self package struct)))
+        self struct manifest packs foreach(dep,
+            self addDesc(Package DepDesc with(dep, self struct)))
 
         self store)
 

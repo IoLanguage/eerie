@@ -44,8 +44,8 @@ PackageTest := UnitTest clone do (
 StructureTest := UnitTest clone do (
 
     testIsPackage := method(
-        struct := Package Structure with("tests/_fpacks/NotPack")
-        assertFalse(struct isPackage))
+        root := Directory with("tests/_fpacks/NotPack")
+        assertFalse(Package Structure isPackage(root)))
 
     testHasNativeCode := method(
         aStruct := Package Structure with("tests/_packs/AFakePack")
