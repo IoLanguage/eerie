@@ -15,6 +15,15 @@ Package := Object clone do (
         cmdOut := System sh("git tag", true, self struct root path)
         cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
 
+    /*doc Package parent 
+    Get parent of this `Package`. Returns `nil` if it's top-level.*/
+    //doc Package setParent(Package) Set parent for this package.
+    parent ::= nil
+
+    /*doc Package children 
+    Get `Map` of installed children (`Package`'s) of this package.*/
+    children := nil
+
     /*doc Package packages 
     Get the `List` of installed dependencies (`Package`) for this package.*/
     packages := method(
@@ -36,14 +45,37 @@ Package := Object clone do (
         klone _checksIsPackage(Directory with(path))
         klone struct := Structure with(path)
         klone struct manifest validate
+        klone children := Map clone
 
-        # call to init the list
-        klone packages
         klone)
 
     _checksIsPackage := method(root,
         if (Structure isPackage(root) not, 
             Exception raise(NotPackageError with(root path))))
+
+    /*doc Package missing 
+    Returns list of missing dependencies (`Manifest Dependency`).*/
+    missing := method(
+        self struct manifest packs select(name, 
+            self children hasKey(name) not))
+
+    /*doc Package abandoned
+    Returns list of abandoned dependencies (`Package`) (i.e. those which are no
+    more in `eerie.json`).*/
+    abandoned := method(
+        self children select(name,
+            self struct manifest packs hasKey(name) not))
+
+    /*doc Package changed
+    Get list of dependencies (`Manifest Dependency`), which requirements has
+    been changed in `eerie.json`.*/
+    changed := method(
+        self struct manifest packs select(name, pack,
+            child := self children at(name)
+
+            if (child isNil, return false)
+
+            pack version includes(child version) not or pack url != child url))
 
     create := method(name, path,
         name

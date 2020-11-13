@@ -30,25 +30,26 @@ PacksIo := Object clone do (
 
         result)
 
-    //doc PacksIo missing Returns list of missing dependencies.
+    /*doc PacksIo missing 
+    Returns list of missing dependencies (`Manifest Dependency`).*/
     missing := method(
-        # TODO
-    )
+        self struct manifest packs select(pack, self descs hasKey(pack name)))
 
     /*doc PacksIo abandoned
-    Returns list of abandoned dependencies (i.e. those which are no more in
-    `eerie.json`).*/
+    Returns list of abandoned dependencies (`DepDesc`) (i.e. those which are no
+    more in `eerie.json`).*/
     abandoned := method(
+        self descs select(desc, self struct manifest packs hasKey(desc name)))
+
+    changed := method(
         # TODO
     )
 
-    /*doc PacksIo generate
-    Generate the file.*/
-    generate := method(
+    /*doc PacksIo rebuild
+    Rebuild `descs` tree.*/
+    rebuild := method(
         self struct manifest packs foreach(dep,
-            self addDesc(DepDesc with(dep, self struct)))
-
-        self store)
+            self addDesc(DepDesc with(dep, self struct))))
 
     //doc PacksIo store Write the file.
     store := method(self file setContents(self descs serialized))

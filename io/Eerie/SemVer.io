@@ -134,6 +134,20 @@ SemVer := Object clone do(
 
         result)
 
+    /*doc SemVer includes(SemVer)
+    Returns boolean whether current `SemVer` includes the passed one.*/
+    includes := method(ver,
+        if (self isShortened not) then (
+            return self == ver
+        ) elseif (self minor isNil) then (
+            return self major == ver major
+        ) elseif (self patch isNil) then (
+            return self major == ver major and(self minor == ver minor)
+        ) elseif (self preNumber isNil) then (
+            return self major == ver major and \
+                self minor == ver minor and \
+                    self pre == ver pre))
+
     //doc SemVer isShortened Returns a boolean whether the version is shortened.
     isShortened := method(
         self patch isNil or (self isPre and self preNumber isNil))

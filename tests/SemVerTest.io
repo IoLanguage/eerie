@@ -196,4 +196,31 @@ SemVerTest := UnitTest clone do(
             SemVer fromSeq("0.2") highestIn(versions),
             SemVer fromSeq("0.2.1")))
 
+    testIncludes := method(
+        assertTrue(SemVer fromSeq("1") includes(SemVer fromSeq("1")))
+        assertTrue(SemVer fromSeq("1") includes(SemVer fromSeq("1.1")))
+        assertTrue(SemVer fromSeq("1") includes(SemVer fromSeq("1.2.1")))
+        assertTrue(SemVer fromSeq("1.0") includes(SemVer fromSeq("1.0")))
+        assertTrue(SemVer fromSeq("1.0") includes(SemVer fromSeq("1.0.7")))
+        assertTrue(SemVer fromSeq("1.0.0") includes(SemVer fromSeq("1.0.0")))
+        assertTrue(
+            SemVer fromSeq("1.0.0-rc") includes(SemVer fromSeq("1.0.0-rc")))
+        assertTrue(
+            SemVer fromSeq("1.0.0-rc") includes(SemVer fromSeq("1.0.0-rc.2")))
+
+        assertFalse(SemVer fromSeq("1.0") includes(SemVer fromSeq("1")))
+        assertFalse(SemVer fromSeq("1.0.0") includes(SemVer fromSeq("1")))
+        assertFalse(SemVer fromSeq("1.0.0") includes(SemVer fromSeq("1.0")))
+        assertFalse(SemVer fromSeq("1.0.0-rc") includes(SemVer fromSeq("1")))
+        assertFalse(SemVer fromSeq("1.0.0-rc") includes(SemVer fromSeq("1.0")))
+        assertFalse(
+            SemVer fromSeq("1.0.0-rc") includes(SemVer fromSeq("1.0.0")))
+        assertFalse(SemVer fromSeq("1.0.0-rc.1") includes(SemVer fromSeq("1")))
+        assertFalse(
+            SemVer fromSeq("1.0.0-rc.1") includes(SemVer fromSeq("1.0")))
+        assertFalse(
+            SemVer fromSeq("1.0.0-rc.1") includes(SemVer fromSeq("1.0.0")))
+        assertFalse(
+            SemVer fromSeq("1.0.0-rc.1") includes(SemVer fromSeq("1.0.0-rc"))))
+
 )
