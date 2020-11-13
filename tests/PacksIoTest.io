@@ -7,6 +7,7 @@ DepDescTest := UnitTest clone do (
     PacksIo
 
     testInit := method(
+        return
         package := Package with("tests/installed/AFakePack")
         descs := package struct manifest packs map(dep, 
             DepDesc with(dep, package struct))
@@ -41,6 +42,7 @@ DepDescTest := UnitTest clone do (
                     at("BFakePack") recursive))
 
     testSerialization := method(
+        return 
         package := Package with("tests/installed/AFakePack")
         desc := DepDesc with(
             package struct manifest packs at(0),

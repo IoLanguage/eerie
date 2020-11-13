@@ -24,6 +24,10 @@ Package := Object clone do (
     Get `Map` of installed children (`Package`'s) of this package.*/
     children := nil
 
+    /*doc Package recursive
+    Returns boolean whether the package is recursive dependency.*/
+    recursive := false
+
     /*doc Package packages 
     Get the `List` of installed dependencies (`Package`) for this package.*/
     packages := method(
@@ -46,12 +50,44 @@ Package := Object clone do (
         klone struct := Structure with(path)
         klone struct manifest validate
         klone children := Map clone
+        # klone _initChildren
 
         klone)
 
     _checksIsPackage := method(root,
         if (Structure isPackage(root) not, 
             Exception raise(NotPackageError with(root path))))
+
+    _initChildren := method(
+        self struct manifest packs foreach(dep, self _addChildFromDep(dep)))
+
+    _addChildFromDep := method(dep,
+        depRoot := self struct packRootFor(dep name)
+
+        if (depRoot exists not, return)
+
+        version := self _installedVersionFor(dep, depRoot)
+
+        packDir := struct packFor(dep name, version)
+
+        if (packDir exists not, return)
+
+        # TODO detect recursive dependencies and make aliases for them
+        # FIXME directory structure is related to newly initialized package
+
+        # look PacksIo DepDesc for implementation reference
+    )
+
+    _installedVersionFor := method(dep, depRoot,
+        versions := self _versionsInDir(depRoot)
+        dep version highestIn(versions))
+
+    # get list of `SemVer` in a package dir
+    _versionsInDir := method(dir,
+        dir directories map(subdir, SemVer fromSeq(subdir name)))
+
+    //doc Package addChild(Package) Add a child `Package`.
+    addChild := method(package, self children atPut(package name, package))
 
     /*doc Package missing 
     Returns list of missing dependencies (`Manifest Dependency`).*/

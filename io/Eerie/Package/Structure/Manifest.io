@@ -21,10 +21,13 @@ Manifest := Object clone do (
     branch := lazySlot(self _map at("branch"))
 
     /*doc Manifest packs
-    Get the `List` of `Package Dependency` parsed from `"packs"` field in.*/
+    Get the `Map` of `Package Dependency` parsed from `"packs"` field in.*/
     packs := lazySlot(
-        self _map at("packs") ifNilEval(list()) map(dep, 
-            Package Dependency fromMap(dep)))
+        result := Map clone
+        self _map at("packs") ?foreach(value, 
+            dep := Package Dependency fromMap(value)
+            result atPut(dep name, dep))
+        result)
 
     //doc Manifest with(File) Init `Manifest` from file.
     with := method(file,

@@ -21,10 +21,10 @@ ManifestTest := UnitTest clone do (
 
         result := manifest packs
 
-        expected foreach(n, item, 
-            assertEquals(item name, result at(n) name)
-            assertEquals(item version, result at(n) version)
-            assertEquals(item url, result at(n) url)))
+        expected foreach(item, 
+            assertEquals(item name, result at(item name) name)
+            assertEquals(item version, result at(item name) version)
+            assertEquals(item url, result at(item name) url)))
 
     testFileExists := method(
         e := try (Manifest with(
