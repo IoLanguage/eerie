@@ -8,15 +8,19 @@ PacksIo := Object clone do (
     //doc PacksIo file Get `packs.io` `File`.
     file := method(self struct root fileNamed("packs.io"))
 
-    _descs := nil
+    descs := nil
 
     /*doc PacksIo with(Structure) 
     Init `PacksIo` with `Structure`.*/
     with := method(struct,
         klone := self clone
         klone struct = struct
-        _descs := doFile(klone file path) ifNilEval(Map clone)
-        klone _descs := self deserializeDescs(_descs)
+        klone descs = Map clone
+        if (klone file exists not, 
+            return klone)
+
+        descs := doFile(klone file path) ifNilEval(Map clone)
+        klone descs := self _deserializeDescs(descs)
         klone)
 
     _deserializeDescs := method(descs,
@@ -47,16 +51,16 @@ PacksIo := Object clone do (
         self store)
 
     //doc PacksIo store Write the file.
-    store := method(self file setContents(self _descs serialized))
+    store := method(self file setContents(self descs serialized))
 
     /*doc PacksIo addDesc(desc) 
     Add dependency description. If it's already in the map, replaces it with the
     passed one.*/
-    addDesc := method(desc, self _descs atPut(desc name, desc))
+    addDesc := method(desc, self descs atPut(desc name, desc))
 
     /*doc PacksIo removeDesc(name) 
     Remove dependency description by name (`Sequence`).*/
-    removeDesc := method(name, self _descs removeAt(name))
+    removeDesc := method(name, self descs removeAt(name))
 
 )
 
@@ -169,20 +173,13 @@ DepDesc := Object clone do (
 
         deps := Package with(packDir path) struct manifest packs
 
-        deps foreach(dep,
-            self addChild(DepDesc with(dep, struct, self)))
+        deps foreach(dep, self _addChild(DepDesc with(dep, struct, self)))
     
         self)
 
-    //doc DepDesc addChild(DepDesc) Adds a child.
-    addChild := method(desc,
+    _addChild := method(desc,
         if (self children isNil, self setChildren(Map clone))
         self children atPut(desc name, desc))
-
-    //doc DepDesc removeChild(Sequence) Removes a child by its name.
-    removeChild := method(name, 
-        if (self children isNil, return)
-        self children removeAt(name))
 
 )
 

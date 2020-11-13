@@ -15,15 +15,12 @@ Package := Object clone do (
         cmdOut := System sh("git tag", true, self struct root path)
         cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
 
-    # TODO
-    # this should be removed and packsio should be used for linking or wherever
-    # dependency lists is needed
     /*doc Package packages 
-    Get the `List` of installed dependencies for this package.*/
-    # packages := lazySlot(
-        # self struct packs directories map(dir, Package with(dir path)))
-    # XXX disabled it for now
-    packages := list()
+    Get the `List` of installed dependencies (`Package`) for this package.*/
+    packages := method(
+        self struct packsio descs map(name, desc,
+            Package with(
+                self struct packFor(desc name, SemVer fromSeq(desc version)))))
 
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
