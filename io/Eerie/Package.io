@@ -196,19 +196,6 @@ Package := Object clone do (
 
 )
 
-//metadoc RecursiveChild category Package
-/*metadoc RecursiveChild description
-Represents a recursive dependency in `Package`'s children tree.*/
-Package RecursiveChild := Object clone do (
-    
-    //doc RecursiveChild pointsTo Get the `Package` this child represents.
-    //doc RecursiveChild setPointsTo `pointsTo` setter.
-    pointsTo ::= nil
-
-    with := method(package, self clone setPointsTo(package))
-
-)
-
 # Error types
 Package do (
 
