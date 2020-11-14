@@ -25,7 +25,9 @@ Structure := Object clone do (
     installed
     - `build lib` - the output `Directory` for static library the package
     represents
-    - `build objs` - the output `Directory for the compiled objects*/
+    - `build objs` - the output `Directory for the compiled objects
+    - `build tmp` - the `_tmp` `Directory`, where downloaded and temporary files
+    stored*/
     build := nil
 
     //doc Structure packs Get the `_packs` `Directory`.
@@ -34,10 +36,6 @@ Structure := Object clone do (
     /*doc Structure source
     The `source` directory. The `Directory` with native (C) code.*/
     source := method(self root createSubdirectory("source"))
-
-    /*doc Structure tmp
-    Get `_tmp` `Directory`.*/
-    tmp := method(self root createSubdirectory("_tmp"))
 
     //doc Structure buildio The `build.io` file.
     buildio := lazySlot(self root fileNamed("build.io"))
@@ -137,6 +135,8 @@ Structure := Object clone do (
         lib := method(self root createSubdirectory("lib"))
 
         objs := method(self root createSubdirectory("objs"))
+
+        tmp := method(self root createSubdirectory("_tmp"))
 
     )
 

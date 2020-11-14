@@ -22,7 +22,7 @@ Package := Object clone do (
 
     /*doc Package children 
     Get `Map` of installed children (`Package`'s) of this package.*/
-    children := nil
+    children := method(self rebuildChildren children)
 
     /*doc Package recursive
     Returns boolean whether the package is recursive dependency.
@@ -51,20 +51,19 @@ Package := Object clone do (
     Initializes the global Eerie package (i.e. the Eerie itself).*/
     global := lazySlot(Package with(Eerie root))
 
-    /*doc Package with(path)
-    Creates new package from provided path (`Sequence`). 
+    /*doc Package with(path, parent)
+    Creates new package from provided path (`Sequence`).
+
+    `parent` is optional `Parent` package.
 
     Raises `Package NotPackageError` if the directory is not an Eerie package.
     Use this to initialize a `Package`.*/
-    # `_topStruct` is used internally to pass the top level Package Structure
-    # for children initialization
-    with := method(path, _topStruct,
+    with := method(path, parent,
         klone := self clone
         klone _checkIsPackage(Directory with(path))
         klone struct := Structure with(path)
         klone struct manifest validate
-        klone children := Map clone
-        klone _initChildren(_topStruct)
+        klone parent = parent
 
         klone)
 
@@ -72,19 +71,24 @@ Package := Object clone do (
         if (Structure isPackage(root) not, 
             Exception raise(NotPackageError with(root path))))
 
-    _initChildren := method(topStruct,
-        if (topStruct isNil, topStruct = self struct)
+    /*doc Package rebuildChildren(Package)
+    Rebuild the package `children` tree. The argument is the top level parent
+    package. If the argument is `nil`, `self` is used.*/
+    rebuildChildren := method(topParent,
+        self children := Map clone
+        if (topParent isNil, topParent = self)
         self struct manifest packs foreach(dep, 
-            self _addChildFromDep(dep, topStruct)))
+            self _addChildFromDep(dep, topParent))
+        self)
 
-    _addChildFromDep := method(dep, struct,
-        depRoot := struct packRootFor(dep name)
+    _addChildFromDep := method(dep, topParent,
+        depRoot := topParent struct packRootFor(dep name)
 
         if (depRoot exists not, return)
 
         version := self _installedVersionFor(dep, depRoot)
 
-        packDir := struct packFor(dep name, version)
+        packDir := topParent struct packFor(dep name, version)
 
         if (packDir exists not, return)
 
@@ -92,7 +96,7 @@ Package := Object clone do (
 
         package := if (ancestor isNil not, 
             Package initRecursive(ancestor, self),
-            Package clone setParent(self) with(packDir path, struct))
+            Package with(packDir path, self) rebuildChildren(topParent))
 
         self addChild(package))
 
@@ -152,25 +156,42 @@ Package := Object clone do (
         # TODO inializes a new package
     )
 
-    /*doc Package install(Structure)
-    Install the package and its dependencies. The argument is 
-    `Package Structure`.
-
-    If the argument is `nil`, `self struct` is used.*/
-    install := method(struct,
-        if (struct isNil, struct = self struct)
+    /*doc Package install(Package)
+    Install the package and its dependencies.*/
+    install := method(
         lock := Eerie TransactionLock clone
         lock lock
-        self struct manifest packs foreach(dep, dep install(struct))
+        self _resolveDeps
+        self rebuildChildren
         lock unlock)
+
+    _resolveDeps := method(topParent,
+        if (topParent isNil, topParent = self)
+        self _depsToInstall foreach(dep, dep install(topParent)))
+
+    _depsToInstall := method(
+        changed := self _removeChanged
+        self missing appendSeq(changed))
+
+    _removeChanged := method(
+        changed := self changed ifNilEval(list())
+        changed foreach(dep, self children at(dep name) ?remove)
+        changed)
 
     update := method(
         # TODO
     )
 
     load := method(
+        self _checkMissing
         # TODO
     )
+
+    _checkMissing := method(
+        missing := self missing
+        if (missing isEmpty not, 
+            Exception raise(
+                MissingDependenciesError with(self struct manifest name))))
 
     //doc Package remove Removes self.
     remove := method(
@@ -200,8 +221,14 @@ Package do (
         "The directory '#{call evalArgAt(0)}' is not recognised as an Eerie "..
         "package.")
 
+    //doc Package MissingDependenciesError
+    MissingDependenciesError := Eerie Error clone setErrorMsg(
+        "The package \"#{call evalArgAt(0)}\" has missing dependencies. " .. 
+        "Please, reinstall the package.")
+
     //doc Package FailedRunHookError
     FailedRunHookError := Eerie Error clone setErrorMsg(
         "Failed run hook \"#{call evalArgAt(0)}\":\n#{call evalArgAt(1)}")
+
 
 )

@@ -241,14 +241,12 @@ Manifest Dependency := Object clone do (
         klone branch = dep at("branch")
         klone)
 
-    /*doc Dependency install(Directory)
-    Download and install the dependency this `Dependency` describes to the
-    destination root `Directory`. 
+    /*doc Dependency install(Package)
+    Download and install the dependency this `Dependency`. The argument is the
+    top level parent package.*/
 
-    The destination `Directory` is the root for the dependency. That means, for
-    dependency **A** with version **1.0.0** and destination `foo/bar`, the
-    package will be installed in: `foo/bar/A/1.0.0`.*/
-
+    # Note about branches.
+    # 
     # There are two scenarios for `branch` configuration:
     # 
     # 1. The user can specify branch per dependency in `packs`:
@@ -268,31 +266,31 @@ Manifest Dependency := Object clone do (
     # 
     # The first scenario has more priority, so we try to get the user specified
     # branch first and then if it's `nil` we check the developer's one.
-    install := method(struct,
-        struct packs createIfAbsent
-        struct tmp createIfAbsent
+    install := method(topParent,
+        topParent struct packs createIfAbsent
+        topParent struct build tmp createIfAbsent
 
-        package := self _download(struct)
+        downloadedPack := self _download(topParent struct)
 
-        version := self version highestIn(self package versions)
+        version := self version highestIn(downloadedPack versions)
 
-        installDir := struct packFor(self name, version)
+        installDir := topParent struct packFor(self name, version)
 
         if (installDir exists, return)
 
         # install dependencies of dependency
-        package install(struct)
+        downloadedPack _resolveDeps(topParent)
 
         # install the dependency
-        package struct manifest branch = self branch ifNilEval(
-            package struct manifest branch)
+        downloadedPack struct manifest branch = self branch ifNilEval(
+            downloadedPack struct manifest branch)
 
         Installer with(
-            package,
+            downloadedPack,
             installDir,
-            struct binDest) install(version)
+            topParent struct binDest) install(version)
 
-        struct tmp remove)
+        topParent struct tmp remove)
 
     # download the package and instantiate it
     _download := method(struct,
