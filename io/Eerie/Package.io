@@ -26,7 +26,8 @@ Package := Object clone do (
 
     /*doc Package recursive
     Returns boolean whether the package is recursive dependency.*/
-    recursive := false
+    //doc Package setRecursive(boolean) Set `recursive` value.
+    recursive ::= false
 
     /*doc Package packages 
     Get the `List` of installed dependencies (`Package`) for this package.*/
@@ -39,18 +40,20 @@ Package := Object clone do (
     Initializes the global Eerie package (i.e. the Eerie itself).*/
     global := lazySlot(Package with(Eerie root))
 
-    /*doc Package with(path) 
+    /*doc Package with(path)
     Creates new package from provided path (`Sequence`). 
 
     Raises `Package NotPackageError` if the directory is not an Eerie package.
     Use this to initialize a `Package`.*/
-    with := method(path,
+    # `topStruct` is used internally to pass the top level Package Structure for
+    # children initialization
+    with := method(path, topStruct,
         klone := self clone
         klone _checksIsPackage(Directory with(path))
         klone struct := Structure with(path)
         klone struct manifest validate
         klone children := Map clone
-        # klone _initChildren
+        klone _initChildren(topStruct)
 
         klone)
 
@@ -58,11 +61,13 @@ Package := Object clone do (
         if (Structure isPackage(root) not, 
             Exception raise(NotPackageError with(root path))))
 
-    _initChildren := method(
-        self struct manifest packs foreach(dep, self _addChildFromDep(dep)))
+    _initChildren := method(topStruct,
+        if (topStruct isNil, topStruct = self struct)
+        self struct manifest packs foreach(dep, 
+            self _addChildFromDep(dep, topStruct)))
 
-    _addChildFromDep := method(dep,
-        depRoot := self struct packRootFor(dep name)
+    _addChildFromDep := method(dep, struct,
+        depRoot := struct packRootFor(dep name)
 
         if (depRoot exists not, return)
 
@@ -72,11 +77,13 @@ Package := Object clone do (
 
         if (packDir exists not, return)
 
-        # TODO detect recursive dependencies and make aliases for them
-        # FIXME directory structure is related to newly initialized package
+        ancestor := self _ancestor(dep name, version)
 
-        # look PacksIo DepDesc for implementation reference
-    )
+        package := if (ancestor isNil not, 
+            ancestor clone setRecursive(true),
+            Package clone setParent(self) with(packDir path, struct))
+
+        self addChild(package))
 
     _installedVersionFor := method(dep, depRoot,
         versions := self _versionsInDir(depRoot)
@@ -86,8 +93,17 @@ Package := Object clone do (
     _versionsInDir := method(dir,
         dir directories map(subdir, SemVer fromSeq(subdir name)))
 
+    _ancestor := method(name, version,
+        if (self parent isNil, return nil)
+
+        if (self parent struct manifest name == name and \
+            self parent struct manifest version == version,
+            return self parent,
+            return self parent _ancestor(name, version)))
+
     //doc Package addChild(Package) Add a child `Package`.
-    addChild := method(package, self children atPut(package name, package))
+    addChild := method(package, 
+        self children atPut(package struct manifest name, package))
 
     /*doc Package missing 
     Returns list of missing dependencies (`Manifest Dependency`).*/
