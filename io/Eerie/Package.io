@@ -138,7 +138,7 @@ Package := Object clone do (
         self struct manifest packs select(name, pack,
             child := self children at(name)
 
-            if (child isNil, return false)
+            if (child isNil, continue)
 
             # TODO the user can change other parameters like url or branch, for
             # example
@@ -159,7 +159,7 @@ Package := Object clone do (
     /*doc Package install(Package)
     Install the package and its dependencies.*/
     install := method(
-        lock := Eerie TransactionLock clone
+        lock := Eerie TransactionLock with(self struct root path)
         lock lock
         self _resolveDeps
         self rebuildChildren

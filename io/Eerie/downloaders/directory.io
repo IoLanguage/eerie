@@ -4,7 +4,7 @@ DirectoryDownloader := Eerie Downloader clone do (
 
     download := method(
         self destDir createIfAbsent
-        self url copyTo(self destDir path)
+        self Directory with(url) copyTo(self destDir)
         return true)
 
 )

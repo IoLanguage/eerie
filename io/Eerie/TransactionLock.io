@@ -7,7 +7,16 @@ TransactionLock := Object clone do(
 
     /*doc TransactionLock file
     A file containing current Eerie process ID.*/
-    file := method(self package struct packs fileNamed(".transaction_lock"))
+    file := method(self _root fileNamed(".transaction_lock"))
+
+    _root := nil
+
+    /*doc TransactionLock with(rootPath) 
+    Init with the given root directory path.*/
+    with := method(rootPath,
+        klone := self clone
+        klone _root := Directory with(rootPath)
+        klone)
 
     //doc TransactionLock lock Lock the transaction.
     lock := method(
@@ -21,7 +30,7 @@ TransactionLock := Object clone do(
                 "debug")
             return)
 
-        self _checkAdandoned
+        self _checkAbandoned
 
         if (self file exists, 
             Exception raise(AnotherProcessRunningError with(pid)))

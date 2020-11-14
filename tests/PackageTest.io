@@ -1,5 +1,10 @@
 PackageTest := UnitTest clone do (
 
+    testInstall := method(
+        package := Package with("tests/_packs/AFakePack")
+        package install
+    )
+
     testVersions := method(
         package := Package with("tests/_tmp/CFakePackUpdate")
         assertEquals(23, package versions size))

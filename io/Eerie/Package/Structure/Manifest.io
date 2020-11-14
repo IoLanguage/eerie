@@ -272,7 +272,9 @@ Manifest Dependency := Object clone do (
 
         downloadedPack := self _download(topParent struct)
 
-        version := self version highestIn(downloadedPack versions)
+        version := self version \
+            highestIn(downloadedPack versions) \
+                ifNilEval(downloadedPack struct manifest version)
 
         installDir := topParent struct packFor(self name, version)
 
@@ -287,10 +289,10 @@ Manifest Dependency := Object clone do (
 
         Installer with(
             downloadedPack,
-            installDir,
-            topParent struct binDest) install(version)
+            installDir path,
+            topParent struct binDest path) install(version)
 
-        topParent struct tmp remove)
+        topParent struct build tmp remove)
 
     # download the package and instantiate it
     _download := method(struct,
@@ -304,13 +306,12 @@ Manifest Dependency := Object clone do (
         downloader := Downloader detect(self url, downloadDir)
         downloader download
 
-        Package with(downloader destDir))
+        Package with(downloader destDir path))
 
     _downloadDir := method(struct,
-        struct tmp \
+        struct build tmp \
             directoryNamed(self name) \
-                directoryNamed(self version) \
-                    createIfAbsent)
+                directoryNamed(self version asSeq))
 
 )
 
