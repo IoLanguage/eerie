@@ -2,7 +2,7 @@ PackageTest := UnitTest clone do (
 
     testInstalledPackages := method(
         Eerie Rainbow redBg bold
-        " I'm broken Package packages test. Fix me, bro " println
+        " I'm broken Package packages test. Fix me, bro :`(" println
         Eerie Rainbow reset
         return
 

@@ -119,9 +119,12 @@ Package := Object clone do (
             return self parent,
             return self parent _ancestor(name, version)))
 
-    //doc Package addChild(Package) Add a child `Package`.
+    //doc Package addChild(Package) Adds a child `Package`.
     addChild := method(package,
         self children atPut(package struct manifest name, package))
+
+    //doc Package removeChild(Sequence) Removes a child `Package` by its name.
+    removeChild := method(name, self children removeAt(name))
 
     /*doc Package missing 
     Returns list of missing dependencies (`Manifest Dependency`).*/
@@ -179,7 +182,7 @@ Package := Object clone do (
     //doc Package remove Removes self.
     remove := method(
         self struct root remove
-        self packages := list())
+        self parent ?removeChild(self struct manifest name))
 
     /*doc Package runHook(hookName) 
     Runs Io script with hookName in package's `hooks` directory if it exists.*/
