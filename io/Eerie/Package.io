@@ -30,13 +30,6 @@ Package := Object clone do (
     See `Package initRecursive`*/
     recursive := false
 
-    /*doc Package packages 
-    Get the `List` of installed dependencies (`Package`) for this package.*/
-    packages := method(
-        self struct packsio descs map(name, desc,
-            Package with(
-                self struct packFor(desc name, SemVer fromSeq(desc version)))))
-
     /*doc Package initRecursive(Package, Package)
     Init a recursive `Package`.
 

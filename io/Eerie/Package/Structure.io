@@ -3,7 +3,6 @@
 Structure := Object clone do (
 
     doRelativeFile("Structure/Manifest.io")
-    doRelativeFile("Structure/PacksIo.io")
 
     //doc Structure root The root `Directory`.
     root := nil
@@ -45,9 +44,6 @@ Structure := Object clone do (
 
     //doc Structure manifest Get the `Package Manifest`.
     manifest := nil
-
-    //doc Structure packsio Get the `Package PacksIo`.
-    packsio := lazySlot(PacksIo with(self))
 
     /*doc Structure packRootFor(name)
     Get a directory for package name (`Sequence`) inside `packs` whether it's

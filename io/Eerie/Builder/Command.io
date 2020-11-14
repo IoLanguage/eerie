@@ -217,7 +217,7 @@ DynamicLinkerCommand := Command clone do (
 
     # generates a `Sequence` with all needed -L and -l flags
     _linksSeq := method(
-        packages := self package packages select(struct hasNativeCode)
+        packages := self package children select(struct hasNativeCode)
         links := packages map(pkg,
                     ("#{self _dirPathFlag}" ..
                         "#{pkg struct build dll path}") interpolate)
