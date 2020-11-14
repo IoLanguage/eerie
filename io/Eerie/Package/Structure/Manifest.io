@@ -21,11 +21,11 @@ Manifest := Object clone do (
     branch := lazySlot(self _map at("branch"))
 
     /*doc Manifest packs
-    Get the `Map` of `Package Dependency` parsed from `"packs"` field in.*/
+    Get the `Map` of `Dependency` parsed from `"packs"` field in.*/
     packs := lazySlot(
         result := Map clone
         self _map at("packs") ?foreach(value, 
-            dep := Package Dependency fromMap(value)
+            dep := Dependency fromMap(value)
             result atPut(dep name, dep))
         result)
 
@@ -214,7 +214,7 @@ Manifest do (
 //metadoc Dependency category Package
 /*metadoc Dependency description 
 Package dependency parsed from `"packs"` in `eerie.json`.*/
-Dependency := Object clone do (
+Manifest Dependency := Object clone do (
 
     //doc Dependency name Get name.
     name := nil
@@ -316,7 +316,7 @@ Dependency := Object clone do (
 
 )
 
-Dependency do (
+Manifest Dependency do (
 
     NoUrlError := Eerie Error clone setErrorMsg(
         "URL for #{call evalArgAt(0)} is not found.")

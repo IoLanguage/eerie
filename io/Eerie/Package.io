@@ -25,9 +25,10 @@ Package := Object clone do (
     children := nil
 
     /*doc Package recursive
-    Returns boolean whether the package is recursive dependency.*/
-    //doc Package setRecursive(boolean) Set `recursive` value.
-    recursive ::= false
+    Returns boolean whether the package is recursive dependency.
+
+    See `Package initRecursive`*/
+    recursive := false
 
     /*doc Package packages 
     Get the `List` of installed dependencies (`Package`) for this package.*/
@@ -35,6 +36,23 @@ Package := Object clone do (
         self struct packsio descs map(name, desc,
             Package with(
                 self struct packFor(desc name, SemVer fromSeq(desc version)))))
+
+    /*doc Package initRecursive(Package, Package)
+    Init a recursive `Package`.
+
+    Recursive `Packages` represent recursive dependencies in the children
+    tree.
+
+    The first argument is the package this package is recursion of.
+
+    The second argument is the parent package.*/
+    initRecursive := method(package, parent,
+        klone := self clone
+        klone recursive = true
+        klone struct = package struct
+        klone parent = parent
+        klone children = package children
+        klone)
 
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
@@ -45,19 +63,19 @@ Package := Object clone do (
 
     Raises `Package NotPackageError` if the directory is not an Eerie package.
     Use this to initialize a `Package`.*/
-    # `topStruct` is used internally to pass the top level Package Structure for
-    # children initialization
-    with := method(path, topStruct,
+    # `_topStruct` is used internally to pass the top level Package Structure
+    # for children initialization
+    with := method(path, _topStruct,
         klone := self clone
-        klone _checksIsPackage(Directory with(path))
+        klone _checkIsPackage(Directory with(path))
         klone struct := Structure with(path)
         klone struct manifest validate
         klone children := Map clone
-        klone _initChildren(topStruct)
+        klone _initChildren(_topStruct)
 
         klone)
 
-    _checksIsPackage := method(root,
+    _checkIsPackage := method(root,
         if (Structure isPackage(root) not, 
             Exception raise(NotPackageError with(root path))))
 
@@ -80,7 +98,7 @@ Package := Object clone do (
         ancestor := self _ancestor(dep name, version)
 
         package := if (ancestor isNil not, 
-            ancestor clone setRecursive(true),
+            Package initRecursive(ancestor, self),
             Package clone setParent(self) with(packDir path, struct))
 
         self addChild(package))
@@ -102,32 +120,36 @@ Package := Object clone do (
             return self parent _ancestor(name, version)))
 
     //doc Package addChild(Package) Add a child `Package`.
-    addChild := method(package, 
+    addChild := method(package,
         self children atPut(package struct manifest name, package))
 
     /*doc Package missing 
     Returns list of missing dependencies (`Manifest Dependency`).*/
     missing := method(
-        self struct manifest packs select(name, 
-            self children hasKey(name) not))
-
-    /*doc Package abandoned
-    Returns list of abandoned dependencies (`Package`) (i.e. those which are no
-    more in `eerie.json`).*/
-    abandoned := method(
-        self children select(name,
-            self struct manifest packs hasKey(name) not))
+        self struct manifest packs select(name, dep, 
+            self children hasKey(name) not) values)
 
     /*doc Package changed
     Get list of dependencies (`Manifest Dependency`), which requirements has
-    been changed in `eerie.json`.*/
+    been changed in `eerie.json`.
+
+    Currently only "version" is supported.*/
     changed := method(
         self struct manifest packs select(name, pack,
             child := self children at(name)
 
             if (child isNil, return false)
 
-            pack version includes(child version) not or pack url != child url))
+            # TODO the user can change other parameters like url or branch, for
+            # example
+            # for now we can't compare them, because we don't have a snapshot of
+            # packages (a "package-lock file"). Because, if we take the URL
+            # inside package, then there could be a problem when the user
+            # is the developer of the dependency and in "packs" the "url" is a
+            # local directory, but for a published package the url is different.
+            # The same for "branch". The default git branch for package can be
+            # different from the user's requirements.
+            pack version includes(child struct manifest version) not) values)
 
     create := method(name, path,
         name
@@ -171,6 +193,19 @@ Package := Object clone do (
             e := try(ctx doFile(f path))
             f close
             e catch(Exception raise(FailedRunHookError with(hook, e message)))))
+
+)
+
+//metadoc RecursiveChild category Package
+/*metadoc RecursiveChild description
+Represents a recursive dependency in `Package`'s children tree.*/
+Package RecursiveChild := Object clone do (
+    
+    //doc RecursiveChild pointsTo Get the `Package` this child represents.
+    //doc RecursiveChild setPointsTo `pointsTo` setter.
+    pointsTo ::= nil
+
+    with := method(package, self clone setPointsTo(package))
 
 )
 

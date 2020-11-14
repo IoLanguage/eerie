@@ -1,14 +1,15 @@
 {
-    "name": "AFakePack",
+    "name": "DFakePack",
     "version": "0.1.0",
     "description": "A fake pack for testing.",
     "author": "Test",
-    "readme": "",
+    "readme": "README.md",
+    "license": "LICENSE",
     "website": "https://iolanguage.github.io/eerie",
-    "url": "tests/_packs/AFakePack",
+    "url": "tests/_packs/DFakePack",
     "categories": [],
     "protos": [
-        "AFakePack"
+        "DFakePack"
     ],
     "packs": [
         {
@@ -20,11 +21,6 @@
             "name": "BFakePack",
             "version": "0.1",
             "url": "tests/_packs/BFakePack"
-        },
-        {
-            "name": "DFakePack",
-            "version": "0.2",
-            "url": "tests/_packs/DFakePack"
         }
     ]
 }

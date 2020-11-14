@@ -10,7 +10,7 @@ DepDescTest := UnitTest clone do (
         return
         package := Package with("tests/installed/AFakePack")
         descs := package struct manifest packs map(dep, 
-            DepDesc with(dep, package struct))
+            DepDesc with(dep, package struct)) sort
         expected := list("AFakePack", "BFakePack")
         assertEquals(expected, descs at(0) children keys sort)
 
@@ -20,6 +20,7 @@ DepDescTest := UnitTest clone do (
         descs foreach(desc, 
             desc children foreach(key, child, 
                 assertEquals(child parent name, desc name)))
+        descs at(0) println
 
         assertTrue(
             descs at(0) children \
@@ -28,8 +29,11 @@ DepDescTest := UnitTest clone do (
 
         assertTrue(
             descs at(0) children \
-                at("AFakePack") children \
-                    at("CFakePack") recursive)
+                at("AFakePack") recursive)
+                    
+        assertTrue(
+            descs at(0) children \
+                at("AFakePack") recursive)
 
         assertTrue(
             descs at(1) children \

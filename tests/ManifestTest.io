@@ -8,7 +8,7 @@ ManifestTest := UnitTest clone do (
                 "tests/_packs/AFakePack/#{Eerie manifestName}" interpolate))
         expected := list()
         
-        dep := Package Dependency clone
+        dep := Manifest Dependency clone
         dep name = "CFakePack"
         dep version = SemVer fromSeq("0.1")
         dep url = "tests/_packs/CFakePack"
