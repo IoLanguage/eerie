@@ -30,6 +30,9 @@ Package := Object clone do (
     See `Package initRecursive`*/
     recursive := false
 
+    # Map used to track Manifest Dependency to install
+    _depCache := nil
+
     /*doc Package initRecursive(Package, Package)
     Init a recursive `Package`.
 
@@ -161,22 +164,33 @@ Package := Object clone do (
     install := method(
         lock := Eerie TransactionLock with(self struct root path)
         lock lock
-        self _resolveDeps
+        self _depCache := Map clone
+        self _resolveDeps(self)
         self rebuildChildren
         lock unlock)
 
     _resolveDeps := method(topParent,
-        if (topParent isNil, topParent = self)
-        self _depsToInstall foreach(dep, dep install(topParent)))
+        deps := self _depsToInstall(topParent _depCache)
+        deps foreach(dep, 
+            # TODO this is a hack - not a solution
+            if (dep name != topParent struct manifest name and \
+                dep version != topParent struct manifest version,
+                dep install(topParent))))
 
-    _depsToInstall := method(
+    _depsToInstall := method(cache,
         changed := self _removeChanged
-        self missing appendSeq(changed))
+        self missing appendSeq(changed) select(dep,
+            if (cache hasKey(self _depCacheKey(dep)),
+                nil,
+                cache atPut(self _depCacheKey(dep), dep)
+                true)))
 
     _removeChanged := method(
         changed := self changed ifNilEval(list())
         changed foreach(dep, self children at(dep name) ?remove)
         changed)
+
+    _depCacheKey := method(dep, dep name .. "@" .. dep version asSeq)
 
     update := method(
         # TODO

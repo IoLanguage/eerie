@@ -4,6 +4,7 @@ _build/
 ./_tmp/
 db/
 iolang/
+tests/_packs/AFakePack/_packs
 tests/_packs/CFakePack/_build
 tests/_packs/CFakePack/source/IoCFakePackInit.c
 ./tests/deleteme

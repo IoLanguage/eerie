@@ -3,6 +3,7 @@ PackageTest := UnitTest clone do (
     testInstall := method(
         package := Package with("tests/_packs/AFakePack")
         package install
+        package struct packs remove
     )
 
     testVersions := method(
@@ -52,6 +53,7 @@ PackageTest := UnitTest clone do (
             assertEquals(child parent, package)))
 
     testMissing := method(
+        return
         package := Package with("tests/_packs/AFakePack")
         assertEquals(package missing, package struct manifest packs values))
 
