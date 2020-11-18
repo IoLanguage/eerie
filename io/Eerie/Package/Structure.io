@@ -5,7 +5,8 @@ Structure := Object clone do (
     doRelativeFile("Structure/Manifest.io")
 
     //doc Structure root The root `Directory`.
-    root := nil
+    //doc Structure setRoot(Directory) Set root directory.
+    root ::= nil
 
     /*doc Structure bin
     The `bin` directory. `Directory` with binaries of the package.*/
@@ -38,7 +39,7 @@ Structure := Object clone do (
     source := method(self root createSubdirectory("source"))
 
     //doc Structure buildio The `build.io` file.
-    buildio := lazySlot(self root fileNamed("build.io"))
+    buildio := method(self root fileNamed("build.io"))
 
     //doc Structure manifest Get the `Package Manifest`.
     manifest := nil

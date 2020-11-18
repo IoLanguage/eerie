@@ -62,12 +62,13 @@ Builder := Object clone do (
     build := method(
         if (self package struct hasNativeCode not, 
             Logger log(
-                "The package #{self package struct manifest name} has no code to compile",
+                "The package #{self package struct manifest name} " ..
+                "has no code to compile",
                 "debug")
             return)
 
         Logger log(
-            "🔨 [[cyan bold;Building [[reset;#{self package struct manifest name}" ,
+            "[[cyan bold;Building [[reset;#{self package struct manifest name}",
             "output")
 
         self _runBuildio
@@ -80,7 +81,7 @@ Builder := Object clone do (
 
         if (self shouldGenerateInit,
             Logger log(
-                "🪄  [[brightBlue bold;Generating [[reset;" ..
+                "[[brightBlue bold;Generating [[reset;" ..
                 "#{self _initFileGenerator output path}",
                 "output")
             self _initFileGenerator generate)
@@ -105,7 +106,9 @@ Builder := Object clone do (
         if(headers size > 0,
             headers foreach(file,
                 file copyToPath(
-                    self package struct build headers path .. "/" .. file name))))
+                    self package struct build headers path .. 
+                    "/" .. 
+                    file name))))
 
     _cFiles := method(
         sourceFolder := self package struct source
@@ -123,13 +126,13 @@ Builder := Object clone do (
         obj := self package struct build objs fileNamed(objName)
 
         if(obj exists not or obj lastDataChangeDate < src lastDataChangeDate,
-            Logger log("📄 [[brightBlue bold;Compiling[[reset; #{src name}" ,
+            Logger log("[[brightBlue bold;Compiling[[reset; #{src name}" ,
                 "output")
             System sh(self _compilerCommand setSrc(src) asSeq)))
 
     _buildStaticLib := method(
         Logger log(
-            "🧩 [[brightBlue bold;Linking [[reset;" .. 
+            "[[brightBlue bold;Linking [[reset;" .. 
             "#{self package struct staticLibFileName}",
             "output")
 
@@ -139,7 +142,7 @@ Builder := Object clone do (
 
     _buildDynLib := method(
         Logger log(
-            "🧩 [[brightBlue bold;Linking [[reset;" .. 
+            "[[brightBlue bold;Linking [[reset;" .. 
             "#{self package struct dllFileName}",
             "output")
 

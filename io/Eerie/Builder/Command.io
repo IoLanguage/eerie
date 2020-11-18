@@ -203,15 +203,15 @@ DynamicLinkerCommand := Command clone do (
         # against it should look for the library. The path is relative, so it
         # may cause library not found error. Needs investigation on macOS. 
         installNameFlag := if (Eerie platform == "darwin",
-            " -install_name " .. self package struct dllPath,
+            "-install_name " .. self package struct dllPath,
             "")
 
         cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
         result := ("#{self _linkerCmd} #{cflags} " .. 
             "#{self _dllCommand} #{installNameFlag} " ..
-            "#{self _outFlag}" ..
-            "#{self package struct dllPath} " .. 
-            "#{self package struct build objs path}/*.o #{links}") interpolate
+            "#{self package struct build objs path}/*.o " ..
+            "#{self _outFlag}#{self package struct dllPath} " ..
+            "#{links}") interpolate
 
         result .. " && " .. self _embedManifestCmd)
 

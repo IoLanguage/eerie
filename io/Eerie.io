@@ -3,6 +3,46 @@
 /*metadoc Eerie description 
 This proto is a singleton.*/
 
+System do (
+
+    /*doc System sh(cmd[, silent=false, path=cwd])
+    Executes system command. Raises exception with `System SystemCommandError` on
+    failure. Will not print any output if `silent` is `true`.
+
+    Returns the object returned by `System runCommand`.*/
+    sh := method(cmd, silent, path,
+        cmd = cmd interpolate(call sender)
+        if (silent not, Logger log(cmd, "console"))
+        
+        prevDir := nil
+        if(path != nil and path != ".",
+            prevDir = Directory currentWorkingDirectory
+            Directory setCurrentWorkingDirectory(path))
+
+        cmdOut := System runCommand(cmd)
+        stdOut := cmdOut stdout
+        stdErr := cmdOut stderr
+
+        System _cleanRunCommand
+
+        prevDir isNil ifFalse(Directory setCurrentWorkingDirectory(prevDir))
+        
+        if(cmdOut exitStatus != 0,
+            Exception raise(
+                SystemCommandError with(cmd, cmdOut exitStatus, stdErr)))
+
+        cmdOut)
+
+    # remove *-stdout and *-stderr files, which are kept in result of
+    # System runCommand call
+    _cleanRunCommand := method(
+        Directory clone files select(file, 
+            file name endsWithSeq("-stdout") or \
+                file name endsWithSeq("-stderr")) \
+                    foreach(remove))
+
+)
+
 Eerie := Object clone do (
 
     //doc Eerie manifestName Get name of the manifest file.
@@ -69,6 +109,15 @@ Eerie do (
 
 )
 
+System do (
+
+    //doc System SystemCommandError
+    SystemCommandError := Eerie Error clone setErrorMsg(
+        "Command '#{call evalArgAt(0)}' exited with status code " .. 
+        "#{call evalArgAt(1)}:\n#{call evalArgAt(2)}")
+
+)
+
 Eerie clone = Eerie do (
 
     doRelativeFile("Eerie/Database.io")
@@ -76,55 +125,6 @@ Eerie clone = Eerie do (
     doRelativeFile("Eerie/TransactionLock.io")
 
     init
-
-)
-
-System do (
-
-    /*doc System sh(cmd[, silent=false, path=cwd])
-    Executes system command. Raises exception with `System SystemCommandError` on
-    failure. Will not print any output if `silent` is `true`.
-
-    Returns the object returned by `System runCommand`.*/
-    sh := method(cmd, silent, path,
-        cmd = cmd interpolate(call sender)
-        if (silent not, Logger log(cmd, "console"))
-        
-        prevDir := nil
-        if(path != nil and path != ".",
-            prevDir = Directory currentWorkingDirectory
-            Directory setCurrentWorkingDirectory(path))
-
-        cmdOut := System runCommand(cmd)
-        stdOut := cmdOut stdout
-        stdErr := cmdOut stderr
-
-        System _cleanRunCommand
-
-        prevDir isNil ifFalse(Directory setCurrentWorkingDirectory(prevDir))
-        
-        if(cmdOut exitStatus != 0,
-            Exception raise(
-                SystemCommandError with(cmd, cmdOut exitStatus, stdErr)))
-
-        cmdOut)
-
-    # remove *-stdout and *-stderr files, which are kept in result of
-    # System runCommand call
-    _cleanRunCommand := method(
-        Directory clone files select(file, 
-            file name endsWithSeq("-stdout") or \
-                file name endsWithSeq("-stderr")) \
-                    foreach(remove))
-
-)
-
-System do (
-
-    //doc System SystemCommandError
-    SystemCommandError := Eerie Error clone setErrorMsg(
-        "Command '#{call evalArgAt(0)}' exited with status code " .. 
-        "#{call evalArgAt(1)}:\n#{call evalArgAt(2)}")
 
 )
 

@@ -50,7 +50,7 @@ Installer := Object clone do (
 
         if (ver == destPackage struct manifest version,
             Logger log(
-                "☑  #{destPackage struct manifest name} " .. 
+                "#{destPackage struct manifest name} " .. 
                 "v#{destPackage struct manifest version asSeq} " ..
                 "is already updated", 
                 "output")
@@ -64,7 +64,7 @@ Installer := Object clone do (
         destPackage runHook("afterUpdate")
 
         Logger log(
-            "☑  [[magenta bold;#{destPackage struct manifest name}[[reset; is " ..
+            "[[magenta bold;#{destPackage struct manifest name}[[reset; is " ..
             "[[magenta bold;#{ver originalSeq}[[reset; now",
             "output"))
 
@@ -91,14 +91,14 @@ Installer := Object clone do (
 
     _logUpdate := method(version, destPackage,
         if (version > destPackage struct manifest version) then (
-            Logger log("⬆ [[cyan bold;Updating [[reset;" ..
+            Logger log("[[cyan bold;Updating [[reset;" ..
                 "#{destPackage struct manifest name} " ..
                 "from [[magenta bold;" ..
                 "v#{destPackage struct manifest version asSeq}[[reset; " ..
                 "to [[magenta bold;v#{version asSeq}", "output")
         ) elseif (version < destPackage struct manifest version) then (
             Logger log(
-                "⬇ [[cyan bold;Downgrading [[reset;" .. 
+                "[[cyan bold;Downgrading [[reset;" .. 
                 "#{destPackage struct manifest name} " ..
                 "from v#{destPackage struct manifest version asSeq} " ..
                 "to v#{version asSeq}", "output")))
@@ -115,7 +115,8 @@ Installer := Object clone do (
             Exception raise(DirectoryExistsError with(
                 self package struct manifest name, self destination path)))
 
-        Logger log("📥 [[cyan bold;Installing [[reset;#{self package struct manifest name}", 
+        Logger log("[[cyan bold;Installing [[reset;" ..
+            "#{self package struct manifest name}", 
             "output")
 
         self package runHook("beforeInstall")
@@ -126,11 +127,14 @@ Installer := Object clone do (
 
         if (ver isNil not, self _checkGitTag(ver))
 
-        self _build
 
         self destination createIfAbsent
 
         self package struct root copyTo(self destination)
+
+        self package struct setRoot(self destination)
+
+        self _build
 
         self _installBinaries
 
