@@ -56,7 +56,6 @@ PackageTest := UnitTest clone do (
             assertEquals(child parent, package)))
 
     testMissing := method(
-        return
         package := Package with("tests/_packs/AFakePack")
         assertEquals(package missing, package struct manifest packs values))
 
