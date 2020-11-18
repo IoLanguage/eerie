@@ -60,7 +60,7 @@ Structure := Object clone do (
     with := method(rootPath,
         klone := self clone
         klone root = Directory with(rootPath)
-        klone build := BuildDir with(klone root)
+        klone build := BuildDir with(klone)
         manifestFile := File with(
             rootPath .. "/#{Eerie manifestName}" interpolate) 
         klone manifest := Manifest with(manifestFile)
@@ -127,7 +127,7 @@ Structure := Object clone do (
             klone parent = parent
             klone)
 
-        root := method(self parent createSubdirectory("_build"))
+        root := method(self parent root createSubdirectory("_build"))
 
         dll := method(self root createSubdirectory("dll"))
 

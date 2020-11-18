@@ -4,6 +4,9 @@ PackageTest := UnitTest clone do (
         package := Package with("tests/_packs/AFakePack")
         package install
         package struct packs remove
+        package struct binDest remove
+        package struct build root remove
+        # TODO
     )
 
     testVersions := method(

@@ -5,7 +5,7 @@ This proto is used to install packages and their updates.*/
 Installer := Object clone do (
 
     /*doc Installer package
-    The `Package` for which the `Installer` will install dependencies.
+    The `Package` which the `Installer` will install.
 
     For updates this is a newer version of the package.*/
     package ::= nil
@@ -76,10 +76,12 @@ Installer := Object clone do (
             Exception raise(DestinationNotSetError with(""))))
 
     _checkSame := method(destPackage,
-        if (self package struct manifest name != destPackage struct manifest name, 
+        if (self package struct manifest name != \
+            destPackage struct manifest name, 
             Exception raise(
                 DifferentPackageError with(
-                    destPackage struct manifest name, self package struct manifest name))))
+                    destPackage struct manifest name, 
+                    self package struct manifest name))))
 
     /*doc Installer versionFor(SemVer) 
     Get version (`SemVer`) of the `package`, which will be used for passed
@@ -163,13 +165,7 @@ Installer := Object clone do (
 
         self _checkBinDestSet
 
-        # this is the binaries directory (from where the binaries will be
-        # installed), but at the destination
-        # Note, here we consider that the dependency is already installed to
-        # it's destination, so we can't use `dependency struct bin` as the path has
-        # changed
-        binDir := self destination directoryNamed(self package struct bin name)
-        binDir files foreach(f, 
+        self package struct bin files foreach(f, 
             if (Eerie isWindows, 
                 self _createCmdForBin(f),
                 self _createLinkForBin(f))))
@@ -183,6 +179,7 @@ Installer := Object clone do (
     # `io /path/to/eerie/bin`)
     _createCmdForBin := method(bin,
         cmdFile := self binDestination fileNamed(bin name .. ".cmd")
+        cmdFile create remove create
         cmdFile open setContents("io #{bin path} %*" interpolate) close)
 
     # We just create a link for binary on unix-like system
@@ -191,8 +188,8 @@ Installer := Object clone do (
         System sh("chmod u+x #{bin path}")
         # create the link
         link := self binDestination fileNamed(bin name)
-        link exists ifFalse(System sh("ln -s #{bin path} #{link path}"))
-        link close)
+        link remove
+        System sh("ln -s #{bin path} #{link path}"))
 
 )
 
