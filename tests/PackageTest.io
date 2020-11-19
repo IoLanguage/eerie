@@ -2,6 +2,7 @@ PackageTest := UnitTest clone do (
 
     testInstall := method(
         package := Package with("tests/_packs/AFakePack")
+        self _cleanUp(package)
         package install
 
         assertEquals(
@@ -26,6 +27,9 @@ PackageTest := UnitTest clone do (
             package children at("CFakePack") struct dllPath)
         assertTrue(dynLib exists)
 
+        self _cleanUp(package))
+
+    _cleanUp := method(package, 
         package struct packs remove
         package struct binDest remove
         package struct build root remove)

@@ -170,20 +170,17 @@ Package := Object clone do (
         lock unlock)
 
     _resolveDeps := method(topParent,
-        deps := self _depsToInstall(topParent _depCache)
+        deps := self _depsToInstall(topParent)
         deps foreach(dep, 
-            # TODO this is a hack - not a solution
-            if (dep name != topParent struct manifest name and \
-                dep version != topParent struct manifest version,
-                dep install(topParent))))
+            dep install(topParent)))
 
-    _depsToInstall := method(cache,
+    _depsToInstall := method(topParent,
         changed := self _removeChanged
         self missing appendSeq(changed) select(dep,
-            if (cache hasKey(self _depCacheKey(dep)),
-                nil,
-                cache atPut(self _depCacheKey(dep), dep)
-                true)))
+            result := (topParent _depCache hasKey(self _depCacheKey(dep)) or \
+                self _isDepPackage(dep, topParent)) not
+            topParent _depCache atPut(self _depCacheKey(dep), dep)
+            result))
 
     _removeChanged := method(
         changed := self changed ifNilEval(list())
@@ -191,6 +188,10 @@ Package := Object clone do (
         changed)
 
     _depCacheKey := method(dep, dep name .. "@" .. dep version asSeq)
+
+    _isDepPackage := method(dep, package,
+        (dep name == package struct manifest name and \
+            dep version includes(package struct manifest version)))
 
     update := method(
         # TODO
