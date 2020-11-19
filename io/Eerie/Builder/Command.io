@@ -37,7 +37,8 @@ CompilerCommand := Command clone do (
     _depsManager := nil
 
     _defines := lazySlot(
-        build := "BUILDING_#{self package struct manifest name asUppercase}_Pack" interpolate 
+        name := self package struct manifest name asUppercase
+        build := "BUILDING_#{name}_Pack" interpolate 
         
         result := if(Eerie platform == "windows",
             list(
@@ -161,6 +162,9 @@ Command DynamicLinkerCommandWinExt := Object clone do (
 
     _outFlag := "-out:"
 
+    # TODO debug?
+    _otherFlags := "-dll -debug"
+
 )
 
 Command DynamicLinkerCommandUnixExt := Object clone do (
@@ -176,12 +180,36 @@ Command DynamicLinkerCommandUnixExt := Object clone do (
 
     _outFlag := "-o "
 
+    _otherFlags := "-shared -undefined dynamic_lookup"
+
+)
+
+Command DynamicLinkerCommandMacOsExt := Object clone do (
+
+    _linkerCmd := Command DynamicLinkerCommandUnixExt _linkerCmd
+
+    _dirPathFlag := Command DynamicLinkerCommandUnixExt _dirPathFlag
+
+    libFlag := Command DynamicLinkerCommandUnixExt libFlag
+
+    _libSuffix := Command DynamicLinkerCommandUnixExt _libSuffix
+
+    _outFlag := Command DynamicLinkerCommandUnixExt _outFlag
+
+    _otherFlags := method(
+        installName := "-install_name " .. self package struct dllPath
+        "-dynamiclib -single_module -undefined dynamic_lookup #{installName}" \
+            interpolate) 
+
 )
 
 DynamicLinkerCommand := Command clone do (
 
-    if (Eerie platform == "windows",
-        prependProto(DynamicLinkerCommandWinExt),
+    if (Eerie platform == "darwin") then (
+        prependProto(DynamicLinkerCommandMacOsExt)
+    ) elseif (Eerie platform == "windows") then (
+        prependProto(DynamicLinkerCommandWinExt)
+    ) else (
         prependProto(DynamicLinkerCommandUnixExt)) 
 
     package := nil
@@ -199,19 +227,13 @@ DynamicLinkerCommand := Command clone do (
 
     asSeq := method(
         links := self _linksSeq
-        # TODO the install_name flag specifies where the executable linked
-        # against it should look for the library. The path is relative, so it
-        # may cause library not found error. Needs investigation on macOS. 
-        installNameFlag := if (Eerie platform == "darwin",
-            "-install_name " .. self package struct dllPath,
-            "")
 
         cflags := System getEnvironmentVariable("CFLAGS") ifNilEval("")
         result := ("#{self _linkerCmd} #{cflags} " .. 
-            "#{self _dllCommand} #{installNameFlag} " ..
+            "#{self _otherFlags} " ..
             "#{self package struct build objs path}/*.o " ..
-            "#{self _outFlag}#{self package struct dllPath} " ..
-            "#{links}") interpolate
+            "#{links} " ..
+            "#{self _outFlag}#{self package struct dllPath} ") interpolate
 
         result .. " && " .. self _embedManifestCmd)
 
@@ -238,12 +260,6 @@ DynamicLinkerCommand := Command clone do (
                 v,
                 self libFlag .. self _nameWithLibSuffix(v))))
 
-        # TODO ---------------------------------------------------------
-        links appendSeq(list(self _dirPathFlag .. (System installPrefix), 
-            self libFlag .. self _nameWithLibSuffix("iovmall"),
-            self libFlag .. self _nameWithLibSuffix("basekit")))
-        # --------------------------------------------------------------
-
         links appendSeq(
             self _depsManager _frameworks map(v, "-framework " .. v))
 
@@ -252,14 +268,6 @@ DynamicLinkerCommand := Command clone do (
         if (Eerie platform == "darwin", links append("-flat_namespace"))
 
         links join(" "))
-
-    _dllCommand := method(
-        if(Eerie platform == "darwin") then (
-            return "-dynamiclib -single_module"
-        ) elseif (Eerie platform == "windows") then (
-            return "-dll -debug"
-        ) else (
-            return "-shared"))
 
     # get name of the library with lib suffix depending on platform
     _nameWithLibSuffix := method(name, name .. self _libSuffix)
