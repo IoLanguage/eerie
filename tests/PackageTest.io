@@ -3,11 +3,32 @@ PackageTest := UnitTest clone do (
     testInstall := method(
         package := Package with("tests/_packs/AFakePack")
         package install
+
+        assertEquals(
+            package children keys sort,
+            package struct manifest packs keys sort)
+
+        installed := package struct packs directories map(directories at(0)) \
+            map(dir, Package with(dir path))
+
+        assertEquals(
+            list("BFakePack", "CFakePack"), 
+            installed map(struct manifest name) sort)
+
+        installed foreach(pack,
+            assertEquals(SemVer fromSeq("0.1.0"), pack struct manifest version))
+
+        staticLib := File with(
+            package children at("CFakePack") struct staticLibPath)
+        assertTrue(staticLib exists)
+
+        dynLib := File with(
+            package children at("CFakePack") struct dllPath)
+        assertTrue(dynLib exists)
+
         package struct packs remove
         package struct binDest remove
-        package struct build root remove
-        # TODO
-    )
+        package struct build root remove)
 
     testVersions := method(
         package := Package with("tests/_tmp/CFakePackUpdate")
@@ -37,7 +58,6 @@ PackageTest := UnitTest clone do (
             at("BFakePack") children \
                 at("CFakePack") children foreach(name, child,
             assertTrue(child recursive))
-
 
         # CFakePack recursivity
 
