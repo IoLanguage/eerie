@@ -184,17 +184,8 @@ Command DynamicLinkerCommandUnixExt := Object clone do (
 
 )
 
-Command DynamicLinkerCommandMacOsExt := Object clone do (
-
-    _linkerCmd := Command DynamicLinkerCommandUnixExt _linkerCmd
-
-    _dirPathFlag := Command DynamicLinkerCommandUnixExt _dirPathFlag
-
-    libFlag := Command DynamicLinkerCommandUnixExt libFlag
-
-    _libSuffix := Command DynamicLinkerCommandUnixExt _libSuffix
-
-    _outFlag := Command DynamicLinkerCommandUnixExt _outFlag
+Command DynamicLinkerCommandMacOsExt := Command DynamicLinkerCommandUnixExt \
+    clone do (
 
     _otherFlags := method(
         installName := "-install_name " .. self package struct dllPath

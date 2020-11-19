@@ -278,12 +278,11 @@ Manifest Dependency := Object clone do (
 
         installDir := topParent struct packFor(self name, version)
 
-        # TODO? check whether installDir isPackage 
-        # (Structure isPackage(installDir)) and remove it if not?
-        if (installDir exists, return)
+        if (installDir exists, 
+            if (Eerie Package Structure isPackage(installDir) not,
+                installDir remove,
+                return))
 
-        # FIXME infinite recursion
-        # install dependencies of dependency
         downloadedPack _resolveDeps(topParent)
 
         # install the dependency
