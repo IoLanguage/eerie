@@ -167,12 +167,12 @@ Package := Object clone do (
         self _depCache := Map clone
         self _resolveDeps(self)
         self rebuildChildren
+        Builder with(self) build
         lock unlock)
 
     _resolveDeps := method(topParent,
         deps := self _depsToInstall(topParent)
-        deps foreach(dep, 
-            dep install(topParent)))
+        deps foreach(dep, dep install(topParent)))
 
     _depsToInstall := method(topParent,
         changed := self _removeChanged
