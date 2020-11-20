@@ -312,6 +312,8 @@ Manifest Dependency := Object clone do (
         downloader := Downloader detect(self url, downloadDir)
         downloader download
 
+        System sh("git fetch --tags", true, downloader destDir path)
+
         Package with(downloader destDir path))
 
     _downloadDir := method(struct,

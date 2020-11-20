@@ -10,8 +10,6 @@ Database := Object clone do (
     //doc Database dir `Directory` of the database.
     dir := method(Directory with(Eerie root .. "/db"))
 
-    _cachedConfig := nil
-
     _cache := nil
 
     init := method(if (self dir exists not, self _clone))
@@ -42,37 +40,32 @@ Database := Object clone do (
 
     The `key` is a field name with subfields separated by dot: `foo.bar.baz`.*/
     valueFor := method(pkgName, key,
-        manifest := self manifestFor(pkgName)
-        if (manifest isNil, return nil)
+        value := self manifestFor(pkgName)
+        if (value isNil, return nil)
 
         split := key split(".")
-        value := self _parseManifest(manifest)
         split foreach(key, value = value at(key))
 
         value)
 
-    # use cached config if possible, otherwise - cache it
-    _parseManifest := method(manifest,
-        if (self _cachedConfig isNil, 
-            self _cachedConfig = manifest contents parseJson)
-
-        if (self _cachedConfig at("name") != manifest baseName,
-            self _cachedConfig = manifest contents parseJson)
-
-        self _cachedConfig)
-
     /*doc Database manifestFor(name) 
-    Returns manifest `File` for package `name` if it's in the database,
+    Returns manifest as a `Map` for package `name` if it's in the database,
     otherwise returns `nil`.*/
     manifestFor := method(name,
         if (self _cache ?at(name) isNil not, return self _cache at(name))
-        manifest := File with(self dir path .. "/db/#{name}.json" interpolate)
-        if (manifest exists not, return nil)
-        self _cacheManifest(name, manifest)
-        manifest)
 
-    _cacheManifest := method(name, file,
-        if (self _cache isNil, self _cache := Map clone)
-        self _cache atPut(name, file))
+        manifest := File with(self dir path .. "/db/#{name}.json" interpolate)
+
+        if (manifest exists not, return nil)
+        
+        parsed := manifest contents parseJson
+
+        self _cacheManifest(name, parsed)
+        
+        parsed)
+
+    _cacheManifest := method(name, manifest,
+        self _cache = self _cache ifNilEval(Map clone)
+        self _cache atPut(name, manifest))
 
 )

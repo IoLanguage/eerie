@@ -11,7 +11,7 @@ Package := Object clone do (
     /*doc Package versions
     Get `List` of available versions. The versions are collected from git tags.
     */
-    versions := method(
+    versions := lazySlot(
         cmdOut := System sh("git tag", true, self struct root path)
         cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
 
