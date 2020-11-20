@@ -27,6 +27,8 @@ PackageTest := UnitTest clone do (
             package children at("CFakePack") struct dllPath)
         assertTrue(dynLib exists)
 
+        assertEquals(list("testbin"), package struct binDest files map(name))
+
         self _cleanUp(package))
 
     _cleanUp := method(package, 

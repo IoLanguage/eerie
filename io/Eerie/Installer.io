@@ -118,7 +118,8 @@ Installer := Object clone do (
                 self package struct manifest name, self destination path)))
 
         Logger log("[[cyan bold;Installing [[reset;" ..
-            "#{self package struct manifest name}", 
+            "#{self package struct manifest name} " ..
+            "v#{self package struct manifest version asSeq}", 
             "output")
 
         self package runHook("beforeInstall")

@@ -290,7 +290,7 @@ Manifest Dependency := Object clone do (
             downloadedPack struct manifest branch)
 
         # we don't want binaries of a dependency dependencies. So we install
-        # them in the `_tmp`, which will be deleted after install finished.
+        # them in the `_tmp`, which will be deleted after installation finished.
         binDest := if (call sender uniqueHexId == topParent uniqueHexId,
             topParent struct binDest,
             topParent struct build tmp)

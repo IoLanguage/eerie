@@ -178,7 +178,7 @@ Package := Object clone do (
         deps := self _depsToInstall(topParent)
         if (deps isEmpty not,
         Logger log("[[cyan bold;Resolving [[reset;dependencies for " ..
-            "[[bold;#{self struct manifest name} " .. 
+            "#{self struct manifest name} " .. 
             "v#{self struct manifest version asSeq}", 
             "output"))
         deps foreach(dep, dep install(topParent)))

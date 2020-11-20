@@ -68,7 +68,9 @@ Builder := Object clone do (
             return)
 
         Logger log(
-            "[[cyan bold;Building [[reset;#{self package struct manifest name}",
+            "[[cyan bold;Building [[reset;" ..
+            "#{self package struct manifest name} " ..
+            "v#{self package struct manifest version asSeq}",
             "output")
 
         self _runBuildio
