@@ -12,6 +12,8 @@ Database := Object clone do (
 
     _cachedConfig := nil
 
+    _cache := nil
+
     init := method(if (self dir exists not, self _clone))
 
     _clone := method(
@@ -49,7 +51,7 @@ Database := Object clone do (
 
         value)
 
-    # use cached config is possible, otherwise - cache it
+    # use cached config if possible, otherwise - cache it
     _parseManifest := method(manifest,
         if (self _cachedConfig isNil, 
             self _cachedConfig = manifest contents parseJson)
@@ -63,8 +65,14 @@ Database := Object clone do (
     Returns manifest `File` for package `name` if it's in the database,
     otherwise returns `nil`.*/
     manifestFor := method(name,
+        if (self _cache ?at(name) isNil not, return self _cache at(name))
         manifest := File with(self dir path .. "/db/#{name}.json" interpolate)
         if (manifest exists not, return nil)
+        self _cacheManifest(name, manifest)
         manifest)
+
+    _cacheManifest := method(name, file,
+        if (self _cache isNil, self _cache := Map clone)
+        self _cache atPut(name, file))
 
 )
