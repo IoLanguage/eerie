@@ -162,16 +162,25 @@ Package := Object clone do (
     /*doc Package install(Package)
     Install the package and its dependencies.*/
     install := method(
+        self _updateDb
         lock := Eerie TransactionLock with(self struct root path)
         lock lock
         self _depCache := Map clone
         self _resolveDeps(self)
         self rebuildChildren
         Builder with(self) build
+        self struct build tmp remove
         lock unlock)
+
+    _updateDb := method(if (Eerie database needsUpdate, Eerie database update))
 
     _resolveDeps := method(topParent,
         deps := self _depsToInstall(topParent)
+        if (deps isEmpty not,
+        Logger log("[[cyan bold;Resolving [[reset;dependencies for " ..
+            "[[bold;#{self struct manifest name} " .. 
+            "v#{self struct manifest version asSeq}", 
+            "output"))
         deps foreach(dep, dep install(topParent)))
 
     _depsToInstall := method(topParent,
@@ -194,6 +203,7 @@ Package := Object clone do (
             dep version includes(package struct manifest version)))
 
     update := method(
+        self _updateDb
         # TODO
     )
 

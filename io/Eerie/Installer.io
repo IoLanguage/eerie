@@ -129,7 +129,6 @@ Installer := Object clone do (
 
         if (ver isNil not, self _checkGitTag(ver))
 
-
         self destination createIfAbsent
 
         self package struct root copyTo(self destination)
@@ -164,6 +163,8 @@ Installer := Object clone do (
         if (self package struct hasBinaries not, return)
 
         self _checkBinDestSet
+
+        self binDestination createIfAbsent
 
         self package struct bin files foreach(f, 
             if (Eerie isWindows, 

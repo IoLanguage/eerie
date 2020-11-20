@@ -13,7 +13,7 @@ PackageTest := UnitTest clone do (
             map(dir, Package with(dir path))
 
         assertEquals(
-            list("BFakePack", "CFakePack"), 
+            list("BFakePack", "CFakePack", "DFakePack"), 
             installed map(struct manifest name) sort)
 
         installed foreach(pack,

@@ -20,6 +20,11 @@
             "name": "AFakePack",
             "version": "0.1",
             "url": "tests/_packs/AFakePack"
+        },
+        {
+            "name": "DFakePack",
+            "version": "0.1",
+            "url": "tests/_packs/DFakePack"
         }
     ]
 }
