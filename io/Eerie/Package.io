@@ -159,9 +159,13 @@ Package := Object clone do (
             # different from the user's requirements.
             pack version includes(child struct manifest version) not) values)
 
+    /*doc Package create(name[, path])
+    Initialize a new package with `name` (`Sequence`) at optional `path`
+    (`Sequence`). If `path` isn't specified, will create id directory with
+    `name` relative to current directory.*/
     create := method(name, path,
         name
-        # TODO inializes a new package
+        # TODO 
     )
 
     /*doc Package install(Package)
@@ -208,6 +212,8 @@ Package := Object clone do (
         (dep name == package struct manifest name and \
             dep version includes(package struct manifest version)))
 
+    /*doc Package update
+    Updates all dependencies of the package.*/
     update := method(
         self _checkMissing
         lock := Eerie TransactionLock with(self struct root path)
@@ -231,6 +237,8 @@ Package := Object clone do (
             "output"))
         deps foreach(dep, dep update(topParent, self)))
 
+    /*doc Package load
+    Loads the package and all of its dependencies.*/
     load := method(
         self _checkMissing
         # TODO
