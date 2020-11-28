@@ -46,13 +46,13 @@ Installer := Object clone do (
         destPackage := Package with(self destination path)
         self _checkSame(destPackage)
 
-        ver := self versionFor(version)
+        ver := self versionFor(version) ifNilEval(
+            self package struct manifest version)
 
         if (ver == destPackage struct manifest version,
             Logger log(
-                "#{destPackage struct manifest name} " .. 
-                "v#{destPackage struct manifest version asSeq} " ..
-                "is already updated", 
+                "[[bold;#{destPackage struct manifest name} [[reset;" .. 
+                "is updated", 
                 "output")
             return)
 

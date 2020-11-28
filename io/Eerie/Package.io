@@ -13,7 +13,9 @@ Package := Object clone do (
     */
     versions := lazySlot(
         cmdOut := System sh("git tag", true, self struct root path)
-        cmdOut stdout splitNoEmpties("\n") map(tag, Eerie SemVer fromSeq(tag)))
+        vers := cmdOut stdout splitNoEmpties("\n")
+        # if (vers isEmpty, return list(self struct manifest version))
+        vers map(tag, Eerie SemVer fromSeq(tag)))
 
     /*doc Package parent 
     Get parent of this `Package`. Returns `nil` if it's top-level.*/
