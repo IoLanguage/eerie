@@ -338,6 +338,7 @@ Manifest Dependency := Object clone do (
         if (update isNil, return)
         
         update _resolveDeps(topParent)
+        update _updateDeps(topParent)
         
         # install the dependency
         update struct manifest branch = self branch ifNilEval(

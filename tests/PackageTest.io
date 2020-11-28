@@ -40,7 +40,7 @@ PackageTest := UnitTest clone do (
         installed := Package with("tests/installed/AFakePack")
         installed update
 
-        # TODO so far it's just checks whether Package update works, but it
+        # TODO so far it just checks whether Package update works, but it
         # doesn't check for correctness
     )
 
