@@ -31,6 +31,13 @@ PackageTest := UnitTest clone do (
 
         self _cleanUp(package))
 
+    testUpdate := method(
+        package := Package with("tests/_packs/AFakePack")
+        self _cleanUp(package)
+        e := try (package update)
+        assertEquals(e error type, Package MissingDependenciesError type)
+    )
+
     _cleanUp := method(package, 
         package struct packs remove
         package struct binDest remove
