@@ -237,10 +237,16 @@ Package := Object clone do (
             "output"))
         deps foreach(dep, dep update(topParent, self)))
 
-    /*doc Package load
-    Loads the package and all of its dependencies.*/
-    load := method(
+    /*doc Package load(ctx)
+    Loads the package and all of its dependencies.
+
+    `ctx` is any object, which should be the context of the package. Will use
+    global context if it's `nil`.*/
+    load := method(ctx,
         self _checkMissing
+
+        ctx = ctx ifNilEval(Lobby)
+
         # TODO
     )
 

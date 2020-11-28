@@ -44,6 +44,23 @@ PackageTest := UnitTest clone do (
         # doesn't check for correctness
     )
 
+    testLoad := method(
+        package := Package with("tests/_packs/AFakePack")
+        self _cleanUp(package)
+        e := try (package load)
+        assertEquals(e error type, Package MissingDependenciesError type)
+        package install
+
+        # TODO
+        # ctx := Object clone
+        # package load(ctx)
+        # 
+        # assertFalse(ctx AFakePack isNil)
+        # assertTrue(ctx AFakePack test)
+        # assertEquals(ctx AFakePack package, package)
+
+        self _cleanUp(package))
+
     _cleanUp := method(package, 
         package struct packs remove
         package struct binDest remove
