@@ -56,8 +56,12 @@ PackageTest := UnitTest clone do (
         # package load(ctx)
         # 
         # assertFalse(ctx AFakePack isNil)
-        # assertTrue(ctx AFakePack test)
         # assertEquals(ctx AFakePack package, package)
+        # assertTrue(ctx AFakePack test)
+        # assertTrue(ctx AFakePack depsTest)
+        # assertTrue(ctx AFakePack DFakePack isNil)
+        # assertTrue(ctx AFakePack BFakePack test)
+        # assertTrue(ctx AFakePack BFakePack depsTest)
 
         self _cleanUp(package))
 
