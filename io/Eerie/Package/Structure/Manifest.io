@@ -329,9 +329,10 @@ Manifest Dependency := Object clone do (
         topParent struct packs createIfAbsent
         topParent struct build tmp createIfAbsent
 
-        old := parent children at(self name)
+        old := self _updateTarget(topParent)
 
-        if (old isNil, Exception raise(TargetMissingError with(self name)))
+        if (old isNil, 
+            Exception raise(TargetMissingError with(self name)))
 
         update := self _checkForUpdate(topParent, old)
 
@@ -354,6 +355,19 @@ Manifest Dependency := Object clone do (
             update,
             old struct root path,
             binDest path) update(self version))
+
+    _updateTarget := method(topParent,
+        root := topParent struct packRootFor(self name)
+
+        if (root exists not, return nil)
+
+        versions := root directories map(dir, SemVer fromSeq(dir name))
+
+        if (versions isEmpty, return nil)
+
+        version := self version highestIn(versions)
+
+        Package with(topParent struct packFor(self name, version) path))
 
     _checkForUpdate := method(topParent, targetPackage,
         version := Eerie database valueFor(self name, "version")

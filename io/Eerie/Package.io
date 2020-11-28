@@ -237,8 +237,7 @@ Package := Object clone do (
     )
 
     _checkMissing := method(
-        missing := self missing
-        if (missing isEmpty not, 
+        if (self missing isEmpty not, 
             Exception raise(
                 MissingDependenciesError with(self struct manifest name))))
 
