@@ -266,17 +266,13 @@ Manifest Dependency := Object clone do (
     # 
     # The first scenario has more priority, so we try to get the user specified
     # branch first and then if it's `nil` we check the developer's one.
-    install := method(topParent,
+    install := method(topParent, parent,
         topParent struct packs createIfAbsent
         topParent struct build tmp createIfAbsent
 
         downloadedPack := self _download(topParent struct)
 
-        version := self version \
-            highestIn(downloadedPack versions) \
-                ifNilEval(downloadedPack struct manifest version)
-
-        installDir := topParent struct packFor(self name, version)
+        installDir := self _installDir(downloadedPack, topParent)
 
         if (installDir exists, 
             if (Eerie Package Structure isPackage(installDir) not,
@@ -291,14 +287,14 @@ Manifest Dependency := Object clone do (
 
         # we don't want binaries of a dependency dependencies. So we install
         # them in the `_tmp`, which will be deleted after installation finished.
-        binDest := if (call sender uniqueHexId == topParent uniqueHexId,
+        binDest := if (parent uniqueHexId == topParent uniqueHexId,
             topParent struct binDest,
             topParent struct build tmp)
 
         Installer with(
             downloadedPack,
             installDir path,
-            binDest path) install(version))
+            binDest path) install(self version))
 
     # download the package and instantiate it
     _download := method(struct,
@@ -321,11 +317,62 @@ Manifest Dependency := Object clone do (
             directoryNamed(self name) \
                 directoryNamed(self version asSeq))
 
+    # get _installDir for package
+    _installDir := method(package, topParent,
+        version := self version \
+            highestIn(package versions) \
+                ifNilEval(package struct manifest version)
+
+        topParent struct packFor(self name, version))
+
+    update := method(topParent, parent,
+        topParent struct packs createIfAbsent
+        topParent struct build tmp createIfAbsent
+
+        old := parent children at(self name)
+
+        if (old isNil, Exception raise(TargetMissingError with(self name)))
+
+        update := self _checkForUpdate(topParent, old)
+
+        if (update isNil, return)
+        
+        update _resolveDeps(topParent)
+        
+        # install the dependency
+        update struct manifest branch = self branch ifNilEval(
+            update struct manifest branch)
+
+        # we don't want binaries of a dependency dependencies. So we install
+        # them in the `_tmp`, which will be deleted after installation finished.
+        binDest := if (parent uniqueHexId == topParent uniqueHexId,
+            topParent struct binDest,
+            topParent struct build tmp)
+
+        Installer with(
+            update,
+            old struct root path,
+            binDest path) update(self version))
+
+    _checkForUpdate := method(topParent, targetPackage,
+        version := Eerie database valueFor(self name, "version")
+
+        if (version isNil not and \
+            version == targetPackage struct manifest version, 
+            return nil)
+
+        self _download(topParent struct))
+
 )
 
 Manifest Dependency do (
 
+    //doc Dependency NotUrlError
     NoUrlError := Eerie Error clone setErrorMsg(
         "URL for #{call evalArgAt(0)} is not found.")
+
+    //doc Dependency TargetMissingError
+    TargetMissingError := Eerie Error clone setErrorMsg(
+        "Can't update missing package #{call evalArgAt(0)}")
 
 )

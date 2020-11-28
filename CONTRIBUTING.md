@@ -28,6 +28,9 @@ Any fixes and new features **should be covered by tests**. To make it easier for
 maintainers and contributors, stick the rule that you should prove it works
 using tests.
 
+We develop on `develop` branch. The `master` branch is stable, it's only for
+releases.
+
 
 
 

@@ -31,7 +31,10 @@ Package := Object clone do (
     recursive := false
 
     # Map used to track Manifest Dependency to install
-    _depCache := nil
+    _installCache := nil
+
+    # Map used to track Manifest Dependency to update
+    _updateCache := nil
 
     /*doc Package initRecursive(Package, Package)
     Init a recursive `Package`.
@@ -164,7 +167,8 @@ Package := Object clone do (
     install := method(
         lock := Eerie TransactionLock with(self struct root path)
         lock lock
-        self _depCache := Map clone
+        self _installCache := Map clone
+        self _updateCache := Map clone
         self _resolveDeps(self)
         self rebuildChildren
         Builder with(self) build
@@ -172,20 +176,23 @@ Package := Object clone do (
         lock unlock)
 
     _resolveDeps := method(topParent,
-        deps := self _depsToInstall(topParent)
+        deps := self _unresolvedDeps(
+            self missing appendSeq(self _removeChanged),
+            topParent,
+            topParent _installCache)
         if (deps isEmpty not,
         Logger log("[[cyan bold;Resolving [[reset;dependencies for " ..
             "#{self struct manifest name} " .. 
             "v#{self struct manifest version asSeq}", 
             "output"))
-        deps foreach(dep, dep install(topParent)))
+        deps foreach(dep, dep install(topParent, self)))
 
-    _depsToInstall := method(topParent,
-        changed := self _removeChanged
-        self missing appendSeq(changed) select(dep,
-            result := (topParent _depCache hasKey(self _depCacheKey(dep)) or \
+    # returns list of unresolved deps in the given list of deps
+    _unresolvedDeps := method(deps, topParent, cache,
+        deps select(dep,
+            result := (cache hasKey(self _depCacheKey(dep)) or \
                 self _isDepPackage(dep, topParent)) not
-            topParent _depCache atPut(self _depCacheKey(dep), dep)
+            cache atPut(self _depCacheKey(dep), dep)
             result))
 
     _removeChanged := method(
@@ -201,8 +208,26 @@ Package := Object clone do (
 
     update := method(
         self _checkMissing
-        # TODO
-    )
+        lock := Eerie TransactionLock with(self struct root path)
+        lock lock
+        self _installCache := Map clone
+        self _updateCache := Map clone
+        self _updateDeps(self)
+        self rebuildChildren
+        Builder with(self) build
+        self struct build tmp remove
+        lock unlock)
+
+    _updateDeps := method(topParent,
+        deps := self _unresolvedDeps(
+            self struct manifest packs values,
+            topParent,
+            topParent _updateCache)
+        if (deps isEmpty not,
+        Logger log("[[cyan bold;Updating [[reset;dependencies of " ..
+            "#{self struct manifest name}", 
+            "output"))
+        deps foreach(dep, dep update(topParent, self)))
 
     load := method(
         self _checkMissing

@@ -83,6 +83,7 @@ PackageTest := UnitTest clone do (
 
     testMissing := method(
         package := Package with("tests/_packs/AFakePack")
+        package struct packs remove
         assertEquals(package missing, package struct manifest packs values))
 
     testChanged := method(
