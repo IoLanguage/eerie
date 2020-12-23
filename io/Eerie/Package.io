@@ -241,19 +241,57 @@ Package := Object clone do (
     Loads the package and all of its dependencies.
 
     `ctx` is any object, which should be the context of the package. Will use
-    global context if it's `nil`.*/
+    global context if it's `nil`.
+
+    The method sets slot `package` of the context to the package.*/
     load := method(ctx,
         self _checkMissing
 
-        ctx = ctx ifNilEval(Lobby)
+        // They did it for AddonLoader "to avoid loops when a addon file refs
+        // another before it's loaded"
+		Importer addSearchPath(self struct io path) 
 
-        # TODO
-    )
+        ctx = self _initContext(ctx)
+
+        self _loadDynLib(ctx)
+
+        self _loadIoFiles(ctx)
+
+		Importer removeSearchPath(self struct io path)
+
+        Lobby setSlot(self struct manifest name, ctx))
 
     _checkMissing := method(
         if (self missing isEmpty not, 
             Exception raise(
                 MissingDependenciesError with(self struct manifest name))))
+
+    _initContext := method(ctx,
+        shouldAppend := ctx isNil
+        ctx = ctx ifNilEval(Object clone)
+        ctx package := self
+        shouldAppend ifTrue(Protos appendProto(ctx))
+        ctx)
+
+    _loadDynLib := method(ctx,
+        self _checkCompiled
+        dll := DynLib clone
+        dll path = self struct dllPath
+        dll open call("Io" .. self struct manifest name .. "Init", ctx))
+
+    _checkCompiled := method(
+        if (self struct hasNativeCode and \
+            File with(self struct dllPath) exists not,
+            Exception raise(NotCompiledError with(self struct manifest name))))
+
+    _loadIoFiles := method(ctx,
+		self struct io files foreach(file, ctx doFile(file path)))
+
+    _loadDeps := method(parentCtx,
+        ctx = self _initContext
+        # TODO
+        # parentCtx setSlot(depName, ctx)
+    )
 
     //doc Package remove Removes self.
     remove := method(
@@ -292,5 +330,8 @@ Package do (
     FailedRunHookError := Eerie Error clone setErrorMsg(
         "Failed run hook \"#{call evalArgAt(0)}\":\n#{call evalArgAt(1)}")
 
+    //doc Package NotCompiledError
+    NotCompiledError := Eerie Error clone setErrorMsg(
+        "The package '#{call evalArgAt(0)}' is not compiled.")
 
 )

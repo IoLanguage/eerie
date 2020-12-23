@@ -16,6 +16,11 @@ Structure := Object clone do (
     Get the `_bin` directory, where binaries of dependencies are installed.*/
     binDest := method(self root createSubdirectory("_bin"))
 
+    /*doc Structure io
+
+    Get the `io` directory, the directory with Io code.*/
+    io := method(self root directoryNamed("io"))
+
     /*doc Structure build
     Get object with `_build` directory structure.
 

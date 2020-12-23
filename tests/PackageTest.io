@@ -52,16 +52,16 @@ PackageTest := UnitTest clone do (
         package install
 
         # TODO
-        # ctx := Object clone
-        # package load(ctx)
-        # 
-        # assertFalse(ctx AFakePack isNil)
-        # assertEquals(ctx AFakePack package, package)
-        # assertTrue(ctx AFakePack test)
-        # assertTrue(ctx AFakePack depsTest)
-        # assertTrue(ctx AFakePack DFakePack isNil)
-        # assertTrue(ctx AFakePack BFakePack test)
-        # assertTrue(ctx AFakePack BFakePack depsTest)
+        ctx := Object clone
+        package load(ctx)
+        
+        assertFalse(ctx AFakePack isNil)
+        assertEquals(ctx AFakePack package, package)
+        assertTrue(ctx AFakePack test)
+        assertTrue(ctx AFakePack depsTest)
+        assertTrue(ctx AFakePack DFakePack isNil)
+        assertTrue(ctx AFakePack BFakePack test)
+        assertTrue(ctx AFakePack BFakePack depsTest)
 
         self _cleanUp(package))
 
@@ -123,5 +123,10 @@ PackageTest := UnitTest clone do (
     testChanged := method(
         package := Package with("tests/installed/AFakePack")
         assertEquals("DFakePack", package changed at(0) name))
+
+    testCompiled := method(
+        package := Package with("tests/_packs/CFakePack")
+        e := try (package _checkCompiled)
+        assertEquals(e error type, Package NotCompiledError type))
 
 )
