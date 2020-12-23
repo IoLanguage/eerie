@@ -237,43 +237,51 @@ Package := Object clone do (
             "output"))
         deps foreach(dep, dep update(topParent, self)))
 
-    /*doc Package load(ctx)
+    /*doc Package load(parentCtx)
     Loads the package and all of its dependencies.
 
-    `ctx` is any object, which should be the context of the package. Will use
-    global context if it's `nil`.
+    `parentCtx` is any object, which should be the context of the package. Will
+    use global context if it's `nil`.
 
     The method sets slot `package` of the context to the package.*/
-    load := method(ctx,
+    load := method(parentCtx,
         self _checkMissing
 
-        // They did it for AddonLoader "to avoid loops when a addon file refs
-        // another before it's loaded"
+        # They did it for AddonLoader "to avoid loops when a addon file refs
+        # another before it's loaded"
 		Importer addSearchPath(self struct io path) 
 
-        ctx = self _initContext(ctx)
+        ctx := self _initContext(parentCtx)
+
+        # TODO cache already loaded packages
+
+        self _loadDeps(ctx)
 
         self _loadDynLib(ctx)
 
         self _loadIoFiles(ctx)
 
-		Importer removeSearchPath(self struct io path)
-
-        Lobby setSlot(self struct manifest name, ctx))
+		Importer removeSearchPath(self struct io path))
 
     _checkMissing := method(
         if (self missing isEmpty not, 
             Exception raise(
                 MissingDependenciesError with(self struct manifest name))))
 
-    _initContext := method(ctx,
-        shouldAppend := ctx isNil
-        ctx = ctx ifNilEval(Object clone)
+    _initContext := method(parentCtx,
+        ctx := Object clone
         ctx package := self
-        shouldAppend ifTrue(Protos appendProto(ctx))
+        parentCtx = parentCtx ifNilEval(Lobby)
+        parentCtx setSlot(self struct manifest name, ctx)
         ctx)
 
+    _loadDeps := method(parentCtx,
+        parentCtx
+        # TODO
+    )
+
     _loadDynLib := method(ctx,
+        if (self struct hasNativeCode not, return)
         self _checkCompiled
         dll := DynLib clone
         dll path = self struct dllPath
@@ -286,12 +294,6 @@ Package := Object clone do (
 
     _loadIoFiles := method(ctx,
 		self struct io files foreach(file, ctx doFile(file path)))
-
-    _loadDeps := method(parentCtx,
-        ctx = self _initContext
-        # TODO
-        # parentCtx setSlot(depName, ctx)
-    )
 
     //doc Package remove Removes self.
     remove := method(
