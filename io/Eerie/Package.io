@@ -240,10 +240,11 @@ Package := Object clone do (
     /*doc Package load(parentCtx)
     Loads the package and all of its dependencies.
 
-    `parentCtx` is any object, which should be the context of the package. Will
-    use global context if it's `nil`.
+    `parentCtx` is any object, which suppose to be the context of the package.
+    The method will use global context if `parentCtx` is `nil`.
 
-    The method sets slot `package` of the context to the package.*/
+    The context will have slot `package`, which is the package loaded in this
+    context.*/
     load := method(parentCtx, _cache, _topParent,
         _topParent = _topParent ifNilEval(self)
         _cache = _cache ifNilEval(Map clone)
