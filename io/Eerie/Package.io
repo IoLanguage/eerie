@@ -39,7 +39,7 @@ Package := Object clone do (
     _updateCache := nil
 
     # this Map is used to load each particular version of a package only once
-    _loadCache := nil
+    _loadingCache := nil
 
     /*doc Package initRecursive(Package, Package)
     Init a recursive `Package`.
@@ -246,25 +246,21 @@ Package := Object clone do (
     The method sets slot `package` of the context to the package.*/
     load := method(parentCtx, _cache, _topParent,
         _topParent = _topParent ifNilEval(self)
-
-        self struct manifest name println
-        self children keys println
+        _cache = _cache ifNilEval(Map clone)
 
         self _checkMissing(_topParent)
 
         ctx := self _initContext(parentCtx)
 
-        if (self recursive, return)
+        isCached := self _loadCache(_cache, parentCtx, ctx)
+
+        if (self recursive or isCached, return)
 
         # They did it for AddonLoader "to avoid loops when a addon file refs
         # another before it's loaded"
 		Importer addSearchPath(self struct io path) 
 
-        self _loadCache = _cache ifNilEval(Map clone)
-
-        # TODO cache already loaded packages
-
-        self _loadDeps(ctx, _topParent)
+        self _loadDeps(ctx, _cache, _topParent)
 
         self _loadDynLib(ctx)
 
@@ -282,16 +278,34 @@ Package := Object clone do (
         ctx package := self
         parentCtx = parentCtx ifNilEval(Lobby)
         parentCtx setSlot(self struct manifest name, ctx)
+        ctx type = self struct manifest name
         ctx)
 
-    _loadDeps := method(parentCtx, topParent,
-        self children foreach(name, dep, dep load(parentCtx, topParent)))
+    _loadCache := method(cache, parentCtx, ctx,
+        cacheKey := self _loadCacheKey(ctx package)
+        result := cache hasKey(cacheKey)
+
+        if (result, 
+            parentCtx setSlot(
+                ctx package struct manifest name, 
+                cache at(cacheKey)),
+            cache atPut(cacheKey, ctx))
+
+        result)
+
+    _loadCacheKey := method(package, 
+        package struct manifest name .. 
+        "@" .. 
+        package struct manifest version asSeq)
+
+    _loadDeps := method(parentCtx, cache, topParent,
+        self children foreach(name, dep,
+            dep load(parentCtx, cache, topParent)))
 
     _loadDynLib := method(ctx,
         if (self struct hasNativeCode not, return)
         self _checkCompiled
-        dll := DynLib clone
-        dll path = self struct dllPath
+        dll := DynLib clone setPath(self struct dllPath)
         dll open call("Io" .. self struct manifest name .. "Init", ctx))
 
     _checkCompiled := method(
