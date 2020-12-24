@@ -38,6 +38,9 @@ Package := Object clone do (
     # Map used to track Manifest Dependency to update
     _updateCache := nil
 
+    # this Map is used to load each particular version of a package only once
+    _loadCache := nil
+
     /*doc Package initRecursive(Package, Package)
     Init a recursive `Package`.
 
@@ -84,7 +87,7 @@ Package := Object clone do (
     package. If the argument is `nil`, `self` is used.*/
     rebuildChildren := method(topParent,
         self children := Map clone
-        if (topParent isNil, topParent = self)
+        topParent = topParent ifNilEval(self)
         self struct manifest packs foreach(dep, 
             self _addChildFromDep(dep, topParent))
         self)
@@ -186,18 +189,19 @@ Package := Object clone do (
             self missing appendSeq(self _removeChanged),
             topParent,
             topParent _installCache)
+
         if (deps isEmpty not,
-        Logger log("[[cyan bold;Resolving [[reset;dependencies for " ..
-            "#{self struct manifest name} " .. 
-            "v#{self struct manifest version asSeq}", 
-            "output"))
+            Logger log("[[cyan bold;Resolving [[reset;dependencies for " ..
+                "#{self struct manifest name} " .. 
+                "v#{self struct manifest version asSeq}", 
+                "output"))
+
         deps foreach(dep, dep install(topParent, self)))
 
     # returns list of unresolved deps in the given list of deps
     _unresolvedDeps := method(deps, topParent, cache,
         deps select(dep,
-            result := (cache hasKey(self _depCacheKey(dep)) or \
-                self _isDepPackage(dep, topParent)) not
+            result := cache hasKey(self _depCacheKey(dep)) not
             cache atPut(self _depCacheKey(dep), dep)
             result))
 
@@ -208,14 +212,10 @@ Package := Object clone do (
 
     _depCacheKey := method(dep, dep name .. "@" .. dep version asSeq)
 
-    _isDepPackage := method(dep, package,
-        (dep name == package struct manifest name and \
-            dep version includes(package struct manifest version)))
-
     /*doc Package update
     Updates all dependencies of the package.*/
     update := method(
-        self _checkMissing
+        self _checkMissing(self)
         lock := Eerie TransactionLock with(self struct root path)
         lock lock
         self _installCache := Map clone
@@ -244,18 +244,27 @@ Package := Object clone do (
     use global context if it's `nil`.
 
     The method sets slot `package` of the context to the package.*/
-    load := method(parentCtx,
-        self _checkMissing
+    load := method(parentCtx, _cache, _topParent,
+        _topParent = _topParent ifNilEval(self)
+
+        self struct manifest name println
+        self children keys println
+
+        self _checkMissing(_topParent)
+
+        ctx := self _initContext(parentCtx)
+
+        if (self recursive, return)
 
         # They did it for AddonLoader "to avoid loops when a addon file refs
         # another before it's loaded"
 		Importer addSearchPath(self struct io path) 
 
-        ctx := self _initContext(parentCtx)
+        self _loadCache = _cache ifNilEval(Map clone)
 
         # TODO cache already loaded packages
 
-        self _loadDeps(ctx)
+        self _loadDeps(ctx, _topParent)
 
         self _loadDynLib(ctx)
 
@@ -263,8 +272,8 @@ Package := Object clone do (
 
 		Importer removeSearchPath(self struct io path))
 
-    _checkMissing := method(
-        if (self missing isEmpty not, 
+    _checkMissing := method(topParent,
+        if (topParent missing isEmpty not, 
             Exception raise(
                 MissingDependenciesError with(self struct manifest name))))
 
@@ -275,10 +284,8 @@ Package := Object clone do (
         parentCtx setSlot(self struct manifest name, ctx)
         ctx)
 
-    _loadDeps := method(parentCtx,
-        parentCtx
-        # TODO
-    )
+    _loadDeps := method(parentCtx, topParent,
+        self children foreach(name, dep, dep load(parentCtx, topParent)))
 
     _loadDynLib := method(ctx,
         if (self struct hasNativeCode not, return)

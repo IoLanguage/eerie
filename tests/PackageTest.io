@@ -13,7 +13,7 @@ PackageTest := UnitTest clone do (
             map(dir, Package with(dir path))
 
         assertEquals(
-            list("BFakePack", "CFakePack", "DFakePack"), 
+            list("AFakePack", "BFakePack", "CFakePack", "DFakePack"), 
             installed map(struct manifest name) sort)
 
         installed foreach(pack,
@@ -118,7 +118,9 @@ PackageTest := UnitTest clone do (
     testMissing := method(
         package := Package with("tests/_packs/AFakePack")
         package struct packs remove
-        assertEquals(package missing, package struct manifest packs values))
+        assertEquals(
+            package missing map(name) sort, 
+            package struct manifest packs keys sort))
 
     testChanged := method(
         package := Package with("tests/installed/AFakePack")
