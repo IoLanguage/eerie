@@ -2,6 +2,9 @@
 //metadoc Manifest description Represents parsed manifest file.
 Manifest := Object clone do (
 
+    //doc Manifest fileName Get manifest file name.
+    fileName := "eerie.json"
+
     //doc Manifest file Get `File` for this manifest.
     file := nil
 
@@ -46,12 +49,6 @@ Manifest := Object clone do (
         self _checkRequired("version")
         self _checkRequired("author")
         self _checkRequired("url")
-
-        # it's allowed to be empty for `protos`
-        self _checkField(self _map at("protos") isNil,
-            "The \"protos\" field is required.")
-
-        self _checkType("protos", List)
 
         # `packs` is optional
         if (self _map at("packs") isNil or \
@@ -197,7 +194,7 @@ Manifest do (
     //doc Manifest NoDescriptionError
     NoDescriptionError := Eerie Error clone setErrorMsg(
         "Published packages should have \"description\" in " ..
-        "#{Eerie manifestName}.")
+        "#{Manifest fileName}.")
 
     //doc Manifest ReadmeError
     ReadmeError := Eerie Error clone setErrorMsg(

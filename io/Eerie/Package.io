@@ -164,12 +164,66 @@ Package := Object clone do (
 
     /*doc Package create(name[, path])
     Initialize a new package with `name` (`Sequence`) at optional `path`
-    (`Sequence`). If `path` isn't specified, will create id directory with
-    `name` relative to current directory.*/
+    (`Sequence`). If `path` isn't specified, will create a directory with
+    `name` relative to current directory.
+
+    Returns a `Package`.*/
     create := method(name, path,
-        name
-        # TODO 
-    )
+        path = path ifNilEval(Directory currentWorkingDirectory)
+        path = Path with(path, name)
+
+        username := self _username
+
+        dir := self _createDirStructure(name, username, path)
+
+        self _createManifest(name, username, path)
+
+        self _createGitignore(path)
+
+        System sh("git init", false, path)
+
+        Package with(path))
+
+    _username := method(
+        if (Eerie isWindows,
+            System getEnvironmentVariable("USERNAME"),
+            System getEnvironmentVariable("USER")))
+
+    _createDirStructure := method(name, username, path,
+        dir := Directory with(path)
+        dir createIfAbsent
+        dir createSubdirectory("io")
+        file := dir directoryNamed("io") fileNamed("#{name}.io" interpolate)
+        file create
+        file setContents((
+            "//metadoc #{name} category API\n" ..
+            "//metadoc #{name} author #{username}\n" ..
+            "//metadoc #{name} description The package description.\n" ..
+            "\n" ..
+            "#{name} := Object clone"
+        ) interpolate)
+        dir)
+
+    _createManifest := method(name, username, path,
+        manifest := File with(Path with(path, Structure Manifest fileName))
+        manifest create
+
+        manifest setContents((
+            "{\n" .. 
+            "    \"name\": \"#{name}\",\n" ..
+            "    \"version\": \"0.1.0\",\n" .. 
+            "    \"author\": \"#{username}\",\n" ..
+            "    \"url\": \"#{path}\"\n" ..
+            "}") interpolate))
+
+    _createGitignore := method(path,
+        gitignore := File with(Path with(path, ".gitignore"))
+        gitignore create
+        gitignore setContents(
+            ".DS_Store\n" .. 
+            "_bin\n" ..
+            "_build\n" ..
+            "_packs"))
 
     /*doc Package install(Package)
     Install the package and its dependencies.*/

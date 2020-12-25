@@ -1,5 +1,12 @@
 PackageTest := UnitTest clone do (
 
+    testCreate := method(
+        name := "TestPackageCreate"
+        dirPath := "tests/_tmp"
+        Directory with(Path with(dirPath, name)) create remove
+        package := Package create(name, dirPath)
+        package remove)
+
     testInstall := method(
         package := Package with("tests/_packs/AFakePack")
         self _cleanUp(package)

@@ -209,7 +209,6 @@ contains fields and their descriptions.
 |                                    |                 | Can be a path to directory or a git URL.                                     |                                      |
 | `branch`                           | `string`        | Git branch.                                                                  | **OPTIONAL**                         |
 | `categories`                       | `array<string>` | Categories to which the package applies.                                     | **OPTIONAL**                         |
-| `protos`                           | `array<string>` | Protos which the package exposes.                                            | **REQUIRED**                         |
 | `packs`                           | `array`         | Dependencies of the package.                                                 | **OPTIONAL**                         |
 | `packs[n].name`                   | `string`        | Name of the package.                                                         | **REQUIRED**                         |
 | `packs[n].version`                | `string`        | The version of the package. Can be shortened.                                | **REQUIRED**                         |

@@ -5,7 +5,7 @@ ManifestTest := UnitTest clone do (
     testDeps := method(
         manifest := Manifest with(
             File with(
-                "tests/_packs/AFakePack/#{Eerie manifestName}" interpolate))
+                "tests/_packs/AFakePack/#{Manifest fileName}" interpolate))
         expected := list()
         
         dep := Manifest Dependency clone
@@ -29,7 +29,7 @@ ManifestTest := UnitTest clone do (
     testFileExists := method(
         e := try (Manifest with(
             File with(
-                "tests/_fpacks/NotPack/#{Eerie manifestName}" interpolate)))
+                "tests/_fpacks/NotPack/#{Manifest fileName}" interpolate)))
         assertEquals(e error type, Manifest FileNotExistsError type))
 
     testValueForKey := method(
@@ -68,23 +68,7 @@ ManifestTest := UnitTest clone do (
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test",
-            "url": "path/to/package"
-            }""")
-
-        self _assertManifestError("""{
-            "name": "Test", 
-            "version": "0.1.0",
-            "author": "Test",
             "url": "path/to/package",
-            "protos": ""
-            }""")
-
-        self _assertManifestError("""{
-            "name": "Test", 
-            "version": "0.1.0",
-            "author": "Test",
-            "url": "path/to/package",
-            "protos": [],
             "packs": [ { } ] 
             }""")
 
@@ -93,7 +77,6 @@ ManifestTest := UnitTest clone do (
             "version": "0.1.0",
             "author": "Test",
             "url": "path/to/package",
-            "protos": [],
             "packs": [
                     { 
                         "name": "Test"
@@ -101,13 +84,11 @@ ManifestTest := UnitTest clone do (
                 ]
             }""")
 
-        # shouldn't raise an exception if protos is empty array
         self _assertManifestLegal("""{
             "name": "Test", 
             "version": "0.1.0",
             "author": "Test",
-            "url": "path/to/package",
-            "protos": []
+            "url": "path/to/package"
             }""")
 
         # "packs" is optional, so an empty array shouldn't raise an exception
@@ -116,7 +97,6 @@ ManifestTest := UnitTest clone do (
             "version": "0.1.0",
             "author": "Test",
             "url": "path/to/package",
-            "protos": [],
             "packs": []
             }""")
 
@@ -127,7 +107,6 @@ ManifestTest := UnitTest clone do (
             "version": "0.1.0",
             "author": "Test",
             "url": "path/to/package",
-            "protos": [],
             "packs": [
                     { 
                         "name": "Test",
@@ -152,7 +131,7 @@ ManifestTest := UnitTest clone do (
     testCheckShortenedVersion := method(
         manifest := Manifest with(
             File with(
-                "tests/_packs/BFakePack/#{Eerie manifestName}" interpolate))
+                "tests/_packs/BFakePack/#{Manifest fileName}" interpolate))
         manifest version = SemVer fromSeq("0.1")
         e := try (manifest _checkVersionShortened)
         assertEquals(e error type, 
@@ -161,7 +140,7 @@ ManifestTest := UnitTest clone do (
     testCheckReadme := method(
         manifest := Manifest with(
             File with(
-                "tests/_packs/AFakePack/#{Eerie manifestName}" interpolate))
+                "tests/_packs/AFakePack/#{Manifest fileName}" interpolate))
         
         e := try (manifest _checkReadme)
         assertEquals(e error type, Manifest ReadmeError type)
@@ -169,7 +148,7 @@ ManifestTest := UnitTest clone do (
         # package with readme field
         manifest = Manifest with(
             File with(
-                "tests/_packs/DFakePack/#{Eerie manifestName}" interpolate))
+                "tests/_packs/DFakePack/#{Manifest fileName}" interpolate))
         readme := manifest file parentDirectory \
             fileNamed("README.md") create remove
 
@@ -190,7 +169,7 @@ ManifestTest := UnitTest clone do (
     testCheckLicense := method(
         manifest := Manifest with(
             File with(
-                "tests/_packs/AFakePack/#{Eerie manifestName}" interpolate))
+                "tests/_packs/AFakePack/#{Manifest fileName}" interpolate))
         
         e := try (manifest _checkLicense)
         assertEquals(e error type, Manifest LicenseError type)
@@ -198,7 +177,7 @@ ManifestTest := UnitTest clone do (
         # package with license field
         manifest = Manifest with(
             File with(
-                "tests/_packs/DFakePack/#{Eerie manifestName}" interpolate))
+                "tests/_packs/DFakePack/#{Manifest fileName}" interpolate))
         license := manifest file parentDirectory \
             fileNamed("LICENSE") create remove
 
@@ -220,14 +199,14 @@ ManifestTest := UnitTest clone do (
         # package with empty description
         manifest := Manifest with(
             File with(
-                "tests/_packs/BFakePack/#{Eerie manifestName}" interpolate))
+                "tests/_packs/BFakePack/#{Manifest fileName}" interpolate))
 
         e := try (manifest _checkDescription)
         assertEquals(e error type, Manifest NoDescriptionError type)
 
         manifest = Manifest with(
             File with(
-                "tests/_packs/AFakePack/#{Eerie manifestName}" interpolate))
+                "tests/_packs/AFakePack/#{Manifest fileName}" interpolate))
         manifest _checkDescription)
 
 )

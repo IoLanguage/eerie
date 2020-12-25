@@ -67,7 +67,7 @@ Structure := Object clone do (
         klone root = Directory with(rootPath)
         klone build := BuildDir with(klone)
         manifestFile := File with(
-            rootPath .. "/#{Eerie manifestName}" interpolate) 
+            rootPath .. "/#{Manifest fileName}" interpolate) 
         klone manifest := Manifest with(manifestFile)
 
         klone)
@@ -77,7 +77,7 @@ Structure := Object clone do (
     isPackage := method(root,
         ioDir := root directoryNamed("io")
         manifest := File with(
-            root path .. "/" .. "#{Eerie manifestName}" interpolate)
+            root path .. "/" .. "#{Manifest fileName}" interpolate)
 
         root exists and manifest exists and ioDir exists)
 
