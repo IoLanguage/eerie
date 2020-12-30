@@ -77,7 +77,6 @@ Eerie := Object clone do (
     init := method(
         # call this to check whether EERIEDIR set
         self root)
-        # self database := Database clone)
 
     upgrade := method(
         if (self _checkForUpdates isNil, return)
