@@ -49,8 +49,10 @@ Publisher := Object clone do (
         self _promptPush
 
         Logger log(
-            "🎉 [[magenta;Successfully released [[bold;#{self package struct manifest name} " ..
-            "v#{self package struct manifest version asSeq}[[reset magenta;![[reset;\n\n" .. 
+            "🎉 [[magenta;Successfully released " ..
+            "[[bold;#{self package struct manifest name} " ..
+            "v#{self package struct manifest version asSeq}" ..
+            "[[reset magenta;![[reset;\n\n" .. 
             "Now publish it in Eerie database.\n" .. 
             "Look [[green;https://github.com/IoLanguage/eerie-db[[reset; " .. 
             "for instructions.")

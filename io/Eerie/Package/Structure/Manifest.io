@@ -234,7 +234,7 @@ Manifest Dependency := Object clone do (
         # if url is nil the pack supposed to be in the db, so we try to get it
         # from there
         klone url = dep at("url") ifNilEval(
-            Eerie database valueFor(klone name, "url"))
+            Eerie Database valueFor(klone name, "url"))
         klone branch = dep at("branch")
         klone)
 
@@ -367,7 +367,7 @@ Manifest Dependency := Object clone do (
         Package with(topParent struct packFor(self name, version) path))
 
     _checkForUpdate := method(topParent, targetPackage,
-        version := Eerie database valueFor(self name, "version")
+        version := Eerie Database valueFor(self name, "version")
 
         if (version isNil not and \
             version == targetPackage struct manifest version, 

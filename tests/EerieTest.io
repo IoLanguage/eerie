@@ -7,4 +7,8 @@ EerieTest := UnitTest clone do (
         System setEnvironmentVariable("EERIEDIR", backup)
         assertEquals(e error type, Eerie EerieDirNotSetError type))
 
+    testUpgrade := method(
+        Eerie upgrade
+    )
+
 )

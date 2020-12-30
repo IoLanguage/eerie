@@ -280,6 +280,11 @@ Package := Object clone do (
         self struct build tmp remove
         lock unlock)
 
+    _checkMissing := method(topParent,
+        if (topParent missing isEmpty not, 
+            Exception raise(
+                MissingDependenciesError with(self struct manifest name))))
+
     _updateDeps := method(topParent,
         deps := self _unresolvedDeps(
             self struct manifest packs values,
@@ -322,11 +327,6 @@ Package := Object clone do (
         self _loadIoFiles(ctx)
 
 		Importer removeSearchPath(self struct io path))
-
-    _checkMissing := method(topParent,
-        if (topParent missing isEmpty not, 
-            Exception raise(
-                MissingDependenciesError with(self struct manifest name))))
 
     _initContext := method(parentCtx,
         ctx := Object clone

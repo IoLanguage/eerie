@@ -1,5 +1,6 @@
 //metadoc Structure category Package
 //metadoc Structure description Directory structure of `Package`.
+
 Structure := Object clone do (
 
     doRelativeFile("Structure/Manifest.io")

@@ -69,3 +69,5 @@ Database := Object clone do (
         self _cache atPut(name, manifest))
 
 )
+
+Database clone = Database do(init)

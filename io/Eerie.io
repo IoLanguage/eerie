@@ -53,9 +53,6 @@ Eerie := Object clone do (
             Exception raise(EerieDirNotSetError with("")))
         path)
     
-    //doc Eerie database Get instance of `Database` Eerie uses.
-    database := nil
-
     //doc Eerie ioHeadersPath Returns path (`Sequence`) to io headers.
     ioHeadersPath := method(Path with(Eerie root, "ioheaders"))
 
@@ -79,17 +76,27 @@ Eerie := Object clone do (
 
     init := method(
         # call this to check whether EERIEDIR set
-        self root
-        self database := Database clone
-        # self _checkForUpdates
+        self root)
+        # self database := Database clone)
+
+    upgrade := method(
+        if (self _checkForUpdates isNil, return)
     )
 
     _checkForUpdates := method(
-        Logger log(
-            "Eerie update is available. Run 'eerie upgrade'.",
-            "warning")
-        #TODO
-    )
+        verStr := Database valueFor("Eerie", "version")
+        version := SemVer fromSeq(verStr)
+        if (Package global struct manifest version < version, 
+            version,
+            nil))
+
+    /*doc Eerie warnUpdateAvailable 
+    Prints warning if a new version of Eerie is available.*/
+    warnUpdateAvailable := method(
+        if (version := self _checkForUpdates,
+            Logger log(
+                "Eerie v#{version asSeq} is available. Run 'eerie upgrade'.",
+                "warning")))
 
 )
 

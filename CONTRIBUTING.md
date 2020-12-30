@@ -10,7 +10,10 @@
         - [Comments](#comments)
         - [`if` Statements](#if-statements)
 
-# Contributing
+
+
+
+## Contributing
 
 This document describes rules, which we all should follow to keep the code base
 maintainable and consistent. It's important to follow these rules and a PR will
