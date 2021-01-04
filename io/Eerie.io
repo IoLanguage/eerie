@@ -52,6 +52,9 @@ Eerie := Object clone do (
         if(path isNil or path isEmpty,
             Exception raise(EerieDirNotSetError with("")))
         path)
+
+    //doc Eerie repo Get Eerie repo URL.
+    repo := "https://github.com/IoLanguage/eerie.git"
     
     //doc Eerie ioHeadersPath Returns path (`Sequence`) to io headers.
     ioHeadersPath := method(Path with(Eerie root, "ioheaders"))
@@ -80,7 +83,11 @@ Eerie := Object clone do (
 
     upgrade := method(
         if (self _checkForUpdates isNil, return)
-    )
+        dest := self _downloadDir createIfAbsent
+        self _downloadUpdate(dest)
+        self _prepareUpdate(dest)
+        self _prepareRoot
+        self _installUpdate(dest))
 
     _checkForUpdates := method(
         verStr := Database valueFor("Eerie", "version")
@@ -88,6 +95,30 @@ Eerie := Object clone do (
         if (Package global struct manifest version < version, 
             version,
             nil))
+
+    _downloadDir := method(
+        package := Package global
+        package struct build tmp directoryNamed("upgrade"))
+
+    _downloadUpdate := method(dest,
+        cmd := "git clone #{Eerie repo} #{dest path}" interpolate
+        System sh(cmd, true)
+        System sh("git checkout master", true, dest path))
+
+    _prepareUpdate := method(dest,
+        dest
+        # TODO
+    )
+
+    _prepareRoot := method(
+        # TODO remove everything except of db and _build/_tmp/_upgrade
+    )
+
+    _installUpdate := method(updDir,
+        updDir
+        # TODO
+
+        Package global install)
 
     /*doc Eerie warnUpdateAvailable 
     Prints warning if a new version of Eerie is available.*/

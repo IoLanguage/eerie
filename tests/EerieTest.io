@@ -8,7 +8,9 @@ EerieTest := UnitTest clone do (
         assertEquals(e error type, Eerie EerieDirNotSetError type))
 
     testUpgrade := method(
-        Eerie upgrade
+        assertEquals(
+            "#{Eerie root}/_build/_tmp/upgrade" interpolate, 
+            Eerie _downloadDir path)
     )
 
 )
