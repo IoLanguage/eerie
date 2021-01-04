@@ -256,6 +256,8 @@ ManifestTest := UnitTest clone do (
 
         manifest _serialize
 
+        manifest _map asJson println
+
         self _assertSerialized(manifest, true))
 
     _assertSerialized := method(manifest, expected,

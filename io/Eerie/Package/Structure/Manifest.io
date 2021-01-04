@@ -55,11 +55,14 @@ Manifest := Object clone do (
         self file setContents(self _map asJson))
 
     _serialize := method(
-        self _map atPut("name", self name)
-        self _map atPut("description", self description)
-        self _map atPut("version", self version asSeq)
-        self _map atPut("branch", self branch)
+        self _serializeValueAtKey(self name, "name")
+        self _serializeValueAtKey(self description, "description")
+        self _serializeValueAtKey(self version asSeq, "version")
+        self _serializeValueAtKey(self branch, "branch")
         self _serializePacks)
+
+    _serializeValueAtKey := method(value, key,
+        if (value isNil not, self _map atPut(key, value)))
 
     # write `self packs` into `self _map`
     _serializePacks := method(
@@ -268,10 +271,14 @@ Manifest Dependency := Object clone do (
     Initialize a map from the dependency.*/
     asMap := method(
         result := Map clone
-        result atPut("name", self name)
-        result atPut("version", self version asSeq)
-        result atPut("url", self url)
-        result atPut("branch", self branch))
+        self _serializeValueAtKey(self name, "name", result)
+        self _serializeValueAtKey(self version asSeq, "version", result)
+        self _serializeValueAtKey(self url, "url", result)
+        self _serializeValueAtKey(self branch, "branch", result)
+        result)
+
+    _serializeValueAtKey := method(value, key, map,
+        if (value isNil not, map atPut(key, value)))
 
     /*doc Dependency install(Package)
     Download and install the dependency this `Dependency`. The argument is the
