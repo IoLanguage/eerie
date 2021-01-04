@@ -106,8 +106,8 @@ Eerie := Object clone do (
         System sh("git checkout master", true, dest path))
 
     _prepareUpdate := method(dest,
-        dest
-        # TODO
+        manifestFile := dest fileNamed(Manifest fileName)
+        manifest := Manifest with(manifestFile)
     )
 
     _prepareRoot := method(

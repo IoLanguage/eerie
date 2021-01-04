@@ -41,6 +41,32 @@ Manifest := Object clone do (
         klone _map = file contents parseJson
         klone)
 
+    /*doc Manifest addPack(Dependency)
+    Add the dependency to the manifest.*/
+    addPack := method(pack, self packs atPut(pack name, pack))
+
+    /*doc Manifest removePackNamed(name)
+    Remove dependency with the given `name` (`Sequence`).*/
+    removePackNamed := method(name, self packs removeAt(name))
+
+    //doc Manifest save Save manifest into file.
+    save := method(
+        self _serialize
+        self file setContents(self _map asJson))
+
+    _serialize := method(
+        self _map atPut("name", self name)
+        self _map atPut("description", self description)
+        self _map atPut("version", self version asSeq)
+        self _map atPut("branch", self branch)
+        self _serializePacks)
+
+    # write `self packs` into `self _map`
+    _serializePacks := method(
+        self _map atPut("packs", list())
+        self packs foreach(dep,
+            self _map at("packs") append(dep asMap)))
+
     /*doc Manifest validate(release) 
     Validates the manifest. If the `release` is `true`, validates for
     releasing/publishing.*/
@@ -237,6 +263,15 @@ Manifest Dependency := Object clone do (
             Eerie Database valueFor(klone name, "url"))
         klone branch = dep at("branch")
         klone)
+
+    /*doc Dependency asMap
+    Initialize a map from the dependency.*/
+    asMap := method(
+        result := Map clone
+        result atPut("name", self name)
+        result atPut("version", self version asSeq)
+        result atPut("url", self url)
+        result atPut("branch", self branch))
 
     /*doc Dependency install(Package)
     Download and install the dependency this `Dependency`. The argument is the

@@ -209,4 +209,68 @@ ManifestTest := UnitTest clone do (
                 "tests/_packs/AFakePack/#{Manifest fileName}" interpolate))
         manifest _checkDescription)
 
+    testDepsOperations := method(
+        file := File with("tests/manifest_test.json")
+        manifest := Manifest with(file)
+
+        assertEquals(list("BFakePack", "CFakePack"), manifest packs keys sort)
+
+        dep := Manifest Dependency clone
+        dep name = "Test"
+        dep version = SemVer fromSeq("0.1.0")
+        dep url = "foo/bar/baz"
+        dep branch = "test"
+
+        manifest addPack(dep)
+
+        assertEquals(
+            list("BFakePack", "CFakePack", "Test"), 
+            manifest packs keys sort)
+
+        manifest removePackNamed("CFakePack")
+
+        assertEquals(
+            list("BFakePack", "Test"), 
+            manifest packs keys sort))
+
+    testSerialization := method(
+        file := File with("tests/manifest_test.json")
+        manifest := Manifest with(file)
+
+        self _assertSerialized(manifest, true)
+
+        manifest name := "Updated"
+        manifest description := "updated"
+        manifest version := SemVer fromSeq("100.100.100")
+        manifest branch := "update"
+
+        dep := Manifest Dependency clone
+        dep name = "Test"
+        dep version = SemVer fromSeq("0.1.0")
+        dep url = "foo/bar/baz"
+        dep branch = "test"
+
+        manifest addPack(dep)
+
+        self _assertSerialized(manifest, false)
+
+        manifest _serialize
+
+        self _assertSerialized(manifest, true))
+
+    _assertSerialized := method(manifest, expected,
+        assertEquals(manifest _map at("name") == manifest name, expected)
+        assertEquals(
+            manifest _map at("description") == manifest description,
+            expected)
+        assertEquals(
+            manifest _map at("version") == manifest version asSeq,
+            expected)
+        assertEquals(
+            manifest _map at("branch") == manifest branch,
+            expected)
+
+        serPacks := manifest _map at("packs") map(at("name")) sort
+        assertEquals(serPacks ==  manifest packs keys sort, expected))
+
 )
