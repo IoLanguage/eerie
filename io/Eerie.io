@@ -85,7 +85,7 @@ Eerie := Object clone do (
         if (self _checkForUpdates isNil, return)
         dest := self _downloadDir createIfAbsent
         self _downloadUpdate(dest)
-        self _prepareForUpdate(dest)
+        self _prepareUpdate(dest)
         self _installUpdate(dest))
 
     _checkForUpdates := method(
@@ -102,11 +102,12 @@ Eerie := Object clone do (
         System sh(cmd, true)
         System sh("git checkout master", true, dest path))
 
-    _prepareForUpdate := method(dest,
+    _prepareUpdate := method(dest,
         manifest := self _prepareUpdateManifest(dest)
         manifest save
-        self _backup
-        self _prepareRoot)
+        backupDir := Package global struct root directoryNamed("_backup")
+        self _backup(dir)
+        self _outdatedItems foreach(remove))
 
     _prepareUpdateManifest := method(dest,
         manifestFile := dest fileNamed(Package Structure Manifest fileName)
@@ -114,20 +115,23 @@ Eerie := Object clone do (
         Package global struct manifest packs foreach(dep, manifest addPack(dep))
         manifest)
 
-    _backup := method(
-        dir := Package global struct root directoryNamed("_backup")
+    _backup := method(dir,
         dir create remove create
         backup := dir fileNamed(Package Structure Manifest fileName)
         Package global struct manifest file copyToPath(backup path))
 
-    _prepareRoot := method(
-        # TODO remove everything except of db, _build/_tmp/_upgrade and _backup
-    )
+    # notice, it doesn't include "_build" as it might keep update files
+    # "_build" is supposed to be removed during the update installation
+    _outdatedItems := method(
+        keep := list(".", "..", "_backup", "_build", "db")
+        Package global struct root items select(item,
+            keep contains(item name) not))
 
     _installUpdate := method(updDir,
-        updDir
-        # TODO
+        # TODO move everything from updDir into Package global struct root
 
+        updDir remove
+        Package global struct build root remove
         Package global install)
 
     /*doc Eerie warnUpdateAvailable 

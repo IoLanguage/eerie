@@ -1,0 +1,29 @@
+{
+    "name": "Eerie",
+    "version": "0.3.0",
+    "description": "The Io package manager.",
+    "author": "Josip Lisec, Ales Tsurko",
+    "readme": "README.md",
+    "license": "LICENSE",
+    "website": "https://iolanguage.github.io/eerie",
+    "url": "https://github.com/IoLanguage/eerie.git",
+    "categories": [
+        "core",
+        "utility",
+        "system"
+    ],
+    "packs": [
+        {
+            "name": "Docio",
+            "version": "0.1"
+        },
+        {
+            "name": "Kano",
+            "version": "0.1"
+        },
+        {
+            "name": "Rainbow",
+            "version": "0.1"
+        }
+    ]
+}
