@@ -79,7 +79,19 @@ Eerie := Object clone do (
 
     init := method(
         # call this to check whether EERIEDIR set
-        self root)
+        self root
+
+        self do (
+            doRelativeFile("Eerie/Builder.io")
+            doRelativeFile("Eerie/Database.io")
+            doRelativeFile("Eerie/Downloader.io")
+            doRelativeFile("Eerie/Installer.io")
+            doRelativeFile("Eerie/Logger.io")
+            doRelativeFile("Eerie/Package.io")
+            doRelativeFile("Eerie/Publisher.io")
+            doRelativeFile("Eerie/SemVer.io")
+            doRelativeFile("Eerie/TestsRunner.io")
+            doRelativeFile("Eerie/TransactionLock.io")))
 
     upgrade := method(
         if (self _checkForUpdates isNil, return)
@@ -175,22 +187,7 @@ System do (
 
 )
 
-Eerie clone = Eerie do (
-
-    doRelativeFile("Eerie/Builder.io")
-    doRelativeFile("Eerie/Database.io")
-    doRelativeFile("Eerie/Downloader.io")
-    doRelativeFile("Eerie/Installer.io")
-    doRelativeFile("Eerie/Logger.io")
-    doRelativeFile("Eerie/Package.io")
-    doRelativeFile("Eerie/Publisher.io")
-    doRelativeFile("Eerie/SemVer.io")
-    doRelativeFile("Eerie/TestsRunner.io")
-    doRelativeFile("Eerie/TransactionLock.io")
-
-    init
-
-)
+Eerie clone = Eerie do (init)
 
 /*doc Directory copyTo 
 Copy content of a directory into destination directory path.*/

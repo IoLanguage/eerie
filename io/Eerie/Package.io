@@ -225,7 +225,7 @@ Package := Object clone do (
             "_build\n" ..
             "_packs"))
 
-    /*doc Package install(Package)
+    /*doc Package install
     Install the package and its dependencies.*/
     install := method(
         lock := Eerie TransactionLock with(self struct root path)

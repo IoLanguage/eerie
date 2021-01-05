@@ -13,10 +13,10 @@ EerieTest := UnitTest clone do (
             Eerie _downloadDir path)
 
         dest := Directory with("tests/manifest")
-        manifest := Package Structure Manifest with(
-            dest fileNamed(Package Structure Manifest fileName))
+        manifest := Eerie Package Structure Manifest with(
+            dest fileNamed(Eerie Package Structure Manifest fileName))
         updateManifest := Eerie _prepareUpdateManifest(dest)
-        expected := Package global struct manifest packs keys 
+        expected := Eerie Package global struct manifest packs keys 
         expected appendSeq(manifest packs keys)
         
         assertEquals(
@@ -29,13 +29,16 @@ EerieTest := UnitTest clone do (
 
     testBackup := method(
         dir := Directory with("tests/_backup")
+        dir create remove
         Eerie _backup(dir)
 
-        manifest := Package Structure Manifest with(
-            dir fileNamed(Package Structure Manifest fileName))
+        manifest := Eerie Package Structure Manifest with(
+            dir fileNamed(Eerie Package Structure Manifest fileName))
 
         assertEquals(
             manifest file contents,
-            Package global struct manifest file contents))
+            Eerie Package global struct manifest file contents)
+
+        dir create remove)
 
 )
