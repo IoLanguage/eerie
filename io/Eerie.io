@@ -85,16 +85,13 @@ Eerie := Object clone do (
         if (self _checkForUpdates isNil, return)
         dest := self _downloadDir createIfAbsent
         self _downloadUpdate(dest)
-        self _prepareUpdate(dest)
-        self _prepareRoot
+        self _prepareForUpdate(dest)
         self _installUpdate(dest))
 
     _checkForUpdates := method(
         verStr := Database valueFor("Eerie", "version")
         version := SemVer fromSeq(verStr)
-        if (Package global struct manifest version < version, 
-            version,
-            nil))
+        if (Package global struct manifest version < version, version, nil))
 
     _downloadDir := method(
         package := Package global
@@ -105,13 +102,26 @@ Eerie := Object clone do (
         System sh(cmd, true)
         System sh("git checkout master", true, dest path))
 
-    _prepareUpdate := method(dest,
-        manifestFile := dest fileNamed(Manifest fileName)
-        manifest := Manifest with(manifestFile)
-    )
+    _prepareForUpdate := method(dest,
+        manifest := self _prepareUpdateManifest(dest)
+        manifest save
+        self _backup
+        self _prepareRoot)
+
+    _prepareUpdateManifest := method(dest,
+        manifestFile := dest fileNamed(Package Structure Manifest fileName)
+        manifest := Package Structure Manifest with(manifestFile)
+        Package global struct manifest packs foreach(dep, manifest addPack(dep))
+        manifest)
+
+    _backup := method(
+        dir := Package global struct root directoryNamed("_backup")
+        dir create remove create
+        backup := dir fileNamed(Package Structure Manifest fileName)
+        Package global struct manifest file copyToPath(backup path))
 
     _prepareRoot := method(
-        # TODO remove everything except of db and _build/_tmp/_upgrade
+        # TODO remove everything except of db, _build/_tmp/_upgrade and _backup
     )
 
     _installUpdate := method(updDir,

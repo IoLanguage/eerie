@@ -210,7 +210,7 @@ ManifestTest := UnitTest clone do (
         manifest _checkDescription)
 
     testDepsOperations := method(
-        file := File with("tests/manifest_test.json")
+        file := File with("tests/manifest/#{Manifest fileName}" interpolate)
         manifest := Manifest with(file)
 
         assertEquals(list("BFakePack", "CFakePack"), manifest packs keys sort)
@@ -234,7 +234,7 @@ ManifestTest := UnitTest clone do (
             manifest packs keys sort))
 
     testSerialization := method(
-        file := File with("tests/manifest_test.json")
+        file := File with("tests/manifest/#{Manifest fileName}" interpolate)
         manifest := Manifest with(file)
 
         self _assertSerialized(manifest, true)
@@ -256,7 +256,10 @@ ManifestTest := UnitTest clone do (
 
         manifest _serialize
 
-        manifest _map asJson println
+        # we call it to check that it's able to be converted into json without
+        # exceptions (Io's json converter has bugs related to some types, true,
+        # false and nil are some of them)
+        manifest _map asJson
 
         self _assertSerialized(manifest, true))
 
