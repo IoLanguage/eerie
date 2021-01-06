@@ -200,6 +200,7 @@ Manifest := Object clone do (
         
         (file exists not or file ?contents ?isEmpty) not)
 
+    //doc Manifest prettyPrint Prints manifest in output.
     prettyPrint := method(self _prettyInfo print)
 
     _prettyInfo := method(

@@ -389,6 +389,31 @@ Package := Object clone do (
             f close
             e catch(Exception raise(FailedRunHookError with(hook, e message)))))
 
+    /*doc Package printTree
+    Prints dependency tree for the package.*/
+    printTree := method(self _depTreeSeq print)
+
+    _depTreeSeq := method(level,
+        level = level ifNilEval(0)
+
+        result := self _nodeSeq(level)
+
+        if (self recursive or self children isEmpty, 
+            return result)
+
+        level = level + 1
+
+        self children foreach(pack, result = result .. pack _depTreeSeq(level))
+
+        result)
+
+    _nodeSeq := method(level,
+        indent := self _nodeIndent(level)
+        version := self struct manifest version asSeq
+        (indent .. "#{self struct manifest name} v#{version}\n") interpolate)
+
+    _nodeIndent := method(level, "  " repeated(level))
+
 )
 
 # Error types

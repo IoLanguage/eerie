@@ -36,6 +36,28 @@ PackageTest := UnitTest clone do (
 
         assertEquals(list("testbin"), package struct binDest files map(name))
 
+        expectedDepTree := ( 
+            "AFakePack v0.1.0\n" ..
+            "  BFakePack v0.1.0\n" ..
+            "    AFakePack v0.1.0\n" ..
+            "    DFakePack v0.1.0\n" ..
+            "      BFakePack v0.1.0\n" ..
+            "      CFakePack v0.1.0\n" ..
+            "        AFakePack v0.1.0\n" ..
+            "        BFakePack v0.1.0\n" ..
+            "    CFakePack v0.1.0\n" ..
+            "      AFakePack v0.1.0\n" ..
+            "      BFakePack v0.1.0\n" ..
+            "  CFakePack v0.1.0\n" ..
+            "    AFakePack v0.1.0\n" ..
+            "    BFakePack v0.1.0\n" ..
+            "      AFakePack v0.1.0\n" ..
+            "      DFakePack v0.1.0\n" ..
+            "        BFakePack v0.1.0\n" ..
+            "        CFakePack v0.1.0\n" ..
+            "      CFakePack v0.1.0\n")
+        assertEquals(package _depTreeSeq, expectedDepTree)
+
         self _cleanUp(package))
 
     testUpdate := method(
