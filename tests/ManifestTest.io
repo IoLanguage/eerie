@@ -278,4 +278,18 @@ ManifestTest := UnitTest clone do (
         serPacks := manifest _map at("packs") map(at("name")) sort
         assertEquals(serPacks ==  manifest packs keys sort, expected))
 
+    testPrettyPrint := method(
+        file := File with("tests/manifest/#{Manifest fileName}" interpolate)
+        manifest := Manifest with(file)
+        expected := ("name: AFakePack\n" ..
+                    "version: 0.1.0\n" ..
+                    "description: A fake pack for testing.\n" ..
+                    "author: Test\n" ..
+                    "website: https://iolanguage.github.io/eerie\n" ..
+                    "url: tests/_packs/AFakePack\n" ..
+                    "readme: \n")
+
+        manifest prettyPrint
+        assertEquals(manifest _prettyInfo, expected))
+
 )

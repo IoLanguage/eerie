@@ -6,8 +6,8 @@ This proto is a singleton.*/
 System do (
 
     /*doc System sh(cmd[, silent=false, path=cwd])
-    Executes system command. Raises exception with `System SystemCommandError` on
-    failure. Will not print any output if `silent` is `true`.
+    Executes system command. Raises exception with `System SystemCommandError`
+    on failure. Will not print any output if `silent` is `true`.
 
     Returns the object returned by `System runCommand`.*/
     sh := method(cmd, silent, path,

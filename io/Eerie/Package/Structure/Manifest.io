@@ -200,6 +200,27 @@ Manifest := Object clone do (
         
         (file exists not or file ?contents ?isEmpty) not)
 
+    prettyPrint := method(self _prettyInfo print)
+
+    _prettyInfo := method(
+        (
+        """#{self _prettyFieldForKeyValue("name")}""" ..
+        """#{self _prettyFieldForKeyValue("version", self version asSeq)}""" ..
+        """#{self _prettyFieldForKeyValue("description")}""" ..
+        """#{self _prettyFieldForKeyValue("author")}""" ..
+        """#{self _prettyFieldForKeyValue("website")}""" ..
+        """#{self _prettyFieldForKeyValue("url")}""" ..
+        """#{self _prettyFieldForKeyValue("branch", self branch)}""" ..
+        """#{self _prettyFieldForKeyValue("readme")}""" ..
+        """#{self _prettyFieldForKeyValue("license")}""") interpolate)
+
+    _prettyFieldForKeyValue := method(key, value,
+        value := value ifNilEval(self valueForKey(key))
+
+        if (value isNil not,
+            return ("#{key}: #{value}\n" interpolate),
+            return ""))
+
 )
 
 # Manifest error types
