@@ -135,13 +135,14 @@ Eerie := Object clone do (
     # notice, it doesn't include "_build" as it might keep update files
     # "_build" is supposed to be removed during the update installation
     _outdatedItems := method(
-        keep := list(".", "..", "_backup", "_build", "db")
-        Package global struct root items select(item,
+        keep := list("_backup", "_build", "db")
+        Package global struct root localItems select(item,
             keep contains(item name) not))
 
     _installUpdate := method(updDir,
-        # TODO move everything from updDir into Package global struct root
-
+        updDir localItems foreach(item,
+            path := Path with(Package global struct root path, item name)
+            item moveTo(path))
         updDir remove
         Package global struct build root remove
         Package global install)

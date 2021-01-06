@@ -23,9 +23,15 @@ EerieTest := UnitTest clone do (
             updateManifest packs keys sort,
             expected sort)
 
+        outdatedItems := Eerie _outdatedItems
+
+        # at least: eerie.json + README.md + io + bin + tests + _packs
+        assertTrue(outdatedItems size > 5)
+
         assertFalse(
-            Eerie _outdatedItems map(name) \
+            outdatedItems map(name) \
                 containsAny(list(".", "..", "db", "_backup", "_build"))))
+
 
     testBackup := method(
         dir := Directory with("tests/_backup")
