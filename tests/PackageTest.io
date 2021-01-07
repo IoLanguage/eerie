@@ -1,5 +1,4 @@
 PackageTest := UnitTest clone do (
-    Package := Eerie Package
 
     testCreate := method(
         name := "TestPackageCreate"
