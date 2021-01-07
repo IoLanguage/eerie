@@ -1,4 +1,5 @@
 PackageTest := UnitTest clone do (
+    Package := Eerie Package
 
     testCreate := method(
         name := "TestPackageCreate"
@@ -38,24 +39,24 @@ PackageTest := UnitTest clone do (
 
         expectedDepTree := ( 
             "AFakePack v0.1.0\n" ..
-            "  BFakePack v0.1.0\n" ..
-            "    AFakePack v0.1.0\n" ..
-            "    DFakePack v0.1.0\n" ..
-            "      BFakePack v0.1.0\n" ..
-            "      CFakePack v0.1.0\n" ..
-            "        AFakePack v0.1.0\n" ..
-            "        BFakePack v0.1.0\n" ..
-            "    CFakePack v0.1.0\n" ..
-            "      AFakePack v0.1.0\n" ..
-            "      BFakePack v0.1.0\n" ..
-            "  CFakePack v0.1.0\n" ..
-            "    AFakePack v0.1.0\n" ..
-            "    BFakePack v0.1.0\n" ..
-            "      AFakePack v0.1.0\n" ..
-            "      DFakePack v0.1.0\n" ..
-            "        BFakePack v0.1.0\n" ..
-            "        CFakePack v0.1.0\n" ..
-            "      CFakePack v0.1.0\n")
+            "| BFakePack v0.1.0\n" ..
+            "| | AFakePack v0.1.0\n" ..
+            "| | CFakePack v0.1.0\n" ..
+            "| | | AFakePack v0.1.0\n" ..
+            "| | | BFakePack v0.1.0\n" ..
+            "| | DFakePack v0.1.0\n" ..
+            "| | | BFakePack v0.1.0\n" ..
+            "| | | CFakePack v0.1.0\n" ..
+            "| | | | AFakePack v0.1.0\n" ..
+            "| | | | BFakePack v0.1.0\n" ..
+            "| CFakePack v0.1.0\n" ..
+            "| | AFakePack v0.1.0\n" ..
+            "| | BFakePack v0.1.0\n" ..
+            "| | | AFakePack v0.1.0\n" ..
+            "| | | CFakePack v0.1.0\n" ..
+            "| | | DFakePack v0.1.0\n" ..
+            "| | | | BFakePack v0.1.0\n" ..
+            "| | | | CFakePack v0.1.0\n")
         assertEquals(package _depTreeSeq, expectedDepTree)
 
         self _cleanUp(package))

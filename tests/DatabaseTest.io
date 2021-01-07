@@ -1,7 +1,7 @@
 DatabaseTest := UnitTest clone do (
 
     testValueFor := method(
-        db := Database clone
+        db := Eerie Database clone
         pkgName := "AFakePack"
         assertEquals(pkgName, db valueFor("AFakePack", "name"))
         assertEquals(

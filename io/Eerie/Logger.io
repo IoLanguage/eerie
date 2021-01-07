@@ -2,16 +2,20 @@
 /*metadoc Logger description 
 This proto is responsible for printing output. 
 
-Rainbow is used for styling. To set style use syntax `[[rainbowMethod;`.
+Rainbow package is used for styling. To set style use syntax `[[rainbowMethod;`.
 For example:
 
 ```Io
 Logger log("[[red;Hello, [[bold;World")
 ```
-
 */
 
 Logger := Object clone do (
+
+    # make it compatible with the old addon system
+    Rainbow := if (hasSlot("Rainbow") and getSlot("Rainbow") hasSlot("Rainbow"), 
+        Rainbow Rainbow,
+        Rainbow)
 
     //doc Logger filter Get log filter value (see `Logger setFilter`).
     /*doc Logger setFilter(Sequence)

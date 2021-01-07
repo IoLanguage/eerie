@@ -289,7 +289,6 @@ ManifestTest := UnitTest clone do (
                     "url: tests/_packs/AFakePack\n" ..
                     "readme: \n")
 
-        manifest prettyPrint
         assertEquals(manifest _prettyInfo, expected))
 
 )

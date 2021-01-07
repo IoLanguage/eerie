@@ -182,7 +182,7 @@ Package := Object clone do (
 
         System sh("git init", false, path)
 
-        Package with(path))
+        Eerie Package with(path))
 
     _username := method(
         if (Eerie isWindows,
@@ -403,7 +403,13 @@ Package := Object clone do (
 
         level = level + 1
 
-        self children foreach(pack, result = result .. pack _depTreeSeq(level))
+        # map is unordered structure, for sorted output we need a list of sorted
+        # keys first
+        keys := self children keys sort
+
+        keys foreach(key, 
+            pack := self children at(key)
+            result = result .. pack _depTreeSeq(level))
 
         result)
 
@@ -412,7 +418,7 @@ Package := Object clone do (
         version := self struct manifest version asSeq
         (indent .. "#{self struct manifest name} v#{version}\n") interpolate)
 
-    _nodeIndent := method(level, "  " repeated(level))
+    _nodeIndent := method(level, "| " repeated(level))
 
 )
 
