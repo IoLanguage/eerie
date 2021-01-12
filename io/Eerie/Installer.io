@@ -69,17 +69,17 @@ Installer := Object clone do (
             "output"))
 
     _checkPackageSet := method(
-        if (self package isNil, Exception raise(PackageNotSetError with(""))))
+        if (self package isNil, Exception raise(PackageNotSetError withArgs(""))))
 
     _checkDestinationSet := method(
         if (self destination isNil,
-            Exception raise(DestinationNotSetError with(""))))
+            Exception raise(DestinationNotSetError withArgs(""))))
 
     _checkSame := method(destPackage,
         if (self package struct manifest name != \
             destPackage struct manifest name, 
             Exception raise(
-                DifferentPackageError with(
+                DifferentPackageError withArgs(
                     destPackage struct manifest name, 
                     self package struct manifest name))))
 
@@ -114,7 +114,7 @@ Installer := Object clone do (
         self _checkDestinationSet
 
         if (self destination exists, 
-            Exception raise(DirectoryExistsError with(
+            Exception raise(DirectoryExistsError withArgs(
                 self package struct manifest name, self destination path)))
 
         Logger log("[[cyan bold;Installing [[reset;" ..
@@ -174,7 +174,7 @@ Installer := Object clone do (
 
     _checkBinDestSet := method(
         if (self binDestination isNil, 
-            Exception raise(BinDestNotSetError with(""))))
+            Exception raise(BinDestNotSetError withArgs(""))))
 
     # This method is used on Windows to create .cmd file to be able to execute a
     # package binary as a normal command (i.e. `eerie` instead of

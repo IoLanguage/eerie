@@ -66,7 +66,7 @@ Logger := Object clone do (
         if (mode isNil, return)
         
         if (self _logMods keys contains(mode) not, 
-            Exception raise(UnknownModeError with(mode))))
+            Exception raise(UnknownModeError withArgs(mode))))
 
     # considers `filter` value to return a bool whether logger should print
     # output
@@ -87,7 +87,7 @@ Logger := Object clone do (
         ) elseif (self filter == "trace") then (
             return self _logMods keys
         ) else (
-            Exception raise(UnknownFilterError with(self filter))))
+            Exception raise(UnknownFilterError withArgs(self filter))))
 
     _parseMode := method(mode, stream,
         if (mode == "error", Rainbow bold redBg)

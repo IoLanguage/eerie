@@ -37,7 +37,7 @@ Manifest := Object clone do (
         klone := self clone
         klone file = file
         if (file exists not,
-            Exception raise(FileNotExistsError with(file path)))
+            Exception raise(FileNotExistsError withArgs(file path)))
         klone _map = file contents parseJson
         klone)
 
@@ -109,7 +109,7 @@ Manifest := Object clone do (
 
         if (value isNil or value isEmpty,
             Exception raise(
-                InsufficientManifestError with(self file path, msg))))
+                InsufficientManifestError withArgs(self file path, msg))))
 
     /*doc Manifest valueForKey(key) 
     Get value for key (`Sequence`) in format where each field separated by
@@ -129,7 +129,7 @@ Manifest := Object clone do (
         if ((valueA isNil or valueA isEmpty) and \
             (valueB isNil or valueB isEmpty),
             Exception raise(
-                InsufficientManifestError with(self file path, msg))))
+                InsufficientManifestError withArgs(self file path, msg))))
 
     # check whether value specified by `key` is of type `input`
     _checkType := method(key, input,
@@ -140,7 +140,7 @@ Manifest := Object clone do (
 
         if (value type != input type,
             Exception raise(
-                InsufficientManifestError with(self file path, msg))))
+                InsufficientManifestError withArgs(self file path, msg))))
 
     # get json type name for argument type
     _jsonTypeFor := method(input,
@@ -166,7 +166,7 @@ Manifest := Object clone do (
     _checkField := method(test, msg,
         test ifTrue(
             Exception raise(
-                InsufficientManifestError with(self file path, msg))))
+                InsufficientManifestError withArgs(self file path, msg))))
 
     _validateRelease := method(
         self _checkVersionShortened
@@ -176,22 +176,23 @@ Manifest := Object clone do (
 
     _checkVersionShortened := method(
         if (self version isShortened,
-            Exception raise(VersionIsShortenedError with(self version asSeq))))
+            Exception raise(
+                VersionIsShortenedError withArgs(self version asSeq))))
 
     _checkDescription := method(
         desc := self description
         if (desc isNil or desc isEmpty, 
-            Exception raise(NoDescriptionError with(""))))
+            Exception raise(NoDescriptionError withArgs(""))))
 
     _checkReadme := method(
         path := self valueForKey("readme")
         if (self _hasRequiredFile(path) not, 
-            Exception raise(ReadmeError with(""))))
+            Exception raise(ReadmeError withArgs(""))))
 
     _checkLicense := method(
         path := self valueForKey("license")
         if (self _hasRequiredFile(path) not, 
-            Exception raise(LicenseError with(""))))
+            Exception raise(LicenseError withArgs(""))))
 
     _hasRequiredFile := method(path,
         if (path isNil or path isEmpty, return false)
@@ -360,7 +361,7 @@ Manifest Dependency := Object clone do (
     # download the package and instantiate it
     _download := method(struct,
         if (self url isNil or self url isEmpty, 
-            Exception raise(NoUrlError with(self name)))
+            Exception raise(NoUrlError withArgs(self name)))
 
         downloadDir := self _downloadDir(struct)
 
@@ -393,7 +394,7 @@ Manifest Dependency := Object clone do (
         old := self _updateTarget(topParent)
 
         if (old isNil, 
-            Exception raise(TargetMissingError with(self name)))
+            Exception raise(TargetMissingError withArgs(self name)))
 
         update := self _checkForUpdate(topParent, old)
 

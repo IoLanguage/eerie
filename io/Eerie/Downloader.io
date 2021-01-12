@@ -29,7 +29,7 @@ Downloader := Object clone do (
                 Logger log("Using #{slotName} for #{uri}", "debug")
                 return downloader with(uri, dir)))
 
-        Exception raise(DetectError with(uri)))
+        Exception raise(DetectError withArgs(uri)))
 
     /*doc Downloader with(url, dir) 
     [[Downloader]] initializer, where `url` is a `Sequence` from where the

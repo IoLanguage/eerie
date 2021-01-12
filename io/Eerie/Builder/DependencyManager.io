@@ -4,7 +4,7 @@ DependencyManager := Object clone do (
 
     package := nil
 
-    headerSearchPaths := list(".", Eerie ioHeadersPath)
+    headerSearchPaths := lazySlot(list(".", Eerie ioHeadersPath))
 
     libSearchPaths := list()
 
@@ -159,15 +159,15 @@ DependencyManager := Object clone do (
     checkMissing := method(
         missing := self _missingHeaders
         if (missing isEmpty not,
-            Exception raise(MissingHeadersError with(missing)))
+            Exception raise(MissingHeadersError withArgs(missing)))
 
         missing := self _missingLibs
         if (missing isEmpty not,
-            Exception raise(MissingLibsError with(missing)))
+            Exception raise(MissingLibsError withArgs(missing)))
 
         missing := self _missingFrameworks
         if (missing isEmpty not,
-            Exception raise(MissingFrameworksError with(missing))))
+            Exception raise(MissingFrameworksError withArgs(missing))))
 
     _missingHeaders := method(
         self _headers select(h, self _pathForHeader(h) isNil))

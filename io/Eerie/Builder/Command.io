@@ -63,7 +63,7 @@ CompilerCommand := Command clone do (
     addDefine := method(def, self _defines appendIfAbsent(def))
 
     asSeq := method(
-        if (self src isNil, Exception raise(SrcNotSetError with("")))
+        if (self src isNil, Exception raise(SrcNotSetError withArgs("")))
 
         objName := self src name replaceSeq(".cpp", ".o") \
             replaceSeq(".c", ".o") \

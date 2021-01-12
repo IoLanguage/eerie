@@ -33,7 +33,7 @@ TransactionLock := Object clone do(
         self _checkAbandoned
 
         if (self file exists, 
-            Exception raise(AnotherProcessRunningError with(pid)))
+            Exception raise(AnotherProcessRunningError withArgs(pid)))
 
         self file setContents(System thisProcessPid asString))
 

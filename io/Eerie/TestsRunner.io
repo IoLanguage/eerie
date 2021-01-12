@@ -30,9 +30,9 @@ TestsRunner := Object clone do (
             return self _runQuery(query)))
 
     _checkDir := method(
-        if (self dir isNil, Exception raise(DirectoryNotSetError with("")))
+        if (self dir isNil, Exception raise(DirectoryNotSetError withArgs("")))
         if (self dir exists not, 
-            Exception raise(DirectoryNotExistsError with(self dir path))))
+            Exception raise(DirectoryNotExistsError withArgs(self dir path))))
 
     # run setup script if it exists
     _runSetup := method(
@@ -51,7 +51,7 @@ TestsRunner := Object clone do (
 
     _parseQuery := method(str,
         if (self _countPlaceholders(str) > 1) then (
-            Exception raise(PlaceholderError with(""))
+            Exception raise(PlaceholderError withArgs(""))
         ) elseif (str beginsWithSeq("*")) then (
             return self _testsEndingWith(str afterSeq("*"))
         ) elseif (str endsWithSeq("*")) then (

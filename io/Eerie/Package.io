@@ -80,7 +80,7 @@ Package := Object clone do (
 
     _checkIsPackage := method(root,
         if (Structure isPackage(root) not, 
-            Exception raise(NotPackageError with(root path))))
+            Exception raise(NotPackageError withArgs(root path))))
 
     /*doc Package rebuildChildren(Package)
     Rebuild the package `children` tree. The argument is the top level parent
@@ -283,7 +283,7 @@ Package := Object clone do (
     _checkMissing := method(topParent,
         if (topParent missing isEmpty not, 
             Exception raise(
-                MissingDependenciesError with(self struct manifest name))))
+                MissingDependenciesError withArgs(self struct manifest name))))
 
     _updateDeps := method(topParent,
         deps := self _unresolvedDeps(
@@ -366,7 +366,7 @@ Package := Object clone do (
     _checkCompiled := method(
         if (self struct hasNativeCode and \
             File with(self struct dllPath) exists not,
-            Exception raise(NotCompiledError with(self struct manifest name))))
+            Exception raise(NotCompiledError withArgs(self struct manifest name))))
 
     _loadIoFiles := method(ctx,
 		self struct io files foreach(file, ctx doFile(file path)))
@@ -387,7 +387,7 @@ Package := Object clone do (
             ctx := Object clone
             e := try(ctx doFile(f path))
             f close
-            e catch(Exception raise(FailedRunHookError with(hook, e message)))))
+            e catch(Exception raise(FailedRunHookError withArgs(hook, e message)))))
 
     /*doc Package printTree
     Prints dependency tree for the package.*/

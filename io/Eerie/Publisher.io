@@ -64,7 +64,8 @@ Publisher := Object clone do (
                 "output")))
 
     _checkPackageSet := method(
-        if (self package isNil, Exception raise(PackageNotSetError with(""))))
+        if (self package isNil,
+            Exception raise(PackageNotSetError withArgs(""))))
 
     /*doc Publisher validate
     Check whether the `package` satisfies all the requirements for published
@@ -85,7 +86,7 @@ Publisher := Object clone do (
 
         if (previous >= self package struct manifest version, 
             Exception raise(
-                VersionIsOlderError with(
+                VersionIsOlderError withArgs(
                     self package struct manifest name, 
                     self package struct manifest version originalSeq,
                     previous originalSeq))))
@@ -97,7 +98,9 @@ Publisher := Object clone do (
         res := cmdOut stdout split("\n") select(seq,
             seq endsWithSeq("-stdout") not and seq endsWithSeq("-stderr") not)
         if (res isEmpty not, 
-            Exception raise(HasGitChangesError with(self package struct manifest name))))
+            Exception raise(
+                HasGitChangesError withArgs(
+                    self package struct manifest name))))
 
     _addGitTag := method(
         self _checkGitTagExists
@@ -113,7 +116,7 @@ Publisher := Object clone do (
 
         if (cmdOut stdout split("\n") contains(self gitTag),
             Exception raise(
-                GitTagExistsError with(
+                GitTagExistsError withArgs(
                     self gitTag, self package struct manifest name))))
 
     _promptPush := method(

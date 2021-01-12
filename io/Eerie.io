@@ -9,7 +9,10 @@ System do (
     Executes system command. Raises exception with `System SystemCommandError`
     on failure. Will not print any output if `silent` is `true`.
 
-    Returns the object returned by `System runCommand`.*/
+    Returns the object returned by `System runCommand`.
+
+    **WARNING**: this method removes all files with "-stdout" and "-stderr"
+    suffixes inside the directory in which the command is supposed to be run.*/
     sh := method(cmd, silent, path,
         cmd = cmd interpolate(call sender)
         if (silent not, Logger log(cmd, "console"))
@@ -29,7 +32,7 @@ System do (
         
         if(cmdOut exitStatus != 0,
             Exception raise(
-                SystemCommandError with(cmd, cmdOut exitStatus, stdErr)))
+                SystemCommandError withArgs(cmd, cmdOut exitStatus, stdErr)))
 
         cmdOut)
 
@@ -50,7 +53,7 @@ Eerie := Object clone do (
         path := System getEnvironmentVariable("EERIEDIR") \
             ?stringByExpandingTilde
         if(path isNil or path isEmpty,
-            Exception raise(EerieDirNotSetError with("")))
+            Exception raise(EerieDirNotSetError withArgs("")))
         path)
 
     //doc Eerie repo Get Eerie repo URL.
@@ -81,17 +84,16 @@ Eerie := Object clone do (
         # call this to check whether EERIEDIR set
         self root
 
-        self do (
-            doRelativeFile("Eerie/Builder.io")
-            doRelativeFile("Eerie/Database.io")
-            doRelativeFile("Eerie/Downloader.io")
-            doRelativeFile("Eerie/Installer.io")
-            doRelativeFile("Eerie/Logger.io")
-            doRelativeFile("Eerie/Package.io")
-            doRelativeFile("Eerie/Publisher.io")
-            doRelativeFile("Eerie/SemVer.io")
-            doRelativeFile("Eerie/TestsRunner.io")
-            doRelativeFile("Eerie/TransactionLock.io")))
+        doRelativeFile("Eerie/Builder.io")
+        doRelativeFile("Eerie/Database.io")
+        doRelativeFile("Eerie/Downloader.io")
+        doRelativeFile("Eerie/Installer.io")
+        doRelativeFile("Eerie/Logger.io")
+        doRelativeFile("Eerie/Package.io")
+        doRelativeFile("Eerie/Publisher.io")
+        doRelativeFile("Eerie/SemVer.io")
+        doRelativeFile("Eerie/TestsRunner.io")
+        doRelativeFile("Eerie/TransactionLock.io"))
 
     upgrade := method(
         if (self _checkForUpdates isNil, return)
@@ -157,21 +159,40 @@ Eerie := Object clone do (
 
 )
 
+# to prevent conflicts issues if there's another Eerie
+Lobby prependProto(Eerie)
+
 //doc Eerie Error Eerie modules subclass this error for their error types.
 Eerie Error := Error clone do (
 
+    //doc Error setErrorMsg(Sequence)
+    /*doc Error errorMsg 
+    Error message template which is supposed to be used in pair with 
+    `Error withArgs`.*/
     errorMsg ::= nil
 
-    with := method(msg,
-        super(with(self errorMsg interpolate)))
+    /*doc Error withArgs 
+    An error with variable arguments. 
+
+    This method is supposed to be used in pair with `Error setErrorMsg`.
+
+    Example:
+
+    ```Io
+    # first you define your error type
+    SystemCommandError := Eerie Error clone setErrorMsg(
+        "Command '#{call evalArgAt(0)}' exited with status code " .. 
+        "#{call evalArgAt(1)}:\n#{call evalArgAt(2)}")
+
+    # then you can raise it with arguments
+    Exception raise(SystemCommandError withArgs("foo", 1, "bar"))
+    ```
+    */
+    withArgs := method(super(with(self errorMsg interpolate)))
 
 )
 
 Eerie do (
-
-    //doc Eerie MissingPackageError
-    MissingPackageError := Error clone setErrorMsg(
-        "Package '#{call evalArgAt(0)}' is missing.")
 
     //doc Eerie EerieDirNotSetError
     EerieDirNotSetError := Error clone setErrorMsg(
