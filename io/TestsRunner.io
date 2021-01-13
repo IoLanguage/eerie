@@ -87,13 +87,13 @@ TestsRunner := Object clone do (
 # TestsRunner error types
 TestsRunner do (
 
-    PlaceholderError := Eerie Error clone setErrorMsg(
+    PlaceholderError := Error clone setErrorMsg(
         "Only one '*' placeholder is allowed in query.")
 
-    DirectoryNotSetError := Eerie Error clone setErrorMsg(
+    DirectoryNotSetError := Error clone setErrorMsg(
         "Tests directory not set.")
 
-    DirectoryNotExistsError := Eerie Error clone setErrorMsg(
+    DirectoryNotExistsError := Error clone setErrorMsg(
         "Directory '#{call evalArgAt(0)}' not found.")
 
 )

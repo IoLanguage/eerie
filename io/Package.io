@@ -426,21 +426,21 @@ Package := Object clone do (
 Package do (
 
     //doc Package NotPackageError
-    NotPackageError := Eerie Error clone setErrorMsg(
+    NotPackageError := Error clone setErrorMsg(
         "The directory '#{call evalArgAt(0)}' is not recognised as an Eerie "..
         "package.")
 
     //doc Package MissingDependenciesError
-    MissingDependenciesError := Eerie Error clone setErrorMsg(
+    MissingDependenciesError := Error clone setErrorMsg(
         "The package \"#{call evalArgAt(0)}\" has missing dependencies. " .. 
         "Please, reinstall the package.")
 
     //doc Package FailedRunHookError
-    FailedRunHookError := Eerie Error clone setErrorMsg(
+    FailedRunHookError := Error clone setErrorMsg(
         "Failed run hook \"#{call evalArgAt(0)}\":\n#{call evalArgAt(1)}")
 
     //doc Package NotCompiledError
-    NotCompiledError := Eerie Error clone setErrorMsg(
+    NotCompiledError := Error clone setErrorMsg(
         "The package '#{call evalArgAt(0)}' is not compiled.")
 
 )

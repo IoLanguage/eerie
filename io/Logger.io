@@ -126,11 +126,11 @@ Logger clone := Logger
 Logger do (
 
     //doc Logger UnknownFilterError
-    UnknownFilterError := Eerie Error clone setErrorMsg(
+    UnknownFilterError := Error clone setErrorMsg(
         "Unknown logger filter: \"#{call evalArgAt(0)}\"")
 
     //doc Logger UnknownModeError
-    UnknownModeError := Eerie Error clone setErrorMsg(
+    UnknownModeError := Error clone setErrorMsg(
         "Unknown logger mode: \"#{call evalArgAt(0)}\"")
 
 )

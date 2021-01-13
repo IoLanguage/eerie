@@ -199,23 +199,23 @@ Installer := Object clone do (
 Installer do (
 
     //doc Installer PackageNotSetError
-    PackageNotSetError := Eerie Error clone setErrorMsg("Package isn't set.")
+    PackageNotSetError := Error clone setErrorMsg("Package isn't set.")
 
     //doc Installer DirectoryExistsError
-    DirectoryExistsError := Eerie Error clone setErrorMsg("Can't install " ..
+    DirectoryExistsError := Error clone setErrorMsg("Can't install " ..
         "the package #{call evalArgAt(0)}. The destination directory " ..
         "'#{call evalArgAt(1)}' already exists.")
 
     //doc Installer DestinationNotSetError
-    DestinationNotSetError := Eerie Error clone setErrorMsg(
+    DestinationNotSetError := Error clone setErrorMsg(
         "Destination directory isn't set.")
 
     //doc Installer BinDestNotSetError
-    BinDestNotSetError := Eerie Error clone setErrorMsg(
+    BinDestNotSetError := Error clone setErrorMsg(
         "Binary destination isn't set")
 
     //doc Installer DifferentPackageError
-    DifferentPackageError := Eerie Error clone setErrorMsg(
+    DifferentPackageError := Error clone setErrorMsg(
         "Can't update package '#{call evalArgAt(0)}' " .. 
         "with package '#{call evalArgAt(1)}'")
 

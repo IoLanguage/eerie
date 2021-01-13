@@ -54,12 +54,12 @@ Downloader := Object clone do (
 Downloader do (
 
     //doc Downloader DownloadError
-    DownloadError := Eerie Error clone setErrorMsg(
+    DownloadError := Error clone setErrorMsg(
         "Failed download package from #{call evalArgAt(0)}:\n" ..
         "#{call evalArgAt(1)}")
 
     //doc Downloader DetectError
-    DetectError := Eerie Error clone setErrorMsg(
+    DetectError := Error clone setErrorMsg(
         "Don't know hot to download the package from #{call evalArgAt(0)}")
 
 )

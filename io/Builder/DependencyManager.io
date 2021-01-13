@@ -6,14 +6,14 @@ DependencyManager := Object clone do (
 
     headerSearchPaths := lazySlot(list(".", Eerie ioHeadersPath))
 
-    libSearchPaths := list()
+    libSearchPaths := lazySlot(list())
 
-    _frameworkSearchPaths := list(
+    _frameworkSearchPaths := lazySlot(list(
         "/System/Library/Frameworks",
         "/Library/Frameworks",
-        "~/Library/Frameworks" stringByExpandingTilde)
+        "~/Library/Frameworks" stringByExpandingTilde))
 
-    _searchPrefixes := list(
+    _searchPrefixes := lazySlot(list(
         System installPrefix,
         "/opt/local",
         "/usr",
@@ -21,17 +21,17 @@ DependencyManager := Object clone do (
         "/usr/pkg",
         "/sw",
         "/usr/X11R6",
-        "/mingw")
+        "/mingw"))
 
-    _headers := list()
+    _headers := lazySlot(list())
     
-    _libs := list()
+    _libs := lazySlot(list())
     
-    _frameworks := list()
+    _frameworks := lazySlot(list())
     
-    _syslibs := list()
+    _syslibs := lazySlot(list())
     
-    _linkOptions := list()
+    _linkOptions := lazySlot(list())
 
     init := method(
         self _searchPrefixes foreach(prefix,
@@ -87,7 +87,7 @@ DependencyManager := Object clone do (
 
     _pkgConfigLibs := method(pkg,
         self _pkgConfig(pkg, "--libs") \
-            splitNoEmpties(Command DynamicLinkerCommand clone libFlag) \
+            splitNoEmpties(Builder DynamicLinkerCommand clone libFlag) \
                 map(strip))
 
     _pkgConfig := method(pkg, flags,

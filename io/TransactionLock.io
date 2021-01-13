@@ -66,7 +66,7 @@ TransactionLock := Object clone do(
 TransactionLock do (
 
     //doc TransactionLock ProcessLockedError
-    AnotherProcessRunningError := Eerie Error clone setErrorMsg(
+    AnotherProcessRunningError := Error clone setErrorMsg(
         "Another Eerie transaction with PID #{call evalArgAt(0)} " ..
         "is running.")
 

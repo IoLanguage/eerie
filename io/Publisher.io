@@ -141,18 +141,18 @@ Publisher := Object clone do (
 # Publisher error types 
 Publisher do (
 
-    PackageNotSetError := Eerie Error clone setErrorMsg("Package doesn't set.")
+    PackageNotSetError := Error clone setErrorMsg("Package doesn't set.")
 
-    VersionIsOlderError := Eerie Error clone setErrorMsg(
+    VersionIsOlderError := Error clone setErrorMsg(
         "The release version \"#{call evalArgAt(1)}\" " ..
         "of package \"#{call evalArgAt(0)}\" " ..
         "should be higher than the previous version (\"#{call evalArgAt(2)}\")")
 
-    GitTagExistsError := Eerie Error clone setErrorMsg(
+    GitTagExistsError := Error clone setErrorMsg(
         "Git tag #{call evalArgAt(0)} already exists in package " .. 
         "#{call evalArgAt(1)}")
 
-    HasGitChangesError := Eerie Error clone setErrorMsg(
+    HasGitChangesError := Error clone setErrorMsg(
         "Package \"#{call evalArgAt(0)}\" has uncommitted changes.\n" .. 
         "Please, add and commit them first.")
 

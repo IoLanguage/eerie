@@ -445,11 +445,11 @@ Manifest Dependency := Object clone do (
 Manifest Dependency do (
 
     //doc Dependency NotUrlError
-    NoUrlError := Eerie Error clone setErrorMsg(
+    NoUrlError := Error clone setErrorMsg(
         "URL for #{call evalArgAt(0)} is not found.")
 
     //doc Dependency TargetMissingError
-    TargetMissingError := Eerie Error clone setErrorMsg(
+    TargetMissingError := Error clone setErrorMsg(
         "Can't update missing package #{call evalArgAt(0)}")
 
 )

@@ -82,7 +82,22 @@ Eerie := Object clone do (
 
     init := method(
         # call this to check whether EERIEDIR set
-        self root)
+        self root
+        self warnUpdateAvailable)
+
+    /*doc Eerie warnUpdateAvailable 
+    Prints warning if a new version of Eerie is available.*/
+    warnUpdateAvailable := method(
+        if (version := self _checkForUpdates,
+            Logger log(
+                "Eerie v#{version asSeq} is available. Run 'eerie upgrade'.",
+                "warning")))
+
+    _checkForUpdates := method(
+        verStr := Database valueFor("Eerie", "version")
+        if (verStr isNil, return)
+        version := SemVer fromSeq(verStr)
+        if (Package global struct manifest version < version, version, nil))
 
     upgrade := method(
         if (self _checkForUpdates isNil, return)
@@ -90,11 +105,6 @@ Eerie := Object clone do (
         self _downloadUpdate(dest)
         self _prepareUpdate(dest)
         self _installUpdate(dest))
-
-    _checkForUpdates := method(
-        verStr := Database valueFor("Eerie", "version")
-        version := SemVer fromSeq(verStr)
-        if (Package global struct manifest version < version, version, nil))
 
     _downloadDir := method(
         package := Package global
@@ -138,14 +148,6 @@ Eerie := Object clone do (
         Package global struct build root remove
         Package global install)
 
-    /*doc Eerie warnUpdateAvailable 
-    Prints warning if a new version of Eerie is available.*/
-    warnUpdateAvailable := method(
-        if (version := self _checkForUpdates,
-            Logger log(
-                "Eerie v#{version asSeq} is available. Run 'eerie upgrade'.",
-                "warning")))
-
 )
 
 # to prevent conflicts issues if there's another Eerie
@@ -170,7 +172,7 @@ Error := Error clone do (
 
     ```Io
     # first you define your error type
-    SystemCommandError := Eerie Error clone setErrorMsg(
+    SystemCommandError := Error clone setErrorMsg(
         "Command '#{call evalArgAt(0)}' exited with status code " .. 
         "#{call evalArgAt(1)}:\n#{call evalArgAt(2)}")
 
