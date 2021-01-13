@@ -82,18 +82,7 @@ Eerie := Object clone do (
 
     init := method(
         # call this to check whether EERIEDIR set
-        self root
-
-        doRelativeFile("Eerie/Builder.io")
-        doRelativeFile("Eerie/Database.io")
-        doRelativeFile("Eerie/Downloader.io")
-        doRelativeFile("Eerie/Installer.io")
-        doRelativeFile("Eerie/Logger.io")
-        doRelativeFile("Eerie/Package.io")
-        doRelativeFile("Eerie/Publisher.io")
-        doRelativeFile("Eerie/SemVer.io")
-        doRelativeFile("Eerie/TestsRunner.io")
-        doRelativeFile("Eerie/TransactionLock.io"))
+        self root)
 
     upgrade := method(
         if (self _checkForUpdates isNil, return)
@@ -162,8 +151,9 @@ Eerie := Object clone do (
 # to prevent conflicts issues if there's another Eerie
 Lobby prependProto(Eerie)
 
-//doc Eerie Error Eerie modules subclass this error for their error types.
-Eerie Error := Error clone do (
+//metadoc Error category API
+/*metadoc Error description Extended `Error` type used by Eerie.*/
+Error := Error clone do (
 
     //doc Error setErrorMsg(Sequence)
     /*doc Error errorMsg 
@@ -203,7 +193,7 @@ Eerie do (
 System do (
 
     //doc System SystemCommandError
-    SystemCommandError := Eerie Error clone setErrorMsg(
+    SystemCommandError := Error clone setErrorMsg(
         "Command '#{call evalArgAt(0)}' exited with status code " .. 
         "#{call evalArgAt(1)}:\n#{call evalArgAt(2)}")
 

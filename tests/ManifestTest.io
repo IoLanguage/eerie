@@ -1,6 +1,6 @@
-Importer addSearchPath("io/Eerie/Package/Structure")
-
 ManifestTest := UnitTest clone do (
+
+    Manifest := Package Structure Manifest
 
     testDeps := method(
         manifest := Manifest with(

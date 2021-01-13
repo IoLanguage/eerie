@@ -1,18 +1,16 @@
-Importer addSearchPath("io/Eerie/Builder")
-
 CommandTest := UnitTest clone do (
-
-    Command
 
     _package := Package with("tests/_packs/AFakePack")
 
-    _depsManager := DependencyManager with(_package)
+    _depsManager := Builder DependencyManager with(_package)
 
     testCompilerCommand := method(
-        command := CompilerCommand with(self _package, self _depsManager)
+        command := Builder CompilerCommand with(
+            self _package, 
+            self _depsManager)
 
         e := try (command asSeq)
-        assertEquals(e error type, CompilerCommand SrcNotSetError type)
+        assertEquals(e error type, Builder CompilerCommand SrcNotSetError type)
 
         src := File with("test.c")
         command setSrc(src)
@@ -33,12 +31,14 @@ CommandTest := UnitTest clone do (
 
     testStaticLinkerCommand := method(
         # check it works at least
-        command := StaticLinkerCommand with(self _package)
+        command := Builder StaticLinkerCommand with(self _package)
         command asSeq)
 
     testDynamicLinkerCommand := method(
         # check it works at least
-        command := DynamicLinkerCommand with(self _package, self _depsManager)
+        command := Builder DynamicLinkerCommand with(
+            self _package,
+            self _depsManager)
         command asSeq)
 
 )

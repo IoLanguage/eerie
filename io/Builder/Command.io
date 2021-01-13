@@ -25,10 +25,6 @@ Command CompilerCommandUnixExt := Object clone do (
 
 CompilerCommand := Command clone do (
 
-    if (Eerie platform == "windows", 
-        prependProto(CompilerCommandWinExt),
-        prependProto(CompilerCommandUnixExt)) 
-
     package := nil
 
     # the file this command should compile
@@ -59,6 +55,11 @@ CompilerCommand := Command clone do (
         klone package = pkg
         klone _depsManager = depsManager
         klone)
+
+    init := method(
+        if (Eerie platform == "windows", 
+            self prependProto(CompilerCommandWinExt),
+            self prependProto(CompilerCommandUnixExt))) 
 
     addDefine := method(def, self _defines appendIfAbsent(def))
 
@@ -92,7 +93,7 @@ CompilerCommand := Command clone do (
 # CompilerCommand error types
 CompilerCommand do (
 
-    SrcNotSetError := Eerie Error clone setErrorMsg(
+    SrcNotSetError := Error clone setErrorMsg(
         "Source file to compile doesn't set.")
 
 )
@@ -121,16 +122,17 @@ Command StaticLinkerCommandUnixExt := Object clone do (
 
 StaticLinkerCommand := Command clone do (
 
-    if (Eerie platform == "windows",
-        prependProto(StaticLinkerCommandWinExt),
-        prependProto(StaticLinkerCommandUnixExt)) 
-    
     package := nil
 
     with := method(pkg,
         klone := self clone
         klone package = pkg
         klone)
+
+    init := method(
+        if (Eerie platform == "windows",
+            self prependProto(StaticLinkerCommandWinExt),
+            self prependProto(StaticLinkerCommandUnixExt)))
 
     asSeq := method(
         path := self package struct root path
@@ -196,13 +198,6 @@ Command DynamicLinkerCommandMacOsExt := Command DynamicLinkerCommandUnixExt \
 
 DynamicLinkerCommand := Command clone do (
 
-    if (Eerie platform == "darwin") then (
-        prependProto(DynamicLinkerCommandMacOsExt)
-    ) elseif (Eerie platform == "windows") then (
-        prependProto(DynamicLinkerCommandWinExt)
-    ) else (
-        prependProto(DynamicLinkerCommandUnixExt)) 
-
     package := nil
 
     _depsManager := nil
@@ -215,6 +210,14 @@ DynamicLinkerCommand := Command clone do (
         klone package = pkg
         klone _depsManager := depsManager
         klone)
+
+    init := method(
+        if (Eerie platform == "darwin") then (
+            self prependProto(DynamicLinkerCommandMacOsExt)
+        ) elseif (Eerie platform == "windows") then (
+            self prependProto(DynamicLinkerCommandWinExt)
+        ) else (
+            self prependProto(DynamicLinkerCommandUnixExt)))
 
     asSeq := method(
         links := self _linksSeq

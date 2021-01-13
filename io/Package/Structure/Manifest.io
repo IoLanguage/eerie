@@ -182,7 +182,7 @@ Manifest := Object clone do (
     _checkDescription := method(
         desc := self description
         if (desc isNil or desc isEmpty, 
-            Exception raise(NoDescriptionError withArgs(""))))
+            Exception raise(NoDescriptionError withArgs(self name))))
 
     _checkReadme := method(
         path := self valueForKey("readme")
@@ -229,32 +229,32 @@ Manifest := Object clone do (
 Manifest do (
 
     //doc Manifest FileNotExistsError
-    FileNotExistsError := Eerie Error clone setErrorMsg(
+    FileNotExistsError := Error clone setErrorMsg(
         "The manifest file at '#{call evalArgAt(0)}' doesn't exist.")
 
     //doc Manifest InsufficientManifestError
-    InsufficientManifestError := Eerie Error clone setErrorMsg(
+    InsufficientManifestError := Error clone setErrorMsg(
         "The manifest at #{call evalArgAt(0)} doesn't satisfy " ..
         "all requirements." .. 
         "#{if(call evalArgAt(1) isNil, " ..
             "\"\", \"\\n\" .. call evalArgAt(1))}")
 
     //doc Manifest VersionIsShortenedError
-    VersionIsShortenedError := Eerie Error clone setErrorMsg(
+    VersionIsShortenedError := Error clone setErrorMsg(
         "The release version shouldn't be shortened.")
 
     //doc Manifest NoDescriptionError
-    NoDescriptionError := Eerie Error clone setErrorMsg(
+    NoDescriptionError := Error clone setErrorMsg(
         "Published packages should have \"description\" in " ..
-        "#{Manifest fileName}.")
+        "#{call evalArgAt(0)}.")
 
     //doc Manifest ReadmeError
-    ReadmeError := Eerie Error clone setErrorMsg(
+    ReadmeError := Error clone setErrorMsg(
         "README file is required for published packages and shouldn't be " ..
         "empty.")
 
     //doc Manifest LicenseError
-    LicenseError := Eerie Error clone setErrorMsg(
+    LicenseError := Error clone setErrorMsg(
         "LICENSE file is required for published packages and shouldn't be " ..
         "empty.")
 

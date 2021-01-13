@@ -1,10 +1,8 @@
-Importer addSearchPath("io/Eerie/Builder/")
-    
 InitFileGeneratorTest := UnitTest clone do (
 
     testGenerate := method(
         package := Package with("tests/_packs/CFakePack")
-        generator := InitFileGenerator with(package)
+        generator := Builder InitFileGenerator with(package)
         generator generate
         
         result := package struct source fileNamed("IoCFakePackInit.c") 

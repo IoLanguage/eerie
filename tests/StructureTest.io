@@ -1,7 +1,6 @@
-Importer addSearchPath("io/Eerie/Package")
-
-
 StructureTest := UnitTest clone do (
+
+    Structure := Package Structure
 
     testIsPackage := method(
         root := Directory with("tests/_fpacks/NotPack")

@@ -1,8 +1,8 @@
 DownloaderTest := UnitTest clone do (
 
-    doFile("io/Eerie/downloaders/directory.io")
-    doFile("io/Eerie/downloaders/vcs.io")
-    doFile("io/Eerie/downloaders/archive.io")
+    doFile("io/downloaders/directory.io")
+    doFile("io/downloaders/vcs.io")
+    doFile("io/downloaders/archive.io")
 
     testDetect := method(
         self _expectDownloaderTypeFor("tests/db", DirectoryDownloader type)

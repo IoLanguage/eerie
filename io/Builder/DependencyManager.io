@@ -87,7 +87,7 @@ DependencyManager := Object clone do (
 
     _pkgConfigLibs := method(pkg,
         self _pkgConfig(pkg, "--libs") \
-            splitNoEmpties(Command DynamicLinkerCommand libFlag) \
+            splitNoEmpties(Command DynamicLinkerCommand clone libFlag) \
                 map(strip))
 
     _pkgConfig := method(pkg, flags,
@@ -186,13 +186,13 @@ DependencyManager := Object clone do (
 # error types
 DependencyManager do (
 
-    MissingHeadersError := Eerie Error clone setErrorMsg(
+    MissingHeadersError := Error clone setErrorMsg(
         """Header(s) #{call evalArgAt(0) join(", ")} not found.""")
 
-    MissingLibsError := Eerie Error clone setErrorMsg(
+    MissingLibsError := Error clone setErrorMsg(
         """Library(s) #{call evalArgAt(0) join(", ")} not found.""")
 
-    MissingFrameworksError := Eerie Error clone setErrorMsg(
+    MissingFrameworksError := Error clone setErrorMsg(
         """Framework(s) #{call evalArgAt(0) join(", ")} not found.""")
 
 )

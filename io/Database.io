@@ -15,8 +15,8 @@ Database := Object clone do (
     init := method(if (self dir exists not, self _clone))
 
     _clone := method(
-        Logger log("Database not found")
-        Logger log("🔄 [[cyan bold;Cloning [[reset;database" , "output")
+        Eerie Logger log("Database not found")
+        Eerie Logger log("🔄 [[cyan bold;Cloning [[reset;database" , "output")
         System sh("git clone #{self url} #{self dir path}", true))
 
     /*doc Database needsUpdate 
@@ -27,7 +27,7 @@ Database := Object clone do (
 
     //doc Database update Sync database with remote.
     update := method(
-        Logger log("🔄 [[cyan bold;Updating [[reset;database" , "output")
+        Eerie Logger log("🔄 [[cyan bold;Updating [[reset;database" , "output")
         System sh("git fetch --prune", true, self dir path)
         System sh("git merge", true, self dir path)
         # we don't want for update checker to slow down the builds, so we
