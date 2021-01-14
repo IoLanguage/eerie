@@ -15,7 +15,7 @@ Package := Object clone do (
         cmdOut := System sh("git tag", true, self struct root path)
         vers := cmdOut stdout splitNoEmpties("\n")
         # if (vers isEmpty, return list(self struct manifest version))
-        vers map(tag, Eerie SemVer fromSeq(tag)))
+        vers map(tag, SemVer fromSeq(tag)))
 
     /*doc Package parent 
     Get parent of this `Package`. Returns `nil` if it's top-level.*/
@@ -60,7 +60,7 @@ Package := Object clone do (
 
     /*doc Package global 
     Initializes the global Eerie package (i.e. the Eerie itself).*/
-    global := lazySlot(Package with(Eerie root))
+    global := lazySlot(self with(Eerie root))
 
     /*doc Package with(path, parent)
     Creates new package from provided path (`Sequence`).
@@ -182,7 +182,7 @@ Package := Object clone do (
 
         System sh("git init", false, path)
 
-        Eerie Package with(path))
+        self with(path))
 
     _username := method(
         if (Eerie isWindows,
@@ -228,7 +228,7 @@ Package := Object clone do (
     /*doc Package install
     Install the package and its dependencies.*/
     install := method(
-        lock := Eerie TransactionLock with(self struct root path)
+        lock := TransactionLock with(self struct root path)
         lock lock
         self _installCache := Map clone
         self _updateCache := Map clone
@@ -270,7 +270,7 @@ Package := Object clone do (
     Updates all dependencies of the package.*/
     update := method(
         self _checkMissing(self)
-        lock := Eerie TransactionLock with(self struct root path)
+        lock := TransactionLock with(self struct root path)
         lock lock
         self _installCache := Map clone
         self _updateCache := Map clone
@@ -329,8 +329,9 @@ Package := Object clone do (
 		Importer removeSearchPath(self struct io path))
 
     _initContext := method(parentCtx,
-        ctx := Object clone
+        ctx := Object shallowCopy
         ctx package := self
+        ctx Object = ctx
         parentCtx = parentCtx ifNilEval(Lobby)
         parentCtx setSlot(self struct manifest name, ctx)
         ctx type = self struct manifest name
@@ -444,3 +445,5 @@ Package do (
         "The package '#{call evalArgAt(0)}' is not compiled.")
 
 )
+
+Object removeSlot("Ctx")

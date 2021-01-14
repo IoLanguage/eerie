@@ -1,5 +1,6 @@
 //metadoc Manifest category Package
 //metadoc Manifest description Represents parsed manifest file.
+
 Manifest := Object clone do (
 
     //doc Manifest fileName Get manifest file name.
@@ -282,11 +283,11 @@ Manifest Dependency := Object clone do (
     fromMap := method(dep,
         klone := self clone
         klone name = dep at("name")
-        klone version = Eerie SemVer fromSeq(dep at("version"))
+        klone version = SemVer fromSeq(dep at("version"))
         # if url is nil the pack supposed to be in the db, so we try to get it
         # from there
         klone url = dep at("url") ifNilEval(
-            Eerie Database valueFor(klone name, "url"))
+            Database valueFor(klone name, "url"))
         klone branch = dep at("branch")
         klone)
 

@@ -60,6 +60,11 @@ PackageTest := UnitTest clone do (
 
         self _cleanUp(package))
 
+    _cleanUp := method(package, 
+        package struct packs remove
+        package struct binDest remove
+        package struct build root remove)
+
     testUpdate := method(
         package := Package with("tests/_packs/AFakePack")
         self _cleanUp(package)
@@ -85,18 +90,14 @@ PackageTest := UnitTest clone do (
 
         assertFalse(ctx AFakePack isNil)
         assertFalse(ctx AFakePack hasSlot("DFakePack"))
+        assertFalse(ctx AFakePack hasSlot("AFakePack"))
         assertEquals(ctx AFakePack package, package)
-        assertTrue(ctx AFakePack test)
-        assertTrue(ctx AFakePack depsTest)
-        assertTrue(ctx AFakePack BFakePack test)
-        assertTrue(ctx AFakePack BFakePack depsTest)
+        assertTrue(ctx AFakePack Test test)
+        assertTrue(ctx AFakePack Test depsTest)
+        assertTrue(ctx AFakePack BFakePack Test test)
+        assertTrue(ctx AFakePack BFakePack Test depsTest)
 
         self _cleanUp(package))
-
-    _cleanUp := method(package, 
-        package struct packs remove
-        package struct binDest remove
-        package struct build root remove)
 
     testVersions := method(
         package := Package with("tests/_tmp/CFakePackUpdate")

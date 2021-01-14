@@ -1,1 +1,6 @@
-test := method(true)
+Test := Object clone do (
+
+    test := method(true)
+
+)
+

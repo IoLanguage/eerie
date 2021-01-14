@@ -12,9 +12,14 @@ Loader := Object clone do (
     load := method(
         ctx := Object clone
         ctx do (
-            doRelativeFile("Eerie.io")
-            Eerie Package global load
             cwd := Directory currentWorkingDirectory
+            doRelativeFile("A1_Extensions.io")
+            # Importer brings protos to the global context, so we can't use it
+            # Importer addSearchPath("io")
+            doRelativeFile("Eerie.io")
+            doRelativeFile("Package.io")
+            Package global load
+            # Importer removeSearchPath("io")
             if (Eerie Package Structure isPackage(Directory with(cwd)), 
                 Package with(cwd))))
 

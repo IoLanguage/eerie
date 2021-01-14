@@ -1,3 +1,7 @@
-test := method(true)
+Test := Object clone do (
 
-depsTest := method(BFakePack test and CFakePack test)
+    test := method(true)
+
+    depsTest := method(BFakePack Test test and CFakePack Test test)
+
+)
