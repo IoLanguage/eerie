@@ -1,3 +1,4 @@
+test.io
 ./_packs/
 ./_tmp/
 ./tests/deleteme
@@ -8,6 +9,7 @@ __install_path
 _backup/
 _bin/
 _build/
+_packs/
 db/
 docs
 iolang/

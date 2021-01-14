@@ -114,7 +114,4 @@ Eerie do (
 
 )
 
-# to prevent conflicts issues if there's another Eerie
-Lobby prependProto(Eerie)
-
 Eerie clone = Eerie do (init)

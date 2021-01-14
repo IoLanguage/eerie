@@ -305,6 +305,8 @@ Package := Object clone do (
     The context will have slot `package`, which is the package loaded in this
     context.*/
     load := method(parentCtx, _cache, _topParent,
+        self _checkLoaded(parentCtx)
+
         _topParent = _topParent ifNilEval(self)
         _cache = _cache ifNilEval(Map clone)
 
@@ -316,22 +318,36 @@ Package := Object clone do (
 
         if (self recursive or isCached, return)
 
-        # They did it for AddonLoader "to avoid loops when a addon file refs
-        # another before it's loaded"
-		Importer addSearchPath(self struct io path) 
-
         self _loadDeps(ctx, _cache, _topParent)
 
         self _loadDynLib(ctx)
 
-        self _loadIoFiles(ctx)
+        self _loadIoFiles(ctx))
 
-		Importer removeSearchPath(self struct io path))
+    _checkLoaded := method(ctx,
+        if (self isLoaded(ctx), 
+            Exception raise(
+                AlreadyLoadedError withArgs(
+                    self struct manifest name,
+                    self struct manifest version asSeq))))
+
+    /*doc Package isLoaded(ctx) 
+    Check if the package already loaded in the `ctx` (`Lobby` if nil).
+
+    Returns boolean.*/
+    isLoaded := method(ctx,
+        ctx = ctx ifNilEval(Lobby)
+
+        slot := ctx getSlot(self struct manifest name)
+
+        if (slot isNil or slot hasSlot("package") not, return false)
+
+        slot package struct manifest version == self struct manifest version)
 
     _initContext := method(parentCtx,
-        ctx := Object shallowCopy
+        ctx := Object clone
         ctx package := self
-        ctx Object = ctx
+        ctx Object := ctx
         parentCtx = parentCtx ifNilEval(Lobby)
         parentCtx setSlot(self struct manifest name, ctx)
         ctx type = self struct manifest name
@@ -367,7 +383,8 @@ Package := Object clone do (
     _checkCompiled := method(
         if (self struct hasNativeCode and \
             File with(self struct dllPath) exists not,
-            Exception raise(NotCompiledError withArgs(self struct manifest name))))
+            Exception raise(
+                NotCompiledError withArgs(self struct manifest name))))
 
     _loadIoFiles := method(ctx,
 		self struct io files foreach(file, ctx doFile(file path)))
@@ -444,6 +461,9 @@ Package do (
     NotCompiledError := Error clone setErrorMsg(
         "The package '#{call evalArgAt(0)}' is not compiled.")
 
-)
+    //doc Package AlreadyLoadedError
+    AlreadyLoadedError := Error clone setErrorMsg(
+        "The package #{call evalArgAt(0)} v#{call evalArgAt(1)} " ..
+        "is already loaded in this context.")
 
-Object removeSlot("Ctx")
+)

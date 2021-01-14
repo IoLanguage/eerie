@@ -14,14 +14,6 @@
     ],
     "packs": [
         {
-            "name": "Docio",
-            "version": "0.1"
-        },
-        {
-            "name": "Kano",
-            "version": "0.1"
-        },
-        {
             "name": "Rainbow",
             "version": "0.1"
         }

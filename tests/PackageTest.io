@@ -85,8 +85,16 @@ PackageTest := UnitTest clone do (
         assertEquals(e error type, Package MissingDependenciesError type)
         package install
 
+        assertFalse(package isLoaded)
+
         ctx := Object clone
+        assertFalse(package isLoaded(ctx))
         package load(ctx)
+
+        assertTrue(package isLoaded(ctx))
+
+        e := try (package load(ctx))
+        assertEquals(e error type, Package AlreadyLoadedError type)
 
         assertFalse(ctx AFakePack isNil)
         assertFalse(ctx AFakePack hasSlot("DFakePack"))

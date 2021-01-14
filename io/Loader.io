@@ -11,16 +11,25 @@ Loader := Object clone do (
     //doc Loader load Load Eerie and packages.
     load := method(
         ctx := Object clone
+        ctx Object := ctx
         ctx do (
-            cwd := Directory currentWorkingDirectory
-            doRelativeFile("A1_Extensions.io")
-            # Importer brings protos to the global context, so we can't use it
-            # Importer addSearchPath("io")
+            doRelativeFile("Extensions.io")
+            doRelativeFile("SemVer.io")
             doRelativeFile("Eerie.io")
+            doRelativeFile("Database.io")
             doRelativeFile("Package.io")
-            Package global load
-            # Importer removeSearchPath("io")
-            if (Eerie Package Structure isPackage(Directory with(cwd)), 
-                Package with(cwd))))
+            Package global load)
+
+        cwd := Directory currentWorkingDirectory
+
+        # checking if cwd is Eerie to prevent from loading it twice
+        #
+        # EERIDIR value may be different from Directory path, so we use
+        # initialized root Directory of the global package instead of 
+        # Eerie root
+        if (Eerie Package global struct root path == cwd, return)
+
+        if (Eerie Package Structure isPackage(Directory with(cwd)), 
+            Eerie Package with(cwd) load))
 
 )

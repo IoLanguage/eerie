@@ -43,7 +43,8 @@ SemVer := Object clone do(
         res := self clone
         res originalSeq = verSeq
         spl := self _stripWord(verSeq) split("-")
-        if(spl isEmpty or spl size > 2, Exception raise(NotRecognisedError)) 
+        if(spl isEmpty or spl size > 2, 
+            Exception raise(NotRecognisedError withArgs(verSeq))) 
 
         res _parseNormal(spl at(0))
 
@@ -55,14 +56,14 @@ SemVer := Object clone do(
         index := seq asLowercase findSeqs(
             list("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "alpha",
                 "beta", "rc"))
-        if (index isNil, Exception raise(NotRecognisedError))
+        if (index isNil, Exception raise(NotRecognisedError withArgs(seq)))
         seq splitAt(index index) at(1))
 
     # Parse A.B.C
     _parseNormal := method(verSeq,
         spl := verSeq split(".")
         if(spl isEmpty or spl at(0) ?asNumber ?isNan or spl size > 3,
-            Exception raise(NotRecognisedError)) 
+            Exception raise(NotRecognisedError withArgs(verSeq))) 
 
         self major = spl at(0) asNumber
         self minor = spl at(1) ?asNumber
@@ -73,7 +74,7 @@ SemVer := Object clone do(
         if(self patch isNil, Exception raise(IlligibleVersioningError))
 
         spl := verSeq split(".")
-        if(spl isEmpty, Exception raise(NotRecognisedError)) 
+        if(spl isEmpty, Exception raise(NotRecognisedError withArgs(verSeq))) 
 
         st := spl at(0) asUppercase
         legal := list("ALPHA", "BETA", "RC")
@@ -236,8 +237,9 @@ SemVer do (
 
     IsNilError := Error with("Version can not be initialized from 'nil'.")
 
-    NotRecognisedError := Error with(
-        "The sequence is not recognised as semantic version.")
+    NotRecognisedError := Error clone setErrorMsg(
+        "The sequence '#{call evalArgAt(0)}' " ..
+        "is not recognised as semantic version.")
 
     ParsePreError := Error with("The pre-release status is either 'alpha', " ..
         "'beta' or 'rc' and optinaly contains version number after '.' symbol.")
