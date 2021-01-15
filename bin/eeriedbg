@@ -1,53 +1,77 @@
 #!/usr/bin/env io
 
-CLI := Object clone do (
+Debugger do (
 
     previousLine := -1
 
     previousLabel := ""
 
+    vmWillSendMessage := method(
+        file := File with(self message label)
+
+        if (file exists not, return) 
+
+        # it should be separated from the previous statement, because there's
+        # possible a "step in" into native code, which is unavailable as a file
+        # and we should skip it, but we consider that we still inside the same
+        # file
+        if (self _shouldSkip,
+            self _updatePrevious
+            return)
+
+        self _printHeader
+
+        self _updatePrevious
+
+        file contents split("\n") at(self previousLine - 1) println
+
+        self _prompt)
+
+    _shouldSkip := method(
+        return (self previousLine == self message lineNumber and \
+            self previousLabel == self message label))
+
+    _updatePrevious := method(
+        self previousLine = self message lineNumber
+        self previousLabel = self message label)
+
+    _printHeader := method(
+        if (self message label != self previousLabel, 
+            ("\n------------- #{self message label}:" ..
+                "#{self message lineNumber}\n") interpolate println))
+
+    _prompt := method(
+        stream := File standardInput
+
+        answer := "-"
+        while (answer isEmpty not,
+            answer = stream readLine("> ")
+            if (answer isNil, System exit)
+            self messageSelf doString(answer)))
+
+
+)
+
+CLI := Object clone do (
+
     run := method(
         if (System args size < 2, 
             File standardError write("Error: file ins't specified\n")
-            exit 1)
+            System exit(1))
 
         file := File with(Path absolute(System args at(1)))
 
         if (file exists not, 
             File standardError write(
                 "Error: file #{file path} doesn't exist\n" interpolate)
-            exit 1)
+            System exit(1))
+
+        "Start debugging #{file path}." interpolate println
+        "Enter to execute next message." println
+        "Ctrl-D or Ctrl-C to stop." println
 
         Lobby doFile(file path))
 
 )
-
-Debugger vmWillSendMessage := method(
-    file := File with(self message label)
-
-    if (file exists not, return)
-
-    if (CLI previousLine == self message lineNumber and \
-        CLI previousLabel == self message label, 
-        CLI previousLine = self message lineNumber
-        CLI previousLabel = self message label
-        return)
-
-    if (self message label != CLI previousLabel, 
-        ("\n------------- #{self message label}:" ..
-            "#{self message lineNumber}\n") interpolate println)
-
-    CLI previousLine = self message lineNumber
-    CLI previousLabel = self message label
-
-    file contents split("\n") at(CLI previousLine - 1) print
-
-    stream := File standardInput
-
-    answer := "-"
-    while (answer isEmpty not,
-        answer = stream readLine("\n> ")
-        if (answer isNil, System exit)
-        self messageSelf doString(answer)))
 
 CLI run
