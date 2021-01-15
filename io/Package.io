@@ -70,6 +70,7 @@ Package := Object clone do (
     Raises `Package NotPackageError` if the directory is not an Eerie package.
     Use this to initialize a `Package`.*/
     with := method(path, parent,
+        path = Path absolute(path)
         klone := self clone
         klone _checkIsPackage(Directory with(path))
         klone struct := Structure with(path)
@@ -106,8 +107,8 @@ Package := Object clone do (
         ancestor := self _ancestor(dep name, version)
 
         package := if (ancestor isNil not, 
-            Package initRecursive(ancestor, self),
-            Package with(packDir path, self) rebuildChildren(topParent))
+            self initRecursive(ancestor, self),
+            self with(packDir path, self) rebuildChildren(topParent))
 
         self addChild(package))
 
@@ -221,6 +222,7 @@ Package := Object clone do (
         gitignore create
         gitignore setContents(
             ".DS_Store\n" .. 
+            ".transaction_lock\n" .. 
             "_bin\n" ..
             "_build\n" ..
             "_packs"))
@@ -345,12 +347,15 @@ Package := Object clone do (
         slot package struct manifest version == self struct manifest version)
 
     _initContext := method(parentCtx,
-        ctx := Object clone
+        ctx := Lobby Object clone
         ctx package := self
         ctx Object := ctx
-        parentCtx = parentCtx ifNilEval(Lobby)
-        parentCtx setSlot(self struct manifest name, ctx)
         ctx type = self struct manifest name
+        if (parentCtx isNil not, 
+            parentCtx Protos := Protos clone)
+        parentCtx = parentCtx ifNilEval(Lobby)
+        parentCtx Protos appendProto(ctx)
+        parentCtx setSlot(self struct manifest name, ctx)
         ctx)
 
     _loadCache := method(cache, parentCtx, ctx,

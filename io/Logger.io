@@ -13,7 +13,7 @@ Logger log("[[red;Hello, [[bold;World")
 Logger := Object clone do (
 
     # make it compatible with the old addon system
-    Rainbow := if (hasSlot("Rainbow") and getSlot("Rainbow") hasSlot("Rainbow"), 
+    Rainbow = if (hasSlot("Rainbow") and getSlot("Rainbow") hasSlot("Rainbow"), 
         Rainbow Rainbow,
         Rainbow)
 

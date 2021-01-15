@@ -5,7 +5,7 @@
 # downloader, which will download the file via URL and then locally detect which
 # downloader we should use next.
 
-ArchiveDownloader := Eerie Downloader clone do (
+ArchiveDownloader := Downloader clone do (
 
     formats := Object clone do (
         doRelativeFile("archives/targz.io")

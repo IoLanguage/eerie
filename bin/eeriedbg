@@ -2,9 +2,13 @@
 
 Debugger do (
 
+    _isDebugging := true
+
     _previousLine := -1
 
     _previousLabel := ""
+
+    _continue := false
 
     vmWillSendMessage := method(
         file := File with(self message label)
@@ -25,6 +29,8 @@ Debugger do (
 
         file contents split("\n") at(self _previousLine - 1) println
 
+        if (self _continue, return)
+
         self _prompt)
 
     _shouldSkip := method(
@@ -37,7 +43,7 @@ Debugger do (
 
     _printHeader := method(
         if (self message label != self _previousLabel, 
-            ("\n------------- #{self message label}:" ..
+            ("\n------------ #{self message label}:" ..
                 "#{self message lineNumber}\n") interpolate println))
 
     _prompt := method(
@@ -46,7 +52,11 @@ Debugger do (
         answer := "-"
         while (answer isEmpty not,
             answer = stream readLine("> ")
-            if (answer isNil, System exit)
+            if (answer isNil) then (
+                System exit
+            ) elseif (answer == ":continue") then (
+                self _continue = true
+                return)
             self messageSelf doString(answer)))
 
 )
@@ -66,9 +76,15 @@ CLI := Object clone do (
             System exit(1))
 
         "Start debugging #{file path}." interpolate println
-        "Enter to execute next message." println
+        "Press Enter to execute next message." println
         "Ctrl-D or Ctrl-C to stop." println
+        ("You can execute Io code in the prompt (i.e. after '>' symbol).\n" ..
+            "The code is executed in the context of the current " .. 
+            "message.") println
+        ("Enter ':continue' to continue program execution until the next " .. 
+            "breakpoint.") println
 
+        # in case the file parses arguments too
         System args = System args slice(1)
 
         Lobby doFile(file path))

@@ -104,6 +104,14 @@ Eerie := Object clone do (
         Package global struct build root remove
         Package global install)
 
+    /*doc Eerie dbg 
+    When run in the debugger, pauses debugger after this message. Does nothing
+    when run normally.*/
+    dbg := method(
+        if (Debugger hasSlot("_isDebugging") and Debugger _isDebugging, 
+            Debugger _continue = false
+            Coroutine currentCoroutine setMessageDebugging(true)))
+
 )
 
 Eerie do (

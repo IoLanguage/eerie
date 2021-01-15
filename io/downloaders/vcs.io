@@ -1,4 +1,4 @@
-VcsDownloader := Eerie Downloader clone do (
+VcsDownloader := Downloader clone do (
 
     _vcs := Object clone do (
         doRelativeFile("vcs/git.io")

@@ -24,8 +24,10 @@ CommandTest := UnitTest clone do (
 
         assertEquals(expected, command _definesFlags) 
 
-        expected = "tests/_packs/AFakePack/_build/objs/test.o " .. \
-            "tests/_packs/AFakePack/source/test.c"
+        expected = (
+        "#{Path absolute(\"tests/_packs/AFakePack/_build/objs/test.o\")} " .. \
+            "#{Path absolute(\"tests/_packs/AFakePack/source/test.c\")}") \
+                interpolate
 
         assertTrue(command asSeq endsWithSeq(expected)))
 
