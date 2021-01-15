@@ -69,6 +69,8 @@ CLI := Object clone do (
         "Enter to execute next message." println
         "Ctrl-D or Ctrl-C to stop." println
 
+        System args = System args slice(1)
+
         Lobby doFile(file path))
 
 )

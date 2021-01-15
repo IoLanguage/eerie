@@ -15,6 +15,7 @@ LoaderTest := UnitTest clone do (
         assertTrue(ctx Eerie hasSlot("Rainbow"))
         assertTrue(ctx Eerie Rainbow hasSlot("Rainbow"))
 
+        # Coroutine currentCoroutine setMessageDebugging(true)
         # the issue, which was introduced by doRelativeFile in Loader load
         assertFalse(ctx Eerie Rainbow hasSlot("SemVer"))
         assertFalse(ctx Eerie Rainbow hasSlot("Eerie"))
