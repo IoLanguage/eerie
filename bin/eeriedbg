@@ -1,0 +1,52 @@
+#!/usr/bin/env io
+
+CLI := Object clone do (
+
+    previousLine := -1
+
+    previousLabel := ""
+
+    Debugger vmWillSendMessage := method(
+        file := File with(self message label)
+
+        if (file exists not, return)
+
+        if (CLI previousLine == self message lineNumber and \
+            CLI previousLabel == self message label, 
+            CLI previousLine = self message lineNumber
+            CLI previousLabel = self message label
+            return)
+
+        if (self message label != CLI previousLabel, 
+            ("\n------------- #{self message label}:" ..
+                "#{self message lineNumber}\n") interpolate println)
+
+        CLI previousLine = self message lineNumber
+        CLI previousLabel = self message label
+
+        file contents split("\n") at(CLI previousLine - 1) print
+
+        stream := File standardInput
+
+        answer := "-"
+        while (answer isEmpty not,
+            answer = stream readLine("\n> ")
+            self messageSelf doString(answer)))
+
+    run := method(
+        if (System args size < 2, 
+            File standardError write("Error: file ins't specified\n")
+            exit 1)
+
+        file := File with(Path absolute(System args at(1)))
+
+        if (file exists not, 
+            File standardError write(
+                "Error: file #{file path} doesn't exist\n" interpolate)
+            exit 1)
+
+        Lobby doFile(file path))
+
+)
+
+CLI run
