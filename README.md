@@ -38,6 +38,7 @@ To run the tests you should be inside the source root directory. Then:
 
 ```shell
 $ io tests/run.io
+$ io tests/loader.io
 ```
 
 
