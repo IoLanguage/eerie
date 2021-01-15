@@ -8,17 +8,23 @@ is set.*/
 
 Loader := Object clone do (
 
-    //doc Loader load Load Eerie and packages.
-    load := method(
+    /*doc Loader load(context) 
+    Loads Eerie, global packages and package in the current working directory
+    (if it's a package).
+
+    The `context` argument is an optional context in which the packages should
+    be loaded.*/
+    load := method(context,
         ctx := Object clone
         ctx Object := ctx
+        ctx context := context
         ctx do (
             doRelativeFile("Extensions.io")
             doRelativeFile("SemVer.io")
             doRelativeFile("Eerie.io")
             doRelativeFile("Database.io")
             doRelativeFile("Package.io")
-            Package global load)
+            Package global load(context))
 
         cwd := Directory currentWorkingDirectory
 
@@ -30,6 +36,6 @@ Loader := Object clone do (
         if (Eerie Package global struct root path == cwd, return)
 
         if (Eerie Package Structure isPackage(Directory with(cwd)), 
-            Eerie Package with(cwd) load))
+            Eerie Package with(cwd) load(context)))
 
 )

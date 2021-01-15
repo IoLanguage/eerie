@@ -2,9 +2,9 @@
 
 Debugger do (
 
-    previousLine := -1
+    _previousLine := -1
 
-    previousLabel := ""
+    _previousLabel := ""
 
     vmWillSendMessage := method(
         file := File with(self message label)
@@ -23,20 +23,20 @@ Debugger do (
 
         self _updatePrevious
 
-        file contents split("\n") at(self previousLine - 1) println
+        file contents split("\n") at(self _previousLine - 1) println
 
         self _prompt)
 
     _shouldSkip := method(
-        return (self previousLine == self message lineNumber and \
-            self previousLabel == self message label))
+        return (self _previousLine == self message lineNumber and \
+            self _previousLabel == self message label))
 
     _updatePrevious := method(
-        self previousLine = self message lineNumber
-        self previousLabel = self message label)
+        self _previousLine = self message lineNumber
+        self _previousLabel = self message label)
 
     _printHeader := method(
-        if (self message label != self previousLabel, 
+        if (self message label != self _previousLabel, 
             ("\n------------- #{self message label}:" ..
                 "#{self message lineNumber}\n") interpolate println))
 
@@ -48,7 +48,6 @@ Debugger do (
             answer = stream readLine("> ")
             if (answer isNil, System exit)
             self messageSelf doString(answer)))
-
 
 )
 
