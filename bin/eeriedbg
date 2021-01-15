@@ -6,33 +6,6 @@ CLI := Object clone do (
 
     previousLabel := ""
 
-    Debugger vmWillSendMessage := method(
-        file := File with(self message label)
-
-        if (file exists not, return)
-
-        if (CLI previousLine == self message lineNumber and \
-            CLI previousLabel == self message label, 
-            CLI previousLine = self message lineNumber
-            CLI previousLabel = self message label
-            return)
-
-        if (self message label != CLI previousLabel, 
-            ("\n------------- #{self message label}:" ..
-                "#{self message lineNumber}\n") interpolate println)
-
-        CLI previousLine = self message lineNumber
-        CLI previousLabel = self message label
-
-        file contents split("\n") at(CLI previousLine - 1) print
-
-        stream := File standardInput
-
-        answer := "-"
-        while (answer isEmpty not,
-            answer = stream readLine("\n> ")
-            self messageSelf doString(answer)))
-
     run := method(
         if (System args size < 2, 
             File standardError write("Error: file ins't specified\n")
@@ -48,5 +21,33 @@ CLI := Object clone do (
         Lobby doFile(file path))
 
 )
+
+Debugger vmWillSendMessage := method(
+    file := File with(self message label)
+
+    if (file exists not, return)
+
+    if (CLI previousLine == self message lineNumber and \
+        CLI previousLabel == self message label, 
+        CLI previousLine = self message lineNumber
+        CLI previousLabel = self message label
+        return)
+
+    if (self message label != CLI previousLabel, 
+        ("\n------------- #{self message label}:" ..
+            "#{self message lineNumber}\n") interpolate println)
+
+    CLI previousLine = self message lineNumber
+    CLI previousLabel = self message label
+
+    file contents split("\n") at(CLI previousLine - 1) print
+
+    stream := File standardInput
+
+    answer := "-"
+    while (answer isEmpty not,
+        answer = stream readLine("\n> ")
+        if (answer isNil, System exit)
+        self messageSelf doString(answer)))
 
 CLI run
