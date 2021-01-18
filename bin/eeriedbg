@@ -57,7 +57,7 @@ Debugger do (
             ) elseif (answer == ":continue") then (
                 self _continue = true
                 return)
-            self messageSelf doString(answer)))
+            try (self messageSelf doString(answer)) ?showStack))
 
 )
 
