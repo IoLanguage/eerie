@@ -26,7 +26,10 @@ LoaderTest := UnitTest clone do (
         assertFalse(ctx Eerie Rainbow hasSlot("SemVer"))
         assertFalse(ctx Eerie Rainbow hasSlot("Eerie"))
         assertFalse(ctx Eerie Rainbow hasSlot("Database"))
-        assertFalse(ctx Eerie Rainbow hasSlot("Package")))
+        assertFalse(ctx Eerie Rainbow hasSlot("Package"))
+
+        Loader unload(ctx)
+        assertFalse(ctx hasSlot("Eerie")))
 
 )
 

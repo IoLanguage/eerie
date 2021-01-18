@@ -40,4 +40,26 @@ Loader := Object clone do (
         if (context Eerie Package Structure isPackage(Directory with(cwd)), 
             context Eerie Package with(cwd) load(context)))
 
+    /*doc Loader unload(context) 
+    Unload Eerie and the current package.
+
+    The `context` is optional. The method will use `Lobby`, if it isn't
+    specified.*/
+    unload := method(context,
+        context = context ifNilEval(Lobby)
+
+        if (context hasSlot("Eerie") not, return)
+
+        cwd := Directory currentWorkingDirectory
+        
+        if (context Eerie Package global struct root path == cwd not, 
+            self _unloadCurrentPackage(context))
+
+        context removeSlot("Eerie"))
+
+    _unloadCurrentPackage := method(context,
+        if (context Eerie Package Structure isPackage(Directory with(cwd)), 
+            package := context Eerie Package with(cwd)
+            context removeSlot(package struct manifest name)))
+
 )
