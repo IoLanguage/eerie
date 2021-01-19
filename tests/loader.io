@@ -21,6 +21,12 @@ LoaderTest := UnitTest clone do (
         assertTrue(ctx Eerie hasSlot("Package"))
         assertTrue(ctx Eerie hasSlot("Rainbow"))
         assertTrue(ctx Eerie Rainbow hasSlot("Rainbow"))
+        assertTrue(ctx Eerie Error hasSlot("withArgs"))
+        assertTrue(ctx Eerie System hasSlot("sh"))
+
+        # extensions shouldn't be available globally by default
+        assertFalse(Error hasSlot("withArgs"))
+        assertFalse(System hasSlot("sh"))
 
         # the issue, which was introduced by doRelativeFile in Loader load
         assertFalse(ctx Eerie Rainbow hasSlot("SemVer"))
