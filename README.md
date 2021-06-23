@@ -2,11 +2,19 @@
 
 Eerie is a package manager for Io. That means it's a program and a package
 itself, which helps you to distribute your projects easier. It manages a
-projects dependencies: installs them, updates them, helps you reviewing
+project's dependencies: installs them, updates them, helps you reviewing
 dependencies etc.
 
 It can handle packages hosted locally (i.e. a directory) and on the server. When
 it's on the server, it can be a git repository or a downloadable archive.
+
+- [Installing](#installing)
+    - [Installing Manually](#installing-manually)
+- [Uninstalling](#uninstalling)
+- [Updating](#updating)
+- [Environments](#environments)
+- [Packages](#packages)
+- [Packages With C Code](#packages-with-c-code)
 
 
 
