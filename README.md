@@ -27,7 +27,7 @@ you instead getting something like:
 zsh: command not found: eerie
 ```
 
-Follow the instruction in [Installing Manually].
+Follow the instruction in [Installing Manually](#installing-manually).
 
 
 ### Installing Manually
