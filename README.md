@@ -110,12 +110,20 @@ you wish. It's recommended to create an environment for each project.
 
 Eerie has next commands to work with environments:
 
-- `eerie env:active` - print the name of the current environment;
-- `eerie env:list` (or `eerie envs`) - list available environments;
-- `eerie env:create <name>` - create a new environment;
-- `eerie env:activate <name>` (or `eerie activate <name>`) - activate the
-  environment with the given name;
-- `eerie env:remove <name>` - remove the environment with the given name.
+- `eerie env:active`
+  print the name of the current environment;
+  
+- `eerie env:list` (or `eerie envs`) 
+  list available environments;
+
+- `eerie env:create <name>` 
+  create a new environment;
+
+- `eerie env:activate <name>` (or `eerie activate <name>`)
+  activate the environment with the given name;
+
+- `eerie env:remove <name>`
+  remove the environment with the given name.
 
 
 
@@ -240,7 +248,7 @@ Basically, except of the package code itself, you need a `build.io` file in
 which you can rewrite `AddonBuilder` to represent a receipt for your package.
 Here is the contents of `build.io` of the **NullAddon**:
 
-```
+```Io
 # This clone is _required_ for the build process to function correctly.
 # However, it doesn't actually have to do anything at all.  Therefore,
 # I've commented out the stuff that you'd normally see, since it really
